@@ -8,25 +8,33 @@ USE wolfBlog;
 CREATE TABLE IF NOT EXISTS admins
 (
     id      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '管理员 ID',
-    user_id BIGINT NOT NULL COMMENT '用户 ID',
-    auth_id BIGINT NOT NULL COMMENT '权限 ID'
+    user_id BIGINT       NOT NULL COMMENT '用户 ID',
+    `name`  VARCHAR(255) NOT NULL COMMENT '管理员名称'
 ) AUTO_INCREMENT 10000 COMMENT '管理员表';
 
 
 
+CREATE TABLE IF NOT EXISTS admin_authority
+(
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '权限 ID',
+    admin_id     BIGINT NOT NULL COMMENT '管理员 ID',
+    authority_id INT    NOT NULL COMMENT '权限 ID'
+) AUTO_INCREMENT 1 COMMENT '管理员权限表';
+
+
 CREATE TABLE IF NOT EXISTS authority
 (
-    id        BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '权限 ID',
-    admin_id  BIGINT       NOT NULL COMMENT '管理员 ID',
-    authority VARCHAR(255) NOT NULL COMMENT '管理员权限\n user - 用户\n blog - 文章\n all - 全部'
+    id              INT PRIMARY KEY AUTO_INCREMENT COMMENT '权限 ID',
+    permission_code VARCHAR(255) NOT NULL COMMENT '权限代号',
+    permission_name VARCHAR(255) NOT NULL COMMENT '权限名称'
 ) AUTO_INCREMENT 1 COMMENT '权限表';
+
 
 
 CREATE TABLE IF NOT EXISTS `users`
 (
     id              BIGINT PRIMARY KEY COMMENT '用户 ID',
     username        VARCHAR(255) NOT NULL COMMENT '用户名',
-    is_enabled      TINYINT      NOT NULL DEFAULT 1 COMMENT '是否启用',
     `account`       VARCHAR(255) NOT NULL COMMENT '账号',
     avatar          TEXT COMMENT '头像 URL',
     personal_status VARCHAR(255) COMMENT '个性签名',
@@ -40,8 +48,10 @@ CREATE TABLE IF NOT EXISTS `users`
 CREATE TABLE IF NOT EXISTS user_auth
 (
     id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户 ID',
-    `password` VARCHAR(255) NOT NULL COMMENT '用户密码'
-) AUTO_INCREMENT 10000 COMMENT '用户密码表';
+    `password` VARCHAR(255) NOT NULL COMMENT '用户密码',
+    is_enabled TINYINT      NOT NULL DEFAULT 1 COMMENT '是否启用\n0 - 否\n1 - 是',
+    is_deleted TINYINT      NOT NULL DEFAULT 0 COMMENT '是否删除\n0 - 否\n 1 - 是'
+) AUTO_INCREMENT 10000 COMMENT '用户认证表';
 
 
 
