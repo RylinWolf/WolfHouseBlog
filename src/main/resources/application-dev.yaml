@@ -1,3 +1,5 @@
 custom:
   date:
-    obj: yyyy-MM-dd HH:mm:ss
+    datetime: yyyy-MM-dd HH:mm:ss
+    time: HH:mm:ss
+    date: yyyy-MM-dd

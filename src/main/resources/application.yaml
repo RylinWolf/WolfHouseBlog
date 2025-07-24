@@ -19,4 +19,6 @@ knife4j:
 
 custom:
   date:
-    obj: ${custom.date.obj}
+    datetime: ${custom.date.obj}
+    date: ${custom.date.date}
+    time: ${custom.date.time}
