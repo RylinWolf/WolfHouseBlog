@@ -7,4 +7,6 @@ public class HttpCodeConstant {
     public static final String SUCCESS = "SUCCESS";
     public static final String FAILED = "FAILED";
     public static final String UN_LOGIN = "UN_LOGIN";
+    public static final String ACCESS_DENIED = "ACCESS_DENIED";
+    public static final String METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED";
 }

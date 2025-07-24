@@ -16,8 +16,8 @@ public class SecurityConstant {
             "/swagger-ui.html",
             "/webjars/**",
             "/swagger-resources/**",
-            "/v3/**",
-            "/swagger-ui/**"
+            "/swagger-ui/**",
+            "/v3/**"
     };
 
     public static final String[] STATIC_LOCATION_WHITELIST = {
