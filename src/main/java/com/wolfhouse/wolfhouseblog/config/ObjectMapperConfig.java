@@ -4,10 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
+import com.wolfhouse.wolfhouseblog.common.utils.JacksonObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.openapitools.jackson.nullable.JsonNullableModule;
+import org.springframework.boot.jackson.JsonMixinModuleEntries;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.text.SimpleDateFormat;
 
@@ -18,8 +21,10 @@ import java.text.SimpleDateFormat;
 @RequiredArgsConstructor
 public class ObjectMapperConfig {
     private final DateProperties dateProperties;
+    private final JsonMixinModuleEntries jsonMixinModuleEntries;
 
     @Bean(name = "defaultObjectMapper")
+    @Primary
     public ObjectMapper defaultObjectMapper() {
         return getDefault();
     }
@@ -31,12 +36,12 @@ public class ObjectMapperConfig {
         mapper.registerModule(new JsonNullableModule());
         return mapper;
     }
-    
+
     private ObjectMapper getDefault() {
-        ObjectMapper mapper = new ObjectMapper();
-        // 配置日期
+        ObjectMapper mapper = new JacksonObjectMapper(dateProperties);
+        // 配置日期格式
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.setDateFormat(new SimpleDateFormat(dateProperties.obj()));
+        mapper.setDateFormat(new SimpleDateFormat(dateProperties.datetime()));
         return mapper;
     }
 }
