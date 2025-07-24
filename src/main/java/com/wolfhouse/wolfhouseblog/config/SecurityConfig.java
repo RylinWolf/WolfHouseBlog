@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
  * @author linexsong
@@ -18,11 +19,16 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationEntryPoint authenticationEntryPoint,
+                                                   AccessDeniedHandler deniedHandler)
             throws Exception {
         http.formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
+            // 关闭 CSRF 保护
+            .csrf(AbstractHttpConfigurer::disable)
+            // 访问权限
             .authorizeHttpRequests(a -> {
                 a.requestMatchers(SecurityConstant.STATIC_PATH_WHITELIST)
                  .permitAll();
@@ -33,7 +39,9 @@ public class SecurityConfig {
                 a.anyRequest()
                  .authenticated();
             })
-            .exceptionHandling((e) -> e.authenticationEntryPoint(authenticationEntryPoint));
+            // 异常处理器
+            .exceptionHandling((e) -> e.authenticationEntryPoint(authenticationEntryPoint)
+                                       .accessDeniedHandler(deniedHandler));
         return http.build();
     }
 
