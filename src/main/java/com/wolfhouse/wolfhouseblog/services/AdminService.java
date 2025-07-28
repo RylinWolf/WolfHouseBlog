@@ -16,7 +16,7 @@ public interface AdminService {
      * @param userId 用户 ID
      * @return 是否为管理员
      */
-    Boolean isAdmin(Long userId);
+    Boolean isUserAdmin(Long userId);
 
     /**
      * 通过管理员 ID 获取管理员信息
