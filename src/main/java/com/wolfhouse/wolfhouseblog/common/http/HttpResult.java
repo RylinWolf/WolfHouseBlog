@@ -37,19 +37,27 @@ public class HttpResult<T> implements Serializable {
                          .build();
     }
 
-    public static HttpResult<?> failed() {
+    public static <T> HttpResult<T> failed() {
         return HttpResult.failed(null);
     }
 
-    public static HttpResult<?> failed(String msg) {
+    public static <T> HttpResult<T> failed(String msg) {
         return HttpResult.failed(HttpCodeConstant.FAILED, msg);
     }
 
-    public static HttpResult<?> failed(String code, String msg) {
-        return HttpResult.builder()
+    public static <T> HttpResult<T> failed(String code, String msg) {
+        return HttpResult.<T>builder()
                          .success(false)
                          .code(code)
                          .message(msg)
+                         .build();
+    }
+
+    public static <T> HttpResult<T> failed(String code, String msg, T data) {
+        return HttpResult.<T>builder()
+                         .code(code)
+                         .message(msg)
+                         .data(data)
                          .build();
     }
 }
