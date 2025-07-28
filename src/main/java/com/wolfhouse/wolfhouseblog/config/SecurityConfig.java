@@ -32,8 +32,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> {
                 a.requestMatchers(SecurityConstant.STATIC_PATH_WHITELIST)
                  .permitAll();
-                a.requestMatchers(
-                         "/user/login", "/user/register", "/webjars/**")
+                a.requestMatchers(SecurityConstant.PUBLIC_URLS)
+                 .permitAll();
+                a.requestMatchers("/webjars/**")
                  .permitAll();
 
                 a.anyRequest()
