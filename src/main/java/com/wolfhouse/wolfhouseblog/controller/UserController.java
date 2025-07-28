@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
@@ -39,6 +40,7 @@ public class UserController {
     private final UserAuthService authService;
     private final AuthenticationManager authManager;
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @Operation(summary = "登陆")
     @PostMapping("/login")
@@ -49,9 +51,10 @@ public class UserController {
                     dto.getPassword()));
             log.info("用户[{}]登陆，状态: {}", auth.getPrincipal(), auth.isAuthenticated());
             return ResponseEntity.ok()
-                                 .body(HttpResult.success(UserLoginVo.token("123")));
+                                 .body(HttpResult.success(UserLoginVo.token(jwtUtil.getToken(auth))));
 
         } catch (AuthenticationException e) {
+            // 验证失败
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
                                  .body(HttpResult.failed(
                                          HttpCodeConstant.AUTH_FAILED,

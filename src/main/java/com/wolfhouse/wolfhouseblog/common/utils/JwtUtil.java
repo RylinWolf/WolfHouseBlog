@@ -8,15 +8,16 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
  * @author linexsong
  */
 @RequiredArgsConstructor
+@Component
 public class JwtUtil {
     private final JwtProperties properties;
 
@@ -35,13 +36,10 @@ public class JwtUtil {
      */
     public String getToken(Authentication authentication) {
         String name = authentication.getName();
-        Date date = Date.from(LocalDateTime.now()
-                                           .plusSeconds(properties.expiration() / 1000)
-                                           .toInstant(null));
 
         return Jwts.builder()
                    .setSubject(name)
-                   .setExpiration(date)
+                   .setExpiration(new Date(System.currentTimeMillis() + properties.expiration()))
                    .signWith(key(), SignatureAlgorithm.HS256)
                    .compact();
     }
@@ -50,13 +48,11 @@ public class JwtUtil {
         return Jwts.parserBuilder()
                    .setSigningKey(key())
                    .build()
-                   .parseClaimsJwt(token)
+                   .parseClaimsJws(token)
                    .getBody();
     }
 
     public String getUsername(String token) {
         return parseToken(token).getSubject();
     }
-
-
 }
