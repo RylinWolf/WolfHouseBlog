@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <mybatis-flex.version>1.11.0</mybatis-flex.version>
     </properties>
     <dependencies>
         <dependency>
@@ -73,7 +74,7 @@
         <dependency>
             <groupId>com.mybatis-flex</groupId>
             <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
-            <version>1.11.0</version>
+            <version>${mybatis-flex.version}</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -119,6 +120,12 @@
             <version>4.5.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+
 
     </dependencies>
 
@@ -136,6 +143,7 @@
                         <path>
                             <groupId>com.mybatis-flex</groupId>
                             <artifactId>mybatis-flex-processor</artifactId>
+                            <version>${mybatis-flex.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
