@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -39,34 +38,27 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         Optional<User> userO = userService.findByAccountOrEmail(accountOrEmail);
         var user = userO.orElseThrow(() -> new UsernameNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
-        // 编码密码
-        String encodedPassword = encode(
-                authentication.getCredentials()
-                              .toString(), bCryptPasswordEncoder);
-
+        String password = authentication.getCredentials()
+                                        .toString();
         // 验证用户密码
-        Boolean isVerified = authService.verifyPassword(encodedPassword, user.getId());
+        Boolean isVerified = authService.verifyPassword(password, user.getId());
 
         if (!isVerified) {
             throw new AuthenticationCredentialsNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED);
         }
 
         // 获取权限
-        List<Authority> authentications = Collections.emptyList();
+        List<Authority> authorities = Collections.emptyList();
         var userId = user.getId();
-        if (adminService.isAdmin(userId)) {
-            authentications = adminService.getAuthorities(userId);
+        if (adminService.isUserAdmin(userId)) {
+            authorities = adminService.getAuthorities(userId);
         }
 
-        return new UsernamePasswordAuthenticationToken(accountOrEmail, encodedPassword, authentications);
+        return new UsernamePasswordAuthenticationToken(accountOrEmail, password, authorities);
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-    }
-
-    private String encode(String password, PasswordEncoder encoder) {
-        return encoder.encode(password);
     }
 }
