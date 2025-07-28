@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `users`
     phone           VARCHAR(15) COMMENT '手机号',
     email           VARCHAR(255) NOT NULL COMMENT '邮箱',
     birth           DATE COMMENT '生日',
+    nickname        VARCHAR(255) COMMENT '昵称',
     register_date   DATE         NOT NULL DEFAULT (CURRENT_DATE) COMMENT '注册时间'
 ) COMMENT '用户表';
 
