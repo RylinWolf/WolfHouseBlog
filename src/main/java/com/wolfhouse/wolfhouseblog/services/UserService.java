@@ -2,6 +2,9 @@ package com.wolfhouse.wolfhouseblog.services;
 
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 
 import java.util.Optional;
 
@@ -16,4 +19,37 @@ public interface UserService extends IService<User> {
      * @return 用户 Optional 对象
      */
     Optional<User> findByAccountOrEmail(String s);
+
+    /**
+     * 检查是否存在指定账号或邮箱的用户
+     *
+     * @param s 要检查的账号或邮箱
+     * @return 如果存在返回true，不存在返回false
+     */
+    Boolean hasAccountOrEmail(String s);
+
+    /**
+     * 创建新用户
+     *
+     * @param dto 用户注册数据传输对象，包含用户注册所需的所有信息
+     * @return 用户创建是否成功，成功返回true，失败返回false
+     */
+    UserRegisterVo createUser(UserRegisterDto dto);
+
+    /**
+     * 生成账号
+     *
+     * @param username 用户昵称
+     * @param codeLen  账号数字位长度
+     * @return 用户账号
+     */
+    String generateAccount(String username, Integer codeLen);
+
+    /**
+     * 根据用户ID获取用户视图对象
+     *
+     * @param id 用户ID
+     * @return 用户视图对象
+     */
+    UserVo getUserVoById(Long id);
 }
