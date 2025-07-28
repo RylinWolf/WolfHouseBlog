@@ -25,4 +25,9 @@ public class SecurityConstant {
             "classpath:/public/",
             "classpath:/META-INF/resources/"
     };
+
+    public static final String[] PUBLIC_URLS = {
+            "/user/login",
+            "/user/register"
+    };
 }
