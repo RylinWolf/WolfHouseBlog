@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.services.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,8 +37,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<Authority> getAuthorities(Long userId) {
-        return Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(Admin::getUserId, userId)))
-                       .orElse(new Admin())
-                       .getAuthorities();
+        return isUserAdmin(userId) ? Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(
+                                                     Admin::getUserId,
+                                                     userId)))
+                                             .orElse(new Admin())
+                                             .getAuthorities() : Collections.emptyList();
     }
 }
