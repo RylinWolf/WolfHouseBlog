@@ -21,6 +21,14 @@ public interface UserService extends IService<User> {
     Optional<User> findByAccountOrEmail(String s);
 
     /**
+     * 根据用户ID查询用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息的Optional对象，如果未找到返回空Optional
+     */
+    Optional<User> findByUserId(Long userId);
+
+    /**
      * 检查是否存在指定账号或邮箱的用户
      *
      * @param s 要检查的账号或邮箱

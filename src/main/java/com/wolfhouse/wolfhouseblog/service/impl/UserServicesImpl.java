@@ -32,6 +32,11 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
+    public Optional<User> findByUserId(Long userId) {
+        return Optional.ofNullable(this.mapper.selectOneById(userId));
+    }
+    
+    @Override
     public UserRegisterVo createUser(UserRegisterDto dto) {
         int insert = mapper.insert(
                 User.builder()
