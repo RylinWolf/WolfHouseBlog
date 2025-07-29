@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 /**
  * @author linexsong
  */
-@ControllerAdvice
+@ControllerAdvice(
+        basePackages = {
+                "com.wolfhouse.wolfhouseblog.controller",
+                "com.wolfhouse.wolfhouseblog.service"})
 @Slf4j
 public class HttpExceptionHandler {
     @ExceptionHandler
