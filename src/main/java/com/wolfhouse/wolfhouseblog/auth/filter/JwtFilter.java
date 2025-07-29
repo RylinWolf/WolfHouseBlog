@@ -6,8 +6,8 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
-import com.wolfhouse.wolfhouseblog.services.AdminService;
-import com.wolfhouse.wolfhouseblog.services.UserService;
+import com.wolfhouse.wolfhouseblog.service.AdminService;
+import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -59,7 +59,6 @@ public class JwtFilter extends GenericFilterBean {
             // 保留验证信息
             SecurityContextHolder.getContext()
                                  .setAuthentication(auth);
-            
         } catch (Exception ignored) {} finally {
             filterChain.doFilter(request, response);
         }

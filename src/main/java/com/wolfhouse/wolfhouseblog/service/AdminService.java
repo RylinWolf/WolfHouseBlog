@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.services;
+package com.wolfhouse.wolfhouseblog.service;
 
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;

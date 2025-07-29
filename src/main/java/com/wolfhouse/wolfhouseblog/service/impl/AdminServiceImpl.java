@@ -1,10 +1,10 @@
-package com.wolfhouse.wolfhouseblog.services.impl;
+package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.mapper.AdminMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
-import com.wolfhouse.wolfhouseblog.services.AdminService;
+import com.wolfhouse.wolfhouseblog.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

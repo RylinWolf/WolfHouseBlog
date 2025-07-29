@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.services.impl;
+package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
@@ -9,7 +9,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
-import com.wolfhouse.wolfhouseblog.services.UserService;
+import com.wolfhouse.wolfhouseblog.service.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

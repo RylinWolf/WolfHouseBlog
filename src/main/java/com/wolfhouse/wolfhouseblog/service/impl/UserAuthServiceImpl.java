@@ -1,11 +1,11 @@
-package com.wolfhouse.wolfhouseblog.services.impl;
+package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.mapper.UserAuthMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserAuth;
-import com.wolfhouse.wolfhouseblog.services.UserAuthService;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
