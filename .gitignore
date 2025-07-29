@@ -5,6 +5,8 @@ target/
 
 .mvn/
 
+### config ###
+src/main/resources/application-dev.yaml
 
 ### STS ###
 .apt_generated

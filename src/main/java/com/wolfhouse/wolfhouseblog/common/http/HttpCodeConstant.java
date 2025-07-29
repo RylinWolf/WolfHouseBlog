@@ -13,4 +13,5 @@ public class HttpCodeConstant {
     public static final String AUTH_FAILED = "AUTH_FAILED";
     public static final String USER_ALREADY_EXIST = "USER_ALREADY_EXIST";
     public static final String ARG_NOT_VALID = "ARG_NOT_VALID";
+    public static final String NOT_FOUND = "NOT_FOUND";
 }

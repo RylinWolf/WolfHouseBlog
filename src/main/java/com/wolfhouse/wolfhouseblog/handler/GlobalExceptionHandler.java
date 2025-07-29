@@ -12,6 +12,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
     @ExceptionHandler
     public void handleException(Exception e) {
-        log.error("发生异常: [{}]", e.getMessage());
+        log.error("发生异常: [{}]", e.getMessage(), e);
     }
 }
