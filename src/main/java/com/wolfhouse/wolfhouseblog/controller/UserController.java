@@ -22,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,20 +47,22 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<HttpResult<UserLoginVo>> login(@RequestBody UserLoginDto dto) {
         try {
+            log.info(
+                    "登陆状态：{}", SecurityContextHolder.getContext()
+                                                        .getAuthentication());
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
                     dto.getAccount(),
                     dto.getPassword()));
             log.info("用户[{}]登陆，状态: {}", auth.getPrincipal(), auth.isAuthenticated());
-            return ResponseEntity.ok()
-                                 .body(HttpResult.success(UserLoginVo.token(jwtUtil.getToken(auth))));
+            return HttpResult.ok(UserLoginVo.token(jwtUtil.getToken(auth)), null);
 
         } catch (AuthenticationException e) {
             // 验证失败
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
-                                 .body(HttpResult.failed(
-                                         HttpCodeConstant.AUTH_FAILED,
-                                         AuthExceptionConstant.AUTHENTIC_FAILED,
-                                         null));
+            return HttpResult.failed(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    HttpCodeConstant.AUTH_FAILED,
+                    AuthExceptionConstant.AUTHENTIC_FAILED,
+                    null);
         }
 
     }
@@ -67,17 +70,21 @@ public class UserController {
     @Operation(summary = "注册")
     @PostMapping("/register")
     @Transactional(rollbackFor = Exception.class)
-    public HttpResult<UserRegisterVo> register(@RequestBody @Valid UserRegisterDto dto) {
+    public ResponseEntity<HttpResult<UserRegisterVo>> register(@RequestBody @Valid UserRegisterDto dto) {
         log.info("用户注册: {}", dto);
         // 检查用户是否存在
         if (userService.hasAccountOrEmail(dto.getEmail())) {
-            return HttpResult.failed(HttpCodeConstant.USER_ALREADY_EXIST, UserConstant.USER_ALREADY_EXIST, null);
+            return HttpResult.failed(
+                    HttpStatus.CONFLICT.value(),
+                    HttpCodeConstant.USER_ALREADY_EXIST,
+                    UserConstant.USER_ALREADY_EXIST,
+                    null);
         }
         // 设置用户 ID
         dto.setUserId(authService.createAuth(dto.getPassword())
                                  .getUserId());
         // 注册用户
-        return HttpResult.success(userService.createUser(dto));
+        return HttpResult.ok(userService.createUser(dto), null);
     }
 
 
