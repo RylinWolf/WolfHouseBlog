@@ -18,7 +18,16 @@ spring:
     virtual-host: ${spring.rabbitmq.virtual-host}
     port: ${spring.rabbitmq.port}
     host: ${spring.rabbitmq.host}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          stateless: false
+          max-attempts: 3
+          initial-interval: 3000ms
+          multiplier: 1.2
 
+        acknowledge-mode: auto
 
 knife4j:
   enable: true
