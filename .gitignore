@@ -2,10 +2,11 @@ HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-!**/src/test/**/target/
 
 .mvn/
 
+### config ###
+src/main/resources/application-dev.yaml
 
 ### STS ###
 .apt_generated
@@ -34,3 +35,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### test ###
+src/test/
+
