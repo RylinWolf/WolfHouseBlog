@@ -29,9 +29,10 @@ public class EntryPointConfig {
             response.setContentType(ContentType.APPLICATION_JSON);
             response.setCharacterEncoding(CharEncoding.UTF_8);
             response.getWriter()
-                    .write(defaultObjectMapper.writeValueAsString(HttpResult.failed(
-                            AuthExceptionConstant.UNAUTHORIZED,
-                            HttpCodeConstant.UN_LOGIN)));
+                    .write(defaultObjectMapper.writeValueAsString(
+                            HttpResult.failed(
+                                    HttpCodeConstant.UN_LOGIN,
+                                    AuthExceptionConstant.UNAUTHORIZED)));
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         };
@@ -44,8 +45,8 @@ public class EntryPointConfig {
             response.setCharacterEncoding(CharEncoding.UTF_8);
 
             var result = HttpResult.failed(
-                    AuthExceptionConstant.ACCESS_DENIED,
-                    HttpCodeConstant.ACCESS_DENIED);
+                    HttpCodeConstant.ACCESS_DENIED,
+                    AuthExceptionConstant.ACCESS_DENIED);
 
             response.setStatus(HttpStatus.FORBIDDEN.value());
 
