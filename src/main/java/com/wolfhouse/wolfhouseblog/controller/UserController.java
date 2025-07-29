@@ -22,7 +22,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,9 +46,6 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<HttpResult<UserLoginVo>> login(@RequestBody UserLoginDto dto) {
         try {
-            log.info(
-                    "登陆状态：{}", SecurityContextHolder.getContext()
-                                                        .getAuthentication());
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
                     dto.getAccount(),
                     dto.getPassword()));

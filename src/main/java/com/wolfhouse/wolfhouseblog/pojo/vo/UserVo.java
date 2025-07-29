@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Component
 @Data
 public class UserVo {
+    private Long id;
     private String username;
     private String nickname;
     private String account;

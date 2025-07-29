@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class UserRegisterVo {
+    private Long id;
     private String token;
     private String account;
     private String username;
