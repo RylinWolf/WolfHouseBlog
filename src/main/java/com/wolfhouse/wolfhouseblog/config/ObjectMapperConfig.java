@@ -7,7 +7,6 @@ import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.JacksonObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.openapitools.jackson.nullable.JsonNullableModule;
-import org.springframework.boot.jackson.JsonMixinModuleEntries;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -21,7 +20,6 @@ import java.text.SimpleDateFormat;
 @RequiredArgsConstructor
 public class ObjectMapperConfig {
     private final DateProperties dateProperties;
-    private final JsonMixinModuleEntries jsonMixinModuleEntries;
 
     @Bean(name = "defaultObjectMapper")
     @Primary
