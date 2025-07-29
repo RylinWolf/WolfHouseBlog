@@ -55,7 +55,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public String generateAccount(String username, Integer codeLen) {
         String account = username + UserConstant.ACCOUNT_SEPARATOR
-                         + new Random().nextInt((int) Math.pow(10, codeLen), (int) Math.pow(10, codeLen + 1) - 1);
+                         + new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
+
+        account = String.format("%0" + codeLen + "d", account);
 
         // 生成账号重复，重新生成
         if (hasAccountOrEmail(account)) {
