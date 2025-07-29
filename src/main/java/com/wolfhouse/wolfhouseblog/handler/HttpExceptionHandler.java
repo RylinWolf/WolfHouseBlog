@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -12,14 +13,13 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * @author linexsong
  */
-@ControllerAdvice(
-        basePackages = {
-                "com.wolfhouse.wolfhouseblog.controller",
-                "com.wolfhouse.wolfhouseblog.service"})
+@ControllerAdvice
+@Order(1)
 @Slf4j
 public class HttpExceptionHandler {
     @ExceptionHandler
@@ -42,6 +42,15 @@ public class HttpExceptionHandler {
                              .body(HttpResult.failed(
                                      HttpCodeConstant.ARG_NOT_VALID,
                                      ServiceExceptionConstant.ARG_FORMAT_ERROR));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.error(e.getMessage());
+        return HttpResult.failed(
+                HttpStatus.NOT_FOUND.value(),
+                HttpCodeConstant.NOT_FOUND,
+                ServiceExceptionConstant.NO_RESOURCE);
     }
 
 }
