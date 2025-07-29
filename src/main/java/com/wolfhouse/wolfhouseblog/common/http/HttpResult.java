@@ -64,6 +64,11 @@ public class HttpResult<T> implements Serializable {
                              .body(HttpResult.failed(code, msg, data));
     }
 
+    public static ResponseEntity<HttpResult<?>> failed(Integer httpStatus, String code, String msg) {
+        return ResponseEntity.status(httpStatus)
+                             .body(HttpResult.failed(code, msg));
+    }
+
     public static <T> ResponseEntity<HttpResult<T>> ok(T data, String msg) {
         return ResponseEntity.ok(HttpResult.success(data, msg));
     }
