@@ -9,6 +9,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,10 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author linexsong
@@ -49,7 +47,7 @@ public class UserController {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
                     dto.getAccount(),
                     dto.getPassword()));
-            log.info("用户[{}]登陆，状态: {}", auth.getPrincipal(), auth.isAuthenticated());
+            log.info("用户[{}]登陆", auth.getPrincipal());
             return HttpResult.ok(UserLoginVo.token(jwtUtil.getToken(auth)), null);
 
         } catch (AuthenticationException e) {

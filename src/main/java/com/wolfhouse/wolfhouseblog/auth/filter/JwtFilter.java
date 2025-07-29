@@ -45,16 +45,16 @@ public class JwtFilter extends GenericFilterBean {
 
         try {
             Claims claims = jwtUtil.parseToken(token);
-            String account = claims.getSubject();
+            Long userId = Long.parseLong(claims.getSubject());
             // 获取用户
-            Optional<User> userO = userService.findByAccountOrEmail(account);
-            var user = userO.orElseThrow(() -> new ServiceException(AuthExceptionConstant.AUTHENTIC_FAILED));
+            Optional<User> userO = userService.findByUserId(userId);
+            userO.orElseThrow(() -> new ServiceException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
-            log.info("JWT 信息: {}, 过期时间: {}", account, claims.getExpiration());
+            log.info("JWT 信息: {}, 过期时间: {}", userId, claims.getExpiration());
 
             // 获取用户权限
-            List<Authority> authorities = adminService.getAuthorities(user.getId());
-            Authentication auth = new UsernamePasswordAuthenticationToken(account, null, authorities);
+            List<Authority> authorities = adminService.getAuthorities(userId);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
             // 保留验证信息
             SecurityContextHolder.getContext()
