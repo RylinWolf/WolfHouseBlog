@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseEntity;
 
 import java.io.Serializable;
 
@@ -46,18 +47,24 @@ public class HttpResult<T> implements Serializable {
     }
 
     public static <T> HttpResult<T> failed(String code, String msg) {
-        return HttpResult.<T>builder()
-                         .success(false)
-                         .code(code)
-                         .message(msg)
-                         .build();
+        return HttpResult.failed(code, msg, null);
     }
 
     public static <T> HttpResult<T> failed(String code, String msg, T data) {
         return HttpResult.<T>builder()
+                         .success(false)
                          .code(code)
                          .message(msg)
                          .data(data)
                          .build();
+    }
+
+    public static <T> ResponseEntity<HttpResult<T>> failed(Integer httpStatus, String code, String msg, T data) {
+        return ResponseEntity.status(httpStatus)
+                             .body(HttpResult.failed(code, msg, data));
+    }
+
+    public static <T> ResponseEntity<HttpResult<T>> ok(T data, String msg) {
+        return ResponseEntity.ok(HttpResult.success(data, msg));
     }
 }
