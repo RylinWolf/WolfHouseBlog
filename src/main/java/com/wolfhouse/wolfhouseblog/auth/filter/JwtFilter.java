@@ -50,7 +50,7 @@ public class JwtFilter extends GenericFilterBean {
             Optional<User> userO = userService.findByAccountOrEmail(account);
             var user = userO.orElseThrow(() -> new ServiceException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
-            log.info("JWT 登录: {}, 过期时间: {}", account, claims.getExpiration());
+            log.info("JWT 信息: {}, 过期时间: {}", account, claims.getExpiration());
 
             // 获取用户权限
             List<Authority> authorities = adminService.getAuthorities(user.getId());
