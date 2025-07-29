@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.config;
 
+import com.wolfhouse.wolfhouseblog.auth.filter.JwtFilter;
 import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * @author linexsong
@@ -21,7 +23,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationEntryPoint authenticationEntryPoint,
-                                                   AccessDeniedHandler deniedHandler)
+                                                   AccessDeniedHandler deniedHandler,
+                                                   JwtFilter jwtFilter)
             throws Exception {
         http.formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
@@ -42,7 +45,9 @@ public class SecurityConfig {
             })
             // 异常处理器
             .exceptionHandling((e) -> e.authenticationEntryPoint(authenticationEntryPoint)
-                                       .accessDeniedHandler(deniedHandler));
+                                       .accessDeniedHandler(deniedHandler))
+            // 过滤器
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
