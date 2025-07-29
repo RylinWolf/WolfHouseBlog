@@ -26,8 +26,8 @@ spring:
           max-attempts: 3
           initial-interval: 3000ms
           multiplier: 1.2
-
         acknowledge-mode: auto
+        prefetch: 3
 
 knife4j:
   enable: true

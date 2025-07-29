@@ -6,9 +6,9 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.ErrorHandler;
 
 /**
  * @author linexsong
@@ -17,14 +17,13 @@ import org.springframework.util.ErrorHandler;
 @RequiredArgsConstructor
 public class MqListenerConfig {
     private final ObjectMapper defaultObjectMapper;
-    private final ErrorHandler mqErrorHandler;
 
     @Bean
-    public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(ConnectionFactory connectionFactory,
+                                                                            SimpleRabbitListenerContainerFactoryConfigurer configurer) {
         var factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
+        configurer.configure(factory, connectionFactory);
         factory.setMessageConverter(new Jackson2JsonMessageConverter(defaultObjectMapper));
-        factory.setErrorHandler(mqErrorHandler);
         return factory;
     }
 }
