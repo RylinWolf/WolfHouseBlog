@@ -1,9 +1,11 @@
 package com.wolfhouse.wolfhouseblog.common.http;
 
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.io.Serializable;
@@ -59,6 +61,10 @@ public class HttpResult<T> implements Serializable {
                          .build();
     }
 
+    public static <T> HttpResult<T> failedIfBlank(String code, String msg, T data) {
+        return BeanUtil.isBlank(data) ? HttpResult.failed(code, msg, data) : HttpResult.success(data, msg);
+    }
+
     public static <T> ResponseEntity<HttpResult<T>> failed(Integer httpStatus, String code, String msg, T data) {
         return ResponseEntity.status(httpStatus)
                              .body(HttpResult.failed(code, msg, data));
@@ -67,6 +73,16 @@ public class HttpResult<T> implements Serializable {
     public static ResponseEntity<HttpResult<?>> failed(Integer httpStatus, String code, String msg) {
         return ResponseEntity.status(httpStatus)
                              .body(HttpResult.failed(code, msg));
+    }
+
+    public static <T> ResponseEntity<HttpResult<T>> failedIfBlank(Integer httpStatus,
+                                                                  String code,
+                                                                  String message,
+                                                                  T data) {
+        HttpResult<T> res = HttpResult.failedIfBlank(code, message, data);
+        
+        return ResponseEntity.status(res.success ? HttpStatus.OK.value() : httpStatus)
+                             .body(res);
     }
 
     public static <T> ResponseEntity<HttpResult<T>> ok(T data, String msg) {
