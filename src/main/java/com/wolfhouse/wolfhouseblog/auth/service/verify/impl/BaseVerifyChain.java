@@ -12,8 +12,8 @@ import java.util.function.Predicate;
 /**
  * @author linexsong
  */
-public class BaseVerifyChain<T> implements VerifyChain<T> {
-    private final Set<VerifyNode<T>> nodes;
+public class BaseVerifyChain implements VerifyChain {
+    private final Set<VerifyNode<?>> nodes;
     private final List<String> failed;
 
     public BaseVerifyChain() {
@@ -22,18 +22,18 @@ public class BaseVerifyChain<T> implements VerifyChain<T> {
     }
 
     @Override
-    public boolean add(VerifyNode<T> node, Predicate<T> predicate) {
+    public <T> boolean add(VerifyNode<T> node, Predicate<T> predicate) {
         node.setVerifyBy(predicate);
         return add(node);
     }
 
     @Override
-    public boolean add(VerifyNode<T> node) {
+    public <T> boolean add(VerifyNode<T> node) {
         return nodes.add(node);
     }
 
     @Override
-    public boolean add(T t, Predicate<T> predicate) {
+    public <T> boolean add(T t, Predicate<T> predicate) {
         return nodes.add(new BaseVerifyNode<>() {
             {
                 target(t);
@@ -56,13 +56,13 @@ public class BaseVerifyChain<T> implements VerifyChain<T> {
     }
 
     @Override
-    public boolean remove(VerifyNode<T> node) {
+    public <T> boolean remove(VerifyNode<T> node) {
         return nodes.remove(node);
     }
 
     @Override
     public boolean doVerify() throws Exception {
-        for (VerifyNode<T> n : nodes) {
+        for (VerifyNode<?> n : nodes) {
             var v = switch (n.getStrategy()) {
                 case NORMAL -> n.verify();
                 case WITH_EXCEPTION -> n.verifyWithE();
