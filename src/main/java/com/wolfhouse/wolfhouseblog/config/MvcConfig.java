@@ -2,7 +2,7 @@ package com.wolfhouse.wolfhouseblog.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -16,10 +16,11 @@ import java.util.List;
  * @author linexsong
  */
 @Configuration
-@RequiredArgsConstructor
 public class MvcConfig implements WebMvcConfigurer {
-    private final ObjectMapper defaultObjectMapper;
-    private final ObjectMapper jsonNullableObjectMapper;
+    @Resource(name = "defaultObjectMapper")
+    private ObjectMapper defaultObjectMapper;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper jsonNullableObjectMapper;
 
 
     @Override

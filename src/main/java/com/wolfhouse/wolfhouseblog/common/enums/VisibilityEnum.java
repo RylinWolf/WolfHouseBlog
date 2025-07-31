@@ -12,7 +12,7 @@ public enum VisibilityEnum {
     PRIVATE(1);
 
     @EnumValue
-    final Integer value;
+    public final Integer value;
 
     VisibilityEnum(Integer value) {
         this.value = value;

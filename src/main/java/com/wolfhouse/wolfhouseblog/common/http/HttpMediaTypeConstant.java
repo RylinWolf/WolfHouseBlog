@@ -14,8 +14,9 @@ public class HttpMediaTypeConstant extends MediaType {
 
     public static final MediaType APPLICATION_JSON_NULLABLE = new MediaType(
             "application",
-            "jsonNullable",
+            "nullable+json",
             StandardCharsets.UTF_8);
+    public static final String APPLICATION_JSON_NULLABLE_VALUE = "application/nullable+json";
 
     public HttpMediaTypeConstant(String type) {
         super(type);
