@@ -31,6 +31,7 @@ public class HttpExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleMethodHttpMsgNotReadableException(HttpMessageNotReadableException e) {
+        log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                              .body(HttpResult.failed(HttpCodeConstant.BAD_REQUEST, AuthExceptionConstant.BAD_REQUEST));
     }
