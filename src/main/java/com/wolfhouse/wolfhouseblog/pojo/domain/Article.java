@@ -1,14 +1,18 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
+ * 文章实体类
+ *
  * @author linexsong
  */
+@Schema(name = "文章")
 @Data
 public class Article {
     private Long id;
