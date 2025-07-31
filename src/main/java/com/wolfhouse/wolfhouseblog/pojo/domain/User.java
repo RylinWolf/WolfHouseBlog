@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -18,7 +17,6 @@ import java.time.LocalDate;
  */
 @Data
 @Table("user")
-@Component
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
