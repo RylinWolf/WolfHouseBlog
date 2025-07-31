@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * @author linexsong
@@ -16,11 +16,11 @@ public class UserDto {
     private String avatar;
     @Size(max = 50)
     private String personalStatus;
-    @Size(min = 2, max = 20)
+    @Size(max = 20)
     private String nickname;
     @Size(max = 20)
     private String phone;
     @Email
     private String email;
-    private Date birth;
+    private LocalDate birth;
 }

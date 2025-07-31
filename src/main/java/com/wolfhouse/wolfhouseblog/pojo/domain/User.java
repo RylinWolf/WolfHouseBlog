@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * @author linexsong
@@ -29,15 +29,17 @@ public class User implements Serializable {
     protected String username;
     protected String account;
     protected String avatar;
+    @Size(max = 20)
+    protected String nickname;
 
     @Size(max = 50)
     protected String personalStatus;
 
-    @Size(max = 20)
+    @Size(min = 11, max = 20)
     protected String phone;
 
     @Email
     protected String email;
-    protected Date birth;
-    protected Date registerDate;
+    protected LocalDate birth;
+    protected LocalDate registerDate;
 }
