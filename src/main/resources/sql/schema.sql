@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `users`
     `account`       VARCHAR(255) NOT NULL COMMENT '账号',
     avatar          TEXT COMMENT '头像 URL',
     personal_status VARCHAR(255) COMMENT '个性签名',
-    phone           VARCHAR(15) COMMENT '手机号',
+    phone           VARCHAR(255) COMMENT '手机号',
     email           VARCHAR(255) NOT NULL COMMENT '邮箱',
     birth           DATE COMMENT '生日',
     nickname        VARCHAR(255) COMMENT '昵称',

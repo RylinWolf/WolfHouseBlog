@@ -18,7 +18,7 @@ public class UserDto {
     private String personalStatus;
     @Size(max = 20)
     private String nickname;
-    @Size(max = 20)
+    @Size(min = 11, max = 20)
     private String phone;
     @Email
     private String email;
