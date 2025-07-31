@@ -7,12 +7,14 @@ import java.util.function.Predicate;
  * @author linexsong
  */
 public interface VerifyChain {
+    <T> boolean add(VerifyNode<T> node);
+    
     /**
      * 添加验证节点
      *
      * @param node 节点
      */
-    <T> boolean add(VerifyNode<T> node);
+    boolean add(VerifyNode<?>... node);
 
     <T> boolean add(VerifyNode<T> node, Predicate<T> predicate);
 

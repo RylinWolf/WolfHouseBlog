@@ -3,10 +3,7 @@ package com.wolfhouse.wolfhouseblog.auth.service.verify.impl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyNode;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -16,6 +13,10 @@ public class BaseVerifyChain implements VerifyChain {
     private final Set<VerifyNode<?>> nodes;
     private final List<String> failed;
 
+    public static BaseVerifyChain instance() {
+        return new BaseVerifyChain();
+    }
+
     public BaseVerifyChain() {
         nodes = new HashSet<>();
         failed = new ArrayList<>();
@@ -23,8 +24,12 @@ public class BaseVerifyChain implements VerifyChain {
 
     @Override
     public <T> boolean add(VerifyNode<T> node, Predicate<T> predicate) {
-        node.setVerifyBy(predicate);
-        return add(node);
+        return add(node.predicate(predicate));
+    }
+
+    @Override
+    public boolean add(VerifyNode<?>... node) {
+        return nodes.addAll(Arrays.asList(node));
     }
 
     @Override

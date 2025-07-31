@@ -38,6 +38,8 @@ public interface VerifyNode<T> {
      */
     VerifyNode<T> exception(Exception e);
 
+    VerifyNode<T> exception(String message);
+
 
     /**
      * 使用指定的断言函数执行验证操作。
@@ -87,13 +89,21 @@ public interface VerifyNode<T> {
     boolean verifyWithE() throws Exception;
 
     /**
+     * 获取当前的异常对象。
+     * 返回验证节点中设置的异常对象，该异常可能是预设的验证失败异常或自定义异常。
+     *
+     * @return 返回当前配置的异常对象，如果未设置则返回null
+     */
+    Exception getException();
+
+    /**
      * 设置验证策略。
      * 用于配置验证节点的行为模式，决定验证失败时采用的处理方式，
      * 如是否抛出异常，是否使用自定义异常等。
      *
      * @param strategy 验证策略对象，定义验证失败时的处理行为
      */
-    void setStrategy(VerifyStrategy strategy);
+    VerifyNode<T> setStrategy(VerifyStrategy strategy);
 
     /**
      * 设置自定义异常。
@@ -101,23 +111,7 @@ public interface VerifyNode<T> {
      *
      * @param e 要设置的自定义异常对象
      */
-    void setCustomException(Exception e);
-
-    /**
-     * 设置验证断言函数。
-     * 配置用于执行验证操作的断言函数，该函数定义了验证的具体逻辑和规则。
-     *
-     * @param predicate 用于验证的断言函数，包含验证逻辑
-     */
-    void setVerifyBy(Predicate<T> predicate);
-
-    /**
-     * 获取当前设置的自定义异常。
-     * 返回当前验证节点配置的自定义异常对象，该异常将在验证失败时使用。
-     *
-     * @return 返回已设置的自定义异常对象，如果未设置则可能返回null
-     */
-    Exception getCustomException();
+    VerifyNode<T> setCustomException(Exception e);
 
     /**
      * 获取当前验证策略。
