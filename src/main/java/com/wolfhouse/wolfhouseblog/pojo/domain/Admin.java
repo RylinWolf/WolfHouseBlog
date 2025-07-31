@@ -13,7 +13,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Table("admins")
+@Table("admin")
 public class Admin extends User {
     private String name;
     @Id

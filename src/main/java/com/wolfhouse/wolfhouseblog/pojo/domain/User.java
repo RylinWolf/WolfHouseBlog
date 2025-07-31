@@ -17,7 +17,7 @@ import java.time.LocalDate;
  * @author linexsong
  */
 @Data
-@Table("users")
+@Table("user")
 @Component
 @Builder
 @AllArgsConstructor
