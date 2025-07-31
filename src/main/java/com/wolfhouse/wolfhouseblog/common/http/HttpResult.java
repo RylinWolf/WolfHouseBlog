@@ -61,8 +61,8 @@ public class HttpResult<T> implements Serializable {
                          .build();
     }
 
-    public static <T> HttpResult<T> failedIfBlank(String code, String msg, T data) {
-        return BeanUtil.isBlank(data) ? HttpResult.failed(code, msg, data) : HttpResult.success(data, msg);
+    public static <T> HttpResult<T> failedIfBlank(String code, String failedMsg, T data) {
+        return BeanUtil.isBlank(data) ? HttpResult.failed(code, failedMsg, data) : HttpResult.success(data);
     }
 
     public static <T> ResponseEntity<HttpResult<T>> failed(Integer httpStatus, String code, String msg, T data) {
@@ -80,7 +80,7 @@ public class HttpResult<T> implements Serializable {
                                                                   String message,
                                                                   T data) {
         HttpResult<T> res = HttpResult.failedIfBlank(code, message, data);
-        
+
         return ResponseEntity.status(res.success ? HttpStatus.OK.value() : httpStatus)
                              .body(res);
     }
