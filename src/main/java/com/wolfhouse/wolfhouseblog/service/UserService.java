@@ -2,9 +2,11 @@ package com.wolfhouse.wolfhouseblog.service;
 
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import jakarta.validation.Valid;
 
 import java.util.Optional;
 
@@ -19,6 +21,14 @@ public interface UserService extends IService<User> {
      * @return 用户 Optional 对象
      */
     Optional<User> findByAccountOrEmail(String s);
+
+    /**
+     * 根据用户ID查询用户信息
+     *
+     * @param userId 用户ID
+     * @return 用户信息的Optional对象，如果未找到返回空Optional
+     */
+    Optional<User> findByUserId(Long userId);
 
     /**
      * 检查是否存在指定账号或邮箱的用户
@@ -52,4 +62,12 @@ public interface UserService extends IService<User> {
      * @return 用户视图对象
      */
     UserVo getUserVoById(Long id);
+
+    /**
+     * 更新当前登录用户的信息
+     *
+     * @param dto 用户更新信息数据传输对象，包含头像、个人状态、昵称、电话、邮箱和生日等信息
+     * @return 更新后的用户视图对象
+     */
+    UserVo updateAuthedUser(@Valid UserDto dto) throws Exception;
 }

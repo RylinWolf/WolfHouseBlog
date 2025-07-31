@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -29,7 +28,6 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
     private final UserAuthService authService;
     private final UserService userService;
     private final AdminService adminService;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -40,8 +38,9 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
 
         String password = authentication.getCredentials()
                                         .toString();
+        var userId = user.getId();
         // 验证用户密码
-        Boolean isVerified = authService.verifyPassword(password, user.getId());
+        Boolean isVerified = authService.verifyPassword(password, userId);
 
         if (!isVerified) {
             throw new AuthenticationCredentialsNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED);
@@ -49,12 +48,11 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
 
         // 获取权限
         List<Authority> authorities = Collections.emptyList();
-        var userId = user.getId();
         if (adminService.isUserAdmin(userId)) {
             authorities = adminService.getAuthorities(userId);
         }
 
-        return new UsernamePasswordAuthenticationToken(accountOrEmail, password, authorities);
+        return new UsernamePasswordAuthenticationToken(userId, password, authorities);
     }
 
     @Override

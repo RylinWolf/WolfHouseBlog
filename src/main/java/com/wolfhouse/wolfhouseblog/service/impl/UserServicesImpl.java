@@ -2,10 +2,15 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -32,6 +37,11 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
+    public Optional<User> findByUserId(Long userId) {
+        return Optional.ofNullable(this.mapper.selectOneById(userId));
+    }
+
+    @Override
     public UserRegisterVo createUser(UserRegisterDto dto) {
         int insert = mapper.insert(
                 User.builder()
@@ -53,11 +63,32 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public String generateAccount(String username, Integer codeLen) {
-        String account = username + UserConstant.ACCOUNT_SEPARATOR
-                         + new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
+    public UserVo updateAuthedUser(UserDto dto) throws Exception {
+        // 验证 DTO
+        VerifyTool.ofAllMsg(
+                          UserConstant.USER_UPDATE_FAILED,
+                          UserVerifyNode.BIRTH.target(dto.getBirth()),
+                          UserVerifyNode.email(this)
+                                        .target(dto.getEmail()))
+                  .doVerify();
 
-        account = String.format("%0" + codeLen + "d", account);
+        User user = BeanUtil.copyProperties(dto, User.class);
+        user.setId(ServiceUtil.loginUser());
+
+        if (mapper.update(user) != 1) {
+            throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
+        }
+
+        return BeanUtil.copyProperties(getUserVoById(user.getId()), UserVo.class);
+    }
+
+    @Override
+    public String generateAccount(String username, Integer codeLen) {
+        int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
+        String account = username + UserConstant.ACCOUNT_SEPARATOR;
+        
+        account += String.format("%0" + codeLen + "d", countCode);
+
 
         // 生成账号重复，重新生成
         if (hasAccountOrEmail(account)) {

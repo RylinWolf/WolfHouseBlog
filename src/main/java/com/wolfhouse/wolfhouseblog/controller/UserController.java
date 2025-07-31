@@ -5,10 +5,12 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,10 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author linexsong
@@ -49,7 +48,7 @@ public class UserController {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
                     dto.getAccount(),
                     dto.getPassword()));
-            log.info("用户[{}]登陆，状态: {}", auth.getPrincipal(), auth.isAuthenticated());
+            log.info("用户[{}]登陆", auth.getPrincipal());
             return HttpResult.ok(UserLoginVo.token(jwtUtil.getToken(auth)), null);
 
         } catch (AuthenticationException e) {
@@ -60,7 +59,6 @@ public class UserController {
                     AuthExceptionConstant.AUTHENTIC_FAILED,
                     null);
         }
-
     }
 
     @Operation(summary = "注册")
@@ -83,5 +81,15 @@ public class UserController {
         return HttpResult.ok(userService.createUser(dto), null);
     }
 
+    @Operation(summary = "修改")
+    @PutMapping
+    public HttpResult<UserVo> update(@RequestBody @Valid UserDto dto) throws Exception {
+
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.UPDATE_FAILED,
+                UserConstant.USER_UPDATE_FAILED,
+                userService.updateAuthedUser(dto));
+
+    }
 
 }
