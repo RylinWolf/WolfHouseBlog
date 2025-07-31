@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
@@ -58,7 +59,6 @@ public class UserController {
                     AuthExceptionConstant.AUTHENTIC_FAILED,
                     null);
         }
-
     }
 
     @Operation(summary = "注册")
@@ -81,5 +81,15 @@ public class UserController {
         return HttpResult.ok(userService.createUser(dto), null);
     }
 
+    @Operation(summary = "修改")
+    @PutMapping
+    public HttpResult<UserVo> update(@RequestBody @Valid UserDto dto) throws Exception {
+
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.UPDATE_FAILED,
+                UserConstant.USER_UPDATE_FAILED,
+                userService.updateAuthedUser(dto));
+
+    }
 
 }

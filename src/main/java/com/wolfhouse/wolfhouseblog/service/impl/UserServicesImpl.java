@@ -2,10 +2,15 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -35,7 +40,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public Optional<User> findByUserId(Long userId) {
         return Optional.ofNullable(this.mapper.selectOneById(userId));
     }
-    
+
     @Override
     public UserRegisterVo createUser(UserRegisterDto dto) {
         int insert = mapper.insert(
@@ -55,6 +60,26 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         }
 
         return BeanUtil.copyProperties(getUserVoById(dto.getUserId()), UserRegisterVo.class);
+    }
+
+    @Override
+    public UserVo updateAuthedUser(UserDto dto) throws Exception {
+        // 验证 DTO
+        VerifyTool.ofAllMsg(
+                          UserConstant.USER_UPDATE_FAILED,
+                          UserVerifyNode.BIRTH.target(dto.getBirth()),
+                          UserVerifyNode.email(this)
+                                        .target(dto.getEmail()))
+                  .doVerify();
+
+        User user = BeanUtil.copyProperties(dto, User.class);
+        user.setId(ServiceUtil.loginUser());
+
+        if (mapper.update(user) != 1) {
+            throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
+        }
+
+        return BeanUtil.copyProperties(getUserVoById(user.getId()), UserVo.class);
     }
 
     @Override
