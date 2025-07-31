@@ -67,12 +67,13 @@ CREATE TABLE IF NOT EXISTS subscribe
 CREATE TABLE IF NOT EXISTS article
 (
     id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文章 ID',
+    `title`      VARCHAR(255) NOT NULL COMMENT '标题',
     `primary`    VARCHAR(255) COMMENT '摘要',
-    author_id    BIGINT   NOT NULL COMMENT '作者用户 ID',
-    content      TEXT     NOT NULL COMMENT '内容',
-    post_time    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布日期',
-    edit_time    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '编辑日期',
-    visibility   TINYINT  NOT NULL DEFAULT 0 COMMENT '可见权限\n0 - 公开\n1 - 私人',
+    author_id    BIGINT       NOT NULL COMMENT '作者用户 ID',
+    content      TEXT         NOT NULL COMMENT '内容',
+    post_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布日期',
+    edit_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '编辑日期',
+    visibility   TINYINT      NOT NULL DEFAULT 0 COMMENT '可见权限\n0 - 公开\n1 - 私人',
     partition_id BIGINT COMMENT '分区 ID',
     tags         JSON COMMENT '文章标签，以 :\\ 分隔',
     com_use_tags JSON COMMENT '常用文章标签，以 :\\ 分隔'
