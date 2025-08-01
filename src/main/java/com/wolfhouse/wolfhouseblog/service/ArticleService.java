@@ -20,5 +20,7 @@ public interface ArticleService extends IService<Article> {
 
     PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns);
 
-    ArticleVo post(ArticleDto dto);
+    ArticleVo getById(Long id) throws Exception;
+
+    ArticleVo post(ArticleDto dto) throws Exception;
 }

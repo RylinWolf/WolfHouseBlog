@@ -10,4 +10,11 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
 
+    /**
+     * 插入文章，并回显 ID
+     *
+     * @param article 文章对象
+     * @return 影响的行数
+     */
+    Integer insertWithPkBack(Article article);
 }
