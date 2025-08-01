@@ -1,5 +1,7 @@
 package com.wolfhouse.wolfhouseblog.handler;
 
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
@@ -22,5 +24,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpCodeConstant.SERVER_ERROR,
                 ServiceExceptionConstant.SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(VerifyException e) {
+        log.error("字段验证异常: [{}]", e.getMessage(), e);
+        return HttpResult.failed(
+                HttpStatus.FORBIDDEN.value(),
+                HttpCodeConstant.VERIFY_FAILED,
+                VerifyConstant.VERIFY_FAILED);
     }
 }
