@@ -29,7 +29,7 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
         var dto = new ArticleQueryPageDto();
         dto.setId(JsonNullable.of(t));
 
-        List<Article> records = service.queryBy(dto, ARTICLE.ID, ARTICLE.VISIBILITY)
+        List<Article> records = service.queryBy(dto, ARTICLE.ID, ARTICLE.VISIBILITY, ARTICLE.AUTHOR_ID)
                                        .getRecords();
 
         // 无该 ID 记录

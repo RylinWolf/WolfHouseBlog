@@ -50,13 +50,15 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             }
         });
         // 构建查询条件
-        wrapper.eq(Article::getId,
-                   dto.getId()
-                      .orElse(null))
+        wrapper.eq(
+                       Article::getId,
+                       dto.getId()
+                          .orElse(null))
                // 按标题查询
-               .like(Article::getTitle,
-                     dto.getTitle()
-                        .orElse(null));
+               .like(
+                       Article::getTitle,
+                       dto.getTitle()
+                          .orElse(null));
 
         // 日期范围查询
         if (BeanUtil.isAnyNotBlank(dto.getPostStart(), dto.getPostEnd())) {
@@ -74,7 +76,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                        .isPresent());
         }
 
-        System.out.println(wrapper.toSQL());
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
     }
 
