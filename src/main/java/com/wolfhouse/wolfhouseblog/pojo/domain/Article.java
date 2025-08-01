@@ -25,5 +25,5 @@ public class Article {
     private VisibilityEnum visibility;
     private Long partitionId;
     private List<String> tags;
-    private List<Tag> comUseTags;
+    private List<Long> comUseTags;
 }
