@@ -1,14 +1,24 @@
 package com.wolfhouse.wolfhouseblog.service;
 
+import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 
 /**
  * @author linexsong
  */
 public interface ArticleService extends IService<Article> {
-    PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto);
+    Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns);
+
+    PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto);
+
+    PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns);
+
+    ArticleVo post(ArticleDto dto);
 }

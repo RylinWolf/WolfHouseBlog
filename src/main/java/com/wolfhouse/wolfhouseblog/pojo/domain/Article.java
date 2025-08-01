@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
+import com.mybatisflex.annotation.Table;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.List;
  */
 @Schema(name = "文章")
 @Data
+@Table("article")
 public class Article {
     private Long id;
     private String title;
