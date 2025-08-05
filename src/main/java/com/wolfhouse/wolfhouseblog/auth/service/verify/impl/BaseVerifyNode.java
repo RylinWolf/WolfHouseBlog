@@ -15,7 +15,7 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     protected Predicate<T> predicate;
     protected Exception customException;
     protected VerifyStrategy strategy = VerifyStrategy.WITH_CUSTOM_EXCEPTION;
-    protected Boolean allowNull = true;
+    protected Boolean allowNull = false;
 
     public BaseVerifyNode() {
     }
@@ -44,6 +44,12 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     @Override
     public VerifyNode<T> exception(String message) {
         this.customException = new VerifyException(message);
+        return this;
+    }
+
+    @Override
+    public VerifyNode<T> allowNull(Boolean allowNull) {
+        this.allowNull = allowNull;
         return this;
     }
 
