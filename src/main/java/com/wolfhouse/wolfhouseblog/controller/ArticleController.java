@@ -53,8 +53,8 @@ public class ArticleController {
     }
 
     @DeleteMapping("/{id}")
-    public HttpResult<Boolean> delete(@PathVariable Long id) throws Exception {
-        return HttpResult.failedIfBlank(
+    public HttpResult<?> delete(@PathVariable Long id) throws Exception {
+        return HttpResult.onCondition(
                 HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED,
                 articleService.deleteById(id));
     }

@@ -92,4 +92,8 @@ public class HttpResult<T> implements Serializable {
     public static <T> HttpResult<T> failedIfBlank(T data) {
         return failedIfBlank(HttpCodeConstant.FAILED, null, data);
     }
+
+    public static HttpResult<?> onCondition(String code, String msg, Boolean condition) {
+        return condition ? HttpResult.success() : HttpResult.failed(code, msg);
+    }
 }
