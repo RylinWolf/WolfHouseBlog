@@ -5,7 +5,9 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.*;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
@@ -101,10 +103,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo getById(Long id) throws Exception {
-        VerifyTool.ofLogin(new IdReachableVerifyNode(id, this).exception(AuthExceptionConstant.ACCESS_DENIED))
-                  .doVerify();
+        BaseVerifyChain chain = VerifyTool.ofLogin(new IdReachableVerifyNode(
+                id,
+                this).setStrategy(VerifyStrategy.NORMAL));
 
-        return BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class);
+        return chain.doVerify() ? BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class) : null;
     }
 
     @Override
