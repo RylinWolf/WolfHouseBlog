@@ -66,6 +66,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                .like(
                        Article::getTitle,
                        dto.getTitle()
+                          .orElse(null))
+               // 按作者查询
+               .eq(
+                       Article::getAuthorId,
+                       dto.getAuthorId()
                           .orElse(null));
 
         // 日期范围查询
