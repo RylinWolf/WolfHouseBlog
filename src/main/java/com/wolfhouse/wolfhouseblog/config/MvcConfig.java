@@ -36,14 +36,13 @@ public class MvcConfig implements WebMvcConfigurer {
         var defaultConverter = new MappingJackson2HttpMessageConverter();
         defaultConverter.setObjectMapper(defaultObjectMapper);
         defaultConverter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON));
-        converters.add(1, defaultConverter);
 
         // 新增 JsonNullable 消息转换器
         var jsonNullableConverter = new MappingJackson2HttpMessageConverter();
         jsonNullableConverter.setObjectMapper(jsonNullableObjectMapper);
-        jsonNullableConverter.setSupportedMediaTypes(List.of(
-                MediaType.APPLICATION_JSON,
-                HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE));
+        jsonNullableConverter.setSupportedMediaTypes(List.of(HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE));
+
         converters.add(1, jsonNullableConverter);
+        converters.add(1, defaultConverter);
     }
 }
