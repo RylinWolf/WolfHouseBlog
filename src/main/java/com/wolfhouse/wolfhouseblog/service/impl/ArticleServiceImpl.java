@@ -6,10 +6,7 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ContentVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.PrimaryVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.TitleVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.*;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
@@ -114,9 +111,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
         VerifyTool.of(
-                          new TitleVerifyNode(dto.getTitle()).exception(ARTICLE.TITLE.getName()),
-                          new ContentVerifyNode(dto.getContent()).exception(ARTICLE.CONTENT.getName()),
-                          new PrimaryVerifyNode(dto.getPrimary()).exception(ARTICLE.PRIMARY.getName()))
+                          ArticleVerifyNode.TITLE.target(dto.getTitle())
+                                                 .exception(ARTICLE.TITLE.getName()),
+                          ArticleVerifyNode.CONTENT.target(dto.getContent())
+                                                   .exception(ARTICLE.CONTENT.getName()),
+                          ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
+                                                   .exception(ARTICLE.PRIMARY.getName()))
                   .doVerify();
 
         Article article = BeanUtil.copyProperties(dto, Article.class);
