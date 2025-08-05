@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -13,15 +14,18 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +36,10 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
  */
 @Service
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
+
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper jsonNullableObjectMapper;
+
 
     @Override
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) {
@@ -113,4 +121,27 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return getById(article.getId());
     }
 
+    @Override
+    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+        // TODO 在修改时，检查分区是否存在
+        VerifyTool.ofLogin(
+                          new IdReachableVerifyNode(dto.getId(), this).exception(AuthExceptionConstant.ACCESS_DENIED),
+                          new TitleVerifyNode(
+                                  JsonNullableUtil.getObjOrNull(dto.getTitle()),
+                                  true).exception(ARTICLE.TITLE.getName()),
+                          new ContentVerifyNode(
+                                  JsonNullableUtil.getObjOrNull(dto.getContent()),
+                                  true
+                          ).exception(ARTICLE.CONTENT.getName()),
+                          new PrimaryVerifyNode(
+                                  JsonNullableUtil.getObjOrNull(dto.getPrimary()),
+                                  true).exception(ARTICLE.PRIMARY.getName()))
+                  .doVerify();
+
+        Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
+        if (mapper.update(article, true) <= 0) {
+            return null;
+        }
+        return getById(dto.getId());
+    }
 }

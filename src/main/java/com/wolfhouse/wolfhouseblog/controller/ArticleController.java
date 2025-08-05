@@ -7,14 +7,12 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author linexsong
@@ -36,5 +34,13 @@ public class ArticleController {
                 HttpCodeConstant.POST_FAILED,
                 ArticleConstant.POST_FAILED,
                 articleService.post(dto));
+    }
+
+    @PutMapping
+    public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.UPDATE_FAILED,
+                ArticleConstant.UPDATE_FAILED,
+                articleService.update(dto));
     }
 }

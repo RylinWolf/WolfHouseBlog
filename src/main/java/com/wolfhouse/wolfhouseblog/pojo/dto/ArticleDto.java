@@ -9,8 +9,8 @@ import java.util.List;
 /**
  * @author linexsong
  */
-@Component
 @Data
+@Component
 public class ArticleDto {
     private String title;
     private String primary;
