@@ -20,7 +20,7 @@ public class ContentVerifyNode extends BaseVerifyNode<String> {
 
     @Override
     public boolean verify() {
-        return new StringVerifyNode(0L, 2000L, false)
+        return super.verify() && new StringVerifyNode(1L, 2000L, allowNull)
                 .target(t)
                 .verify();
     }
