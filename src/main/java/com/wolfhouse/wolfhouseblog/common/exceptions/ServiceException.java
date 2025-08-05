@@ -1,5 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.exceptions;
 
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
+
 /**
  * @author linexsong
  */
@@ -26,5 +28,9 @@ public class ServiceException extends RuntimeException {
 
     public static ServiceException processingFailed(String msg) {
         return new ServiceException(msg);
+    }
+
+    public static ServiceException loginRequired() {
+        return new ServiceException(ServiceExceptionConstant.LOGIN_REQUIRED);
     }
 }
