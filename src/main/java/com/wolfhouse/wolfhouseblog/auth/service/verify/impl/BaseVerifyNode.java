@@ -15,6 +15,20 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     protected Predicate<T> predicate;
     protected Exception customException;
     protected VerifyStrategy strategy = VerifyStrategy.WITH_CUSTOM_EXCEPTION;
+    protected Boolean allowNull = false;
+
+    public BaseVerifyNode() {
+    }
+
+    public BaseVerifyNode(T t) {
+        this();
+        this.t = t;
+    }
+
+    public BaseVerifyNode(T t, Boolean allowNull) {
+        this(t);
+        this.allowNull = allowNull;
+    }
 
     @Override
     public VerifyNode<T> predicate(Predicate<T> predicate) {
@@ -35,16 +49,27 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     }
 
     @Override
+    public VerifyNode<T> allowNull(Boolean allowNull) {
+        this.allowNull = allowNull;
+        return this;
+    }
+
+    @Override
     public boolean verify() {
+        if (t == null && allowNull) {
+            return true;
+        }
+
         if (predicate != null) {
             return predicate.test(t);
         }
-        return false;
+
+        return true;
     }
 
     @Override
     public boolean verify(Predicate<T> predicate) {
-        return predicate.test(t);
+        return (this.allowNull == true && t == null) || predicate.test(t);
     }
 
 
@@ -59,6 +84,9 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
 
     @Override
     public boolean verifyWithCustomE() throws Exception {
+        if (customException == null) {
+            return verifyWithE();
+        }
         return verifyWithCustomE(customException);
     }
 
@@ -88,7 +116,7 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     public Exception getException() {
         return this.customException;
     }
-    
+
     @Override
     public VerifyNode<T> target(T target) {
         this.t = target;

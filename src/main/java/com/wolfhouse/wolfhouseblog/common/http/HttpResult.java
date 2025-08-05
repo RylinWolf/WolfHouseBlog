@@ -88,4 +88,12 @@ public class HttpResult<T> implements Serializable {
     public static <T> ResponseEntity<HttpResult<T>> ok(T data, String msg) {
         return ResponseEntity.ok(HttpResult.success(data, msg));
     }
+
+    public static <T> HttpResult<T> failedIfBlank(T data) {
+        return failedIfBlank(HttpCodeConstant.FAILED, null, data);
+    }
+
+    public static HttpResult<?> onCondition(String code, String msg, Boolean condition) {
+        return condition ? HttpResult.success() : HttpResult.failed(code, msg);
+    }
 }

@@ -40,6 +40,8 @@ public interface VerifyNode<T> {
 
     VerifyNode<T> exception(String message);
 
+    VerifyNode<T> allowNull(Boolean allowNull);
+
 
     /**
      * 使用指定的断言函数执行验证操作。
@@ -121,4 +123,5 @@ public interface VerifyNode<T> {
      * @return 返回当前配置的验证策略对象
      */
     VerifyStrategy getStrategy();
+
 }

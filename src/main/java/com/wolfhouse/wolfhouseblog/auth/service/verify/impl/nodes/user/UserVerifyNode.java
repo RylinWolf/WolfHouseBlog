@@ -8,7 +8,7 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
 public class UserVerifyNode {
     public static final UsernameVerifyNode USERNAME = new UsernameVerifyNode();
     public static final BirthVerifyNode BIRTH = new BirthVerifyNode();
-    public static EmailVerifyNode EMAIL;
+    private static EmailVerifyNode EMAIL;
 
     public static EmailVerifyNode email(UserService service) {
         if (EMAIL == null) {

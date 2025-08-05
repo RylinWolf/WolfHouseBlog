@@ -1,6 +1,10 @@
 package com.wolfhouse.wolfhouseblog.handler;
 
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import lombok.extern.slf4j.Slf4j;
@@ -22,5 +26,41 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpCodeConstant.SERVER_ERROR,
                 ServiceExceptionConstant.SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(VerifyException e) {
+        log.error("字段验证异常: [{}]", e.getMessage(), e);
+        return HttpResult.failed(
+                HttpStatus.FORBIDDEN.value(),
+                HttpCodeConstant.VERIFY_FAILED,
+                VerifyConstant.VERIFY_FAILED);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(ServiceException e) {
+        String message = e.getMessage();
+        log.error("服务异常: [{}]", message);
+        String code;
+        var msg = message;
+        int status;
+
+        switch (message) {
+            case AuthExceptionConstant.LOGIN_REQUIRED -> {
+                code = HttpCodeConstant.UN_LOGIN;
+                status = HttpStatus.UNAUTHORIZED.value();
+            }
+            case AuthExceptionConstant.ACCESS_DENIED -> {
+                code = HttpCodeConstant.ACCESS_DENIED;
+                status = HttpStatus.FORBIDDEN.value();
+            }
+            default -> {
+                code = HttpCodeConstant.SERVER_ERROR;
+                status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+                msg = ServiceExceptionConstant.SERVER_ERROR;
+            }
+        }
+
+        return HttpResult.failed(status, code, msg);
     }
 }

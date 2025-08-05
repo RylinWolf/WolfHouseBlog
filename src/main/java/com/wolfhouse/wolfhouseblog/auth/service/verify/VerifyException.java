@@ -12,4 +12,7 @@ public class VerifyException extends RuntimeException {
         super();
     }
 
+    public static VerifyException failed() {
+        return new VerifyException(VerifyConstant.VERIFY_FAILED);
+    }
 }

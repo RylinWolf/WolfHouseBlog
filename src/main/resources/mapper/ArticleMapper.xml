@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wolfhouse.wolfhouseblog.mapper.ArticleMapper">
+
+    <resultMap id="articleInsert" type="com.wolfhouse.wolfhouseblog.pojo.domain.Article" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result property="authorId" column="author_id"/>
+        <result property="content" column="content"/>
+        <result property="visibility" column="visibility"/>
+        <result property="tags" column="tags" typeHandler="com.mybatisflex.core.handler.JacksonTypeHandler"/>
+        <result property="comUseTags" column="com_use_tags"
+                typeHandler="com.mybatisflex.core.handler.JacksonTypeHandler"/>
+    </resultMap>
+    <insert id="insertWithPkBack" useGeneratedKeys="true" keyProperty="id">
+        insert into article(title, `primary`, author_id, content, visibility, partition_id, tags, com_use_tags)
+        values (#{title},
+                #{primary},
+                #{authorId},
+                #{content},
+                #{visibility},
+                #{partitionId},
+                #{tags,typeHandler=com.mybatisflex.core.handler.JacksonTypeHandler},
+                #{comUseTags,typeHandler=com.mybatisflex.core.handler.JacksonTypeHandler})
+    </insert>
+</mapper>

@@ -64,6 +64,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
     @Override
     public UserVo updateAuthedUser(UserDto dto) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
         VerifyTool.ofAllMsg(
                           UserConstant.USER_UPDATE_FAILED,
@@ -73,7 +74,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                   .doVerify();
 
         User user = BeanUtil.copyProperties(dto, User.class);
-        user.setId(ServiceUtil.loginUser());
+        user.setId(login);
 
         if (mapper.update(user) != 1) {
             throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
@@ -86,11 +87,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public String generateAccount(String username, Integer codeLen) {
         int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
         String account = username + UserConstant.ACCOUNT_SEPARATOR;
-        
+
         account += String.format("%0" + codeLen + "d", countCode);
 
 
         // 生成账号重复，重新生成
+        // TODO 使用 Redis 优化
         if (hasAccountOrEmail(account)) {
             return generateAccount(username, codeLen);
         }

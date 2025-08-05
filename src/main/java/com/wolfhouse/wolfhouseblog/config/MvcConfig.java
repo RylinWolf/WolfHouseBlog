@@ -2,7 +2,7 @@ package com.wolfhouse.wolfhouseblog.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -16,10 +16,11 @@ import java.util.List;
  * @author linexsong
  */
 @Configuration
-@RequiredArgsConstructor
 public class MvcConfig implements WebMvcConfigurer {
-    private final ObjectMapper defaultObjectMapper;
-    private final ObjectMapper jsonNullableObjectMapper;
+    @Resource(name = "defaultObjectMapper")
+    private ObjectMapper defaultObjectMapper;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper jsonNullableObjectMapper;
 
 
     @Override
@@ -35,14 +36,13 @@ public class MvcConfig implements WebMvcConfigurer {
         var defaultConverter = new MappingJackson2HttpMessageConverter();
         defaultConverter.setObjectMapper(defaultObjectMapper);
         defaultConverter.setSupportedMediaTypes(List.of(MediaType.APPLICATION_JSON));
-        converters.add(1, defaultConverter);
 
         // 新增 JsonNullable 消息转换器
         var jsonNullableConverter = new MappingJackson2HttpMessageConverter();
         jsonNullableConverter.setObjectMapper(jsonNullableObjectMapper);
-        jsonNullableConverter.setSupportedMediaTypes(List.of(
-                MediaType.APPLICATION_JSON,
-                HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE));
+        jsonNullableConverter.setSupportedMediaTypes(List.of(HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE));
+
         converters.add(1, jsonNullableConverter);
+        converters.add(1, defaultConverter);
     }
 }
