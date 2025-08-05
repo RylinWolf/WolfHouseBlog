@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.exceptions;
 
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 
 /**
@@ -32,5 +33,9 @@ public class ServiceException extends RuntimeException {
 
     public static ServiceException loginRequired() {
         return new ServiceException(ServiceExceptionConstant.LOGIN_REQUIRED);
+    }
+
+    public static ServiceException notAllowed() {
+        return new ServiceException(AuthExceptionConstant.ACCESS_DENIED);
     }
 }
