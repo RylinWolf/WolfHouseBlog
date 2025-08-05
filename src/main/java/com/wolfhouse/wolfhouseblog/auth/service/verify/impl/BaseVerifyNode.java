@@ -21,6 +21,7 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     }
 
     public BaseVerifyNode(T t) {
+        this();
         this.t = t;
     }
 
