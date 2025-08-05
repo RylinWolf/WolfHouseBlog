@@ -28,6 +28,14 @@ public class ArticleController {
         return HttpResult.success(articleService.getBriefQuery(dto));
     }
 
+    @GetMapping("/{id}")
+    public HttpResult<ArticleVo> get(@PathVariable Long id) throws Exception {
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.ACCESS_DENIED,
+                ArticleConstant.ACCESS_DENIED,
+                articleService.getById(id));
+    }
+
     @PostMapping
     public HttpResult<ArticleVo> post(@RequestBody ArticleDto dto) throws Exception {
         return HttpResult.failedIfBlank(
