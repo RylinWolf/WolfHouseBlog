@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.handler;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -41,18 +42,25 @@ public class GlobalExceptionHandler {
         String message = e.getMessage();
         log.error("服务异常: [{}]", message);
         String code;
+        var msg = message;
         int status;
+
         switch (message) {
             case ServiceExceptionConstant.LOGIN_REQUIRED -> {
                 code = HttpCodeConstant.UN_LOGIN;
                 status = HttpStatus.UNAUTHORIZED.value();
             }
+            case AuthExceptionConstant.ACCESS_DENIED -> {
+                code = HttpCodeConstant.ACCESS_DENIED;
+                status = HttpStatus.FORBIDDEN.value();
+            }
             default -> {
                 code = HttpCodeConstant.SERVER_ERROR;
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+                msg = ServiceExceptionConstant.SERVER_ERROR;
             }
         }
 
-        return HttpResult.failed(status, code, ServiceExceptionConstant.SERVER_ERROR);
+        return HttpResult.failed(status, code, msg);
     }
 }
