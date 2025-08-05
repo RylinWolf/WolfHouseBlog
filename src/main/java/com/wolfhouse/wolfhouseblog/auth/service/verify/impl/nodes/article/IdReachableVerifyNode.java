@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
@@ -21,6 +22,7 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
     public IdReachableVerifyNode(Long id, ArticleService service) {
         super(id);
         this.service = service;
+        this.customException = ServiceException.notAllowed();
     }
 
     @Override
