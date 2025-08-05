@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.utils;
 
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -9,15 +10,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class ServiceUtil {
     public static Long loginUser() {
-        return (Long) SecurityContextHolder.getContext()
-                                           .getAuthentication()
-                                           .getPrincipal();
+        Authentication auth = SecurityContextHolder.getContext()
+                                                   .getAuthentication();
+        if (AnonymousAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+            return null;
+        }
+        return (Long) auth.getPrincipal();
     }
 
     public static Boolean isLogin() {
-        Authentication auth = SecurityContextHolder.getContext()
-                                                   .getAuthentication();
-        return auth != null && auth.isAuthenticated();
+        return loginUser() != null;
     }
 
     public static Long loginUserOrE() {
