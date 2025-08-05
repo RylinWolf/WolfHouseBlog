@@ -14,6 +14,10 @@ public class PrimaryVerifyNode extends BaseVerifyNode<String> {
         super(s);
     }
 
+    public PrimaryVerifyNode(String s, Boolean allowNull) {
+        super(s, allowNull);
+    }
+
     @Override
     public boolean verify() {
         super.verify();

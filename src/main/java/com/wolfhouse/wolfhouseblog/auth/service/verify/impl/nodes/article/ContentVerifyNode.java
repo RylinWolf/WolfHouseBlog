@@ -14,6 +14,10 @@ public class ContentVerifyNode extends BaseVerifyNode<String> {
         super(s);
     }
 
+    public ContentVerifyNode(String s, Boolean allowNull) {
+        super(s, allowNull);
+    }
+
     @Override
     public boolean verify() {
         return new StringVerifyNode(0L, 2000L, false)

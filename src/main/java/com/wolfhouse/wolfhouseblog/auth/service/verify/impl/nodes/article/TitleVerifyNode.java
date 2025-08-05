@@ -14,9 +14,13 @@ public class TitleVerifyNode extends BaseVerifyNode<String> {
         super(s);
     }
 
+    public TitleVerifyNode(String s, Boolean allowNull) {
+        super(s, allowNull);
+    }
+
     @Override
     public boolean verify() {
-        return super.verify() && new StringVerifyNode(1L, 20L, false).target(t)
-                                                                     .verify();
+        return super.verify() && new StringVerifyNode(1L, 20L, allowNull).target(t)
+                                                                         .verify();
     }
 }
