@@ -10,7 +10,6 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
-import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -132,8 +131,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
         // TODO 在修改时，检查分区是否存在
         VerifyTool.ofLogin(
-                          ArticleVerifyNode.id(dto.getId(), this)
-                                           .exception(AuthExceptionConstant.ACCESS_DENIED),
+                          ArticleVerifyNode.id(dto.getId(), this),
                           ArticleVerifyNode.title(JsonNullableUtil.getObjOrNull(dto.getTitle()), true)
                                            .exception(ARTICLE.TITLE.getName()),
                           ArticleVerifyNode.content(JsonNullableUtil.getObjOrNull(dto.getContent()), true)
