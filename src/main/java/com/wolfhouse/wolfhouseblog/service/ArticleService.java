@@ -26,4 +26,6 @@ public interface ArticleService extends IService<Article> {
     ArticleVo post(ArticleDto dto) throws Exception;
 
     ArticleVo update(ArticleUpdateDto dto) throws Exception;
+
+    Boolean deleteById(Long id) throws Exception;
 }

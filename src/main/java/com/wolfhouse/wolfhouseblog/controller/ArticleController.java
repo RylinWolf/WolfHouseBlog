@@ -51,4 +51,11 @@ public class ArticleController {
                 ArticleConstant.UPDATE_FAILED,
                 articleService.update(dto));
     }
+
+    @DeleteMapping("/{id}")
+    public HttpResult<Boolean> delete(@PathVariable Long id) throws Exception {
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED,
+                articleService.deleteById(id));
+    }
 }
