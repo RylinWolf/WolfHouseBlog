@@ -125,17 +125,18 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
         // TODO 在修改时，检查分区是否存在
         VerifyTool.ofLogin(
-                          new IdReachableVerifyNode(dto.getId(), this).exception(AuthExceptionConstant.ACCESS_DENIED),
+                          new IdReachableVerifyNode(
+                                  dto.getId(), this)
+                                  .exception(AuthExceptionConstant.ACCESS_DENIED),
                           new TitleVerifyNode(
-                                  JsonNullableUtil.getObjOrNull(dto.getTitle()),
-                                  true).exception(ARTICLE.TITLE.getName()),
+                                  JsonNullableUtil.getObjOrNull(dto.getTitle()), true)
+                                  .exception(ARTICLE.TITLE.getName()),
                           new ContentVerifyNode(
-                                  JsonNullableUtil.getObjOrNull(dto.getContent()),
-                                  true
-                          ).exception(ARTICLE.CONTENT.getName()),
+                                  JsonNullableUtil.getObjOrNull(dto.getContent()), true)
+                                  .exception(ARTICLE.CONTENT.getName()),
                           new PrimaryVerifyNode(
-                                  JsonNullableUtil.getObjOrNull(dto.getPrimary()),
-                                  true).exception(ARTICLE.PRIMARY.getName()))
+                                  JsonNullableUtil.getObjOrNull(dto.getPrimary()), true)
+                                  .exception(ARTICLE.PRIMARY.getName()))
                   .doVerify();
 
         Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
