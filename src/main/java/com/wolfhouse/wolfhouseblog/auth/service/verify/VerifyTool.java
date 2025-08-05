@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.auth.service.verify;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.LoginVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +51,7 @@ public class VerifyTool {
     public static BaseVerifyChain ofLogin(VerifyNode<?>... nodes) {
         List<VerifyNode<?>> nodeList = new ArrayList<>(Arrays.stream(nodes)
                                                              .toList());
-        nodeList.addFirst(new LoginVerifyNode());
+        nodeList.addFirst(new LoginVerifyNode().exception(AuthExceptionConstant.AUTHENTIC_FAILED));
         return of(nodeList.toArray(new VerifyNode[0]));
     }
 }
