@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         int status;
 
         switch (message) {
-            case ServiceExceptionConstant.LOGIN_REQUIRED -> {
+            case AuthExceptionConstant.LOGIN_REQUIRED -> {
                 code = HttpCodeConstant.UN_LOGIN;
                 status = HttpStatus.UNAUTHORIZED.value();
             }
