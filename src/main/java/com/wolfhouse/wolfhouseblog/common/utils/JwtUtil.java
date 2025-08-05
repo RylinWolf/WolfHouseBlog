@@ -25,7 +25,6 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.secret()));
     }
 
-    // TODO 实现 JWT
 
     /**
      * 根据认证信息生成JWT令牌
