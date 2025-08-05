@@ -18,5 +18,5 @@ public class ArticleVo {
     private LocalDateTime postTime;
     private Long partitionId;
     private List<String> tags;
-    private List<String> comUseTags;
+    private List<Long> comUseTags;
 }
