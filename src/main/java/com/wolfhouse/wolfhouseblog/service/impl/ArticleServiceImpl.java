@@ -119,6 +119,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                           ArticleVerifyNode.CONTENT.target(dto.getContent())
                                                    .exception(ARTICLE.CONTENT.getName()),
                           ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
+                                                   .allowNull(true)
                                                    .exception(ARTICLE.PRIMARY.getName()))
                   .doVerify();
 
