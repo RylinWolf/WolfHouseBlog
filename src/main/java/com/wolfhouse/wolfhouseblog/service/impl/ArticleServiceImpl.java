@@ -100,7 +100,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo getById(Long id) throws Exception {
-        BaseVerifyChain chain = VerifyTool.ofLogin(new IdReachableVerifyNode(
+        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(
                 id,
                 this).setStrategy(VerifyStrategy.NORMAL));
 
