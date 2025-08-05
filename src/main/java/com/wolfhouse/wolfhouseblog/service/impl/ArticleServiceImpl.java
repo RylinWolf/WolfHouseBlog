@@ -28,6 +28,8 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
 
 /**
@@ -73,19 +75,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                           .orElse(null));
 
         // 日期范围查询
-        if (BeanUtil.isAnyNotBlank(dto.getPostStart(), dto.getPostEnd())) {
-            wrapper.ge(
-                    Article::getPostTime,
-                    dto.getPostStart()
-                       .orElse(null),
-                    dto.getPostStart()
-                       .isPresent());
-            wrapper.le(
-                    Article::getPostTime,
-                    dto.getPostEnd()
-                       .orElse(null),
-                    dto.getPostEnd()
-                       .isPresent());
+        LocalDateTime start = dto.getPostStart()
+                                 .orElse(null);
+        LocalDateTime end = dto.getPostEnd()
+                               .orElse(null);
+
+        if (BeanUtil.isAnyNotBlank(start, end)) {
+            wrapper.ge(Article::getPostTime, start, start != null);
+            wrapper.le(Article::getPostTime, end, end != null);
         }
 
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
