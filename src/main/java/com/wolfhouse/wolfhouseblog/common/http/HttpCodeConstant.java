@@ -15,10 +15,12 @@ public class HttpCodeConstant {
     public static final String ARG_NOT_VALID = "ARG_NOT_VALID";
     public static final String NOT_FOUND = "NOT_FOUND";
     public static final String SERVER_ERROR = "SERVER_ERROR";
+    public static final String SERVICE_ERROR = "SERVICE_ERROR";
 
     public static final String VERIFY_FAILED = "VERIFY_FAILED";
 
     public static final String POST_FAILED = "POST_FAILED";
     public static final String UPDATE_FAILED = "UPDATE_FAILED";
     public static final String BANNED = "BANNED";
+    public static final String USER_NOT_EXIST = "USER_NOT_EXIST";
 }
