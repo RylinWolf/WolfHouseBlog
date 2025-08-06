@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -89,7 +90,15 @@ public class UserController {
                 HttpCodeConstant.UPDATE_FAILED,
                 UserConstant.USER_UPDATE_FAILED,
                 userService.updateAuthedUser(dto));
+    }
 
+    @Operation(summary = "关注")
+    @PutMapping("/subscribe")
+    public HttpResult<?> subscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
+        return HttpResult.onCondition(
+                HttpCodeConstant.FAILED,
+                UserConstant.SUBSCRIBE_FAILED,
+                userService.subsribe(dto));
     }
 
 }

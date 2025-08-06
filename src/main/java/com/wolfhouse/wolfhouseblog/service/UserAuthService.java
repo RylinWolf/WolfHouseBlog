@@ -46,7 +46,13 @@ public interface UserAuthService extends IService<UserAuth> {
 
     Boolean isUserEnabled(Long userId);
 
-    Boolean isUserUnaccessable(Long userId);
+    /**
+     * 判断用户是否不可达。
+     *
+     * @param userId 用户ID
+     * @return 如果用户不可达则返回true，否则返回false
+     */
+    Boolean isUserUnaccessible(Long userId);
 
     /**
      * 验证用户凭证是否正确

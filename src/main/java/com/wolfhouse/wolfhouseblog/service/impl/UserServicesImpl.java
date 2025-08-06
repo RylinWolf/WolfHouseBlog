@@ -3,12 +3,16 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.NotEqualsVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Subscribe;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
@@ -20,9 +24,13 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.SubscribeTableDef.SUBSCRIBE;
 
 /**
  * @author linexsong
@@ -30,6 +38,7 @@ import java.util.function.Consumer;
 @Service
 @RequiredArgsConstructor
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private final SubscribeMapper subscribeMapper;
     private final UserAuthService authService;
 
     @Override
@@ -78,7 +87,6 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                             dto.getUsername(),
                             UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
                     .build(), true);
-
         // 插入不成功
         if (insert <= 0) {
             return null;
@@ -114,9 +122,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public String generateAccount(String username, Integer codeLen) {
         int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
         String account = username + UserConstant.ACCOUNT_SEPARATOR;
-
         account += String.format("%0" + codeLen + "d", countCode);
-
 
         // 生成账号重复，重新生成
         // TODO 使用 Redis 优化
@@ -141,9 +147,50 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public Boolean subsribe(UserSubDto dto) {
+    public Boolean subsribe(UserSubDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
+        Long toUser = dto.getToUser();
+        VerifyTool.ofLoginExist(
+                          authService,
+                          new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
+                  .doVerify();
 
-        return null;
+        if (authService.isUserUnaccessible(toUser)) {
+            throw new ServiceException(UserConstant.USER_UNACCESSIBLE);
+        }
+
+        dto.setFromUser(login);
+        if (isSubscribed(dto)) {
+            throw new ServiceException(UserConstant.USER_ALREADY_SUBSCRIBED);
+        }
+
+        return subscribeMapper.insert(BeanUtil.copyProperties(dto, Subscribe.class)) == 1;
+    }
+
+    @Override
+    public List<Long> getSubscribedUsers(Long userId) {
+        return subscribeMapper.selectListByQuery(QueryWrapper.create()
+                                                             .select(SUBSCRIBE.TO_USER)
+                                                             .where(SUBSCRIBE.FROM_USER.eq(userId)))
+                              .stream()
+                              .map(Subscribe::getToUser)
+                              .collect(Collectors.toList());
+    }
+
+    @Override
+    public Boolean isSubscribed(UserSubDto dto) {
+        if (BeanUtil.isAnyBlank(dto.getFromUser(), dto.getToUser())) {
+            throw new ServiceException(ServiceExceptionConstant.ARG_FORMAT_ERROR);
+        }
+
+        // 关注用户为自己
+        if (dto.getToUser()
+               .equals(dto.getFromUser())) {
+            return true;
+        }
+
+        return subscribeMapper.selectCountByQuery(QueryWrapper.create()
+                                                              .where(SUBSCRIBE.FROM_USER.eq(dto.getFromUser()))
+                                                              .and(SUBSCRIBE.TO_USER.eq(dto.getToUser()))) != 0;
     }
 }

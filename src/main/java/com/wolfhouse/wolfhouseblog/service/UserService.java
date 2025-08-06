@@ -9,6 +9,8 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 /**
  * @author linexsong
  */
@@ -70,5 +72,9 @@ public interface UserService extends IService<User> {
      */
     UserVo updateAuthedUser(@Valid UserDto dto) throws Exception;
 
-    Boolean subsribe(UserSubDto dto);
+    Boolean subsribe(UserSubDto dto) throws Exception;
+
+    List<Long> getSubscribedUsers(Long userId);
+
+    Boolean isSubscribed(UserSubDto dto);
 }

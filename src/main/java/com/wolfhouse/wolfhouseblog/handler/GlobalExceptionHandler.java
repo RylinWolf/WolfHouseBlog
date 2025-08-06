@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleException(VerifyException e) {
-        log.error("字段验证异常: [{}]", e.getMessage(), e);
+        log.error("字段验证异常: [{}]", e.getMessage());
         return HttpResult.failed(
                 HttpStatus.FORBIDDEN.value(),
                 HttpCodeConstant.VERIFY_FAILED,
@@ -63,10 +63,18 @@ public class GlobalExceptionHandler {
                 code = HttpCodeConstant.BANNED;
                 status = HttpStatus.FORBIDDEN.value();
             }
+            case UserConstant.USER_NOT_EXIST, UserConstant.USER_UNACCESSIBLE -> {
+                code = HttpCodeConstant.USER_NOT_EXIST;
+                status = HttpStatus.FORBIDDEN.value();
+            }
+            case UserConstant.SUBSCRIBE_FAILED -> {
+                code = HttpCodeConstant.FAILED;
+                status = HttpStatus.FORBIDDEN.value();
+            }
             default -> {
-                code = HttpCodeConstant.SERVER_ERROR;
+                code = HttpCodeConstant.SERVICE_ERROR;
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value();
-                msg = ServiceExceptionConstant.SERVER_ERROR;
+                msg = ServiceExceptionConstant.SERVICE_ERROR + ": " + message;
             }
         }
 
