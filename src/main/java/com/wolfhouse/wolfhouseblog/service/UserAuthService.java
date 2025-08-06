@@ -15,6 +15,8 @@ public interface UserAuthService extends IService<UserAuth> {
      */
     Boolean createAuth(UserAuth userAuth);
 
+    Boolean isAuthExist(Long userId);
+
     /**
      * 创建用户认证信息
      *
@@ -24,12 +26,13 @@ public interface UserAuthService extends IService<UserAuth> {
     UserAuth createAuth(String password);
 
     /**
-     * 更新用户认证信息
+     * 启用用户
      *
-     * @param userAuth 用户认证信息对象
-     * @return 更新是否成功
+     * @param userId 用户 ID
      */
-    Boolean updateAuth(UserAuth userAuth);
+    void enableAuth(Long userId);
+
+    void disableAuth(Long userId);
 
     /**
      * 删除用户认证信息
@@ -39,6 +42,12 @@ public interface UserAuthService extends IService<UserAuth> {
      */
     Boolean deleteAuth(Long userId);
 
+    Boolean isUserDeleted(Long userId);
+
+    Boolean isUserEnabled(Long userId);
+
+    Boolean isUserUnaccessable(Long userId);
+
     /**
      * 验证用户凭证是否正确
      *
@@ -47,6 +56,4 @@ public interface UserAuthService extends IService<UserAuth> {
      * @return 是否正确
      */
     Boolean verifyPassword(String password, Long userId);
-
-
 }
