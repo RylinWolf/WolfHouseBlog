@@ -4,11 +4,10 @@ import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import jakarta.validation.Valid;
-
-import java.util.Optional;
 
 /**
  * @author linexsong
@@ -20,7 +19,7 @@ public interface UserService extends IService<User> {
      * @param s 账号或邮箱
      * @return 用户 Optional 对象
      */
-    Optional<User> findByAccountOrEmail(String s);
+    User findByAccountOrEmail(String s) throws Exception;
 
     /**
      * 根据用户ID查询用户信息
@@ -28,7 +27,7 @@ public interface UserService extends IService<User> {
      * @param userId 用户ID
      * @return 用户信息的Optional对象，如果未找到返回空Optional
      */
-    Optional<User> findByUserId(Long userId);
+    User findByUserId(Long userId) throws Exception;
 
     /**
      * 检查是否存在指定账号或邮箱的用户
@@ -70,4 +69,6 @@ public interface UserService extends IService<User> {
      * @return 更新后的用户视图对象
      */
     UserVo updateAuthedUser(@Valid UserDto dto) throws Exception;
+
+    Boolean subsribe(UserSubDto dto);
 }

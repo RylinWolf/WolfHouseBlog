@@ -12,9 +12,12 @@ import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,20 +28,42 @@ import java.util.function.Consumer;
  * @author linexsong
  */
 @Service
+@RequiredArgsConstructor
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private final UserAuthService authService;
+
     @Override
-    public Optional<User> findByAccountOrEmail(String s) {
+    public User findByAccountOrEmail(String s) throws Exception {
         QueryWrapper wrap = new QueryWrapper();
         wrap.eq(User::getAccount, s)
             .or(wrapper -> {
                 wrapper.eq(User::getEmail, s);
             });
-        return Optional.ofNullable(this.mapper.selectOneByQuery(wrap));
+        Optional<User> user = Optional.ofNullable(this.mapper.selectOneByQuery(wrap));
+        if (user.isEmpty()) {
+            return null;
+        }
+
+        User u = user.get();
+        // 用户停用或删除
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(u.getId()))
+                  .doVerify();
+        return u;
     }
 
     @Override
-    public Optional<User> findByUserId(Long userId) {
-        return Optional.ofNullable(this.mapper.selectOneById(userId));
+    public User findByUserId(Long userId) throws Exception {
+        Optional<User> user = Optional.ofNullable(this.mapper.selectOneById(userId));
+        if (user.isEmpty()) {
+            return null;
+        }
+        User u = user.get();
+        // 用户停用或删除
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(u.getId()))
+                  .doVerify();
+        return u;
     }
 
     @Override
@@ -68,6 +93,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         // 验证 DTO
         VerifyTool.ofAllMsg(
                           UserConstant.USER_UPDATE_FAILED,
+                          UserVerifyNode.id(authService)
+                                        .target(login),
                           UserVerifyNode.BIRTH.target(dto.getBirth()),
                           UserVerifyNode.email(this)
                                         .target(dto.getEmail()))
@@ -111,5 +138,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                   .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
         return count > 0;
 
+    }
+
+    @Override
+    public Boolean subsribe(UserSubDto dto) {
+        Long login = ServiceUtil.loginUserOrE();
+
+        return null;
     }
 }

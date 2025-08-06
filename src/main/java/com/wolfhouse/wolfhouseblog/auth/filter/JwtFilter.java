@@ -47,7 +47,7 @@ public class JwtFilter extends GenericFilterBean {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
             // 获取用户
-            Optional<User> userO = userService.findByUserId(userId);
+            Optional<User> userO = Optional.ofNullable(userService.findByUserId(userId));
             userO.orElseThrow(() -> new ServiceException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
             log.info("JWT 信息: {}, 过期时间: {}", userId, claims.getExpiration());
