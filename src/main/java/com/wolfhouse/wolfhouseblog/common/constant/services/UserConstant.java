@@ -20,4 +20,6 @@ public class UserConstant {
     public static final String VERIFY_FAILED = "字段验证失败！";
     public static final String SUBSCRIBE_FAILED = "关注失败！";
     public static final String USER_HAS_BEEN_BANNED = "账号被停用";
+    public static final String USER_UNACCESSIBLE = "无法访问该用户";
+    public static final String USER_ALREADY_SUBSCRIBED = "已关注该用户";
 }
