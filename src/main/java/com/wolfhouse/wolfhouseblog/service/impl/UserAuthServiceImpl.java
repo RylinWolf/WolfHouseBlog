@@ -28,6 +28,10 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
 
     @Override
     public Boolean isAuthExist(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+
         return selectWithoutLogicDelete(() -> exists(QueryWrapper.create()
                                                                  .where(USER_AUTH.USER_ID.eq(userId))));
     }
@@ -113,8 +117,8 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     }
 
     @Override
-    public Boolean isUserUnaccessable(Long userId) {
-        return isAuthExist(userId) && (isUserDeleted(userId) || !isUserEnabled(userId));
+    public Boolean isUserUnaccessible(Long userId) {
+        return !isAuthExist(userId) || isUserDeleted(userId) || !isUserEnabled(userId);
     }
 
     @Override
