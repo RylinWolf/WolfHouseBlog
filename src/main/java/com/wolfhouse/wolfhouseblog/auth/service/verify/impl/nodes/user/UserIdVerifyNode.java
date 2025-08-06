@@ -31,13 +31,15 @@ public class UserIdVerifyNode extends BaseVerifyNode<Long> {
             return true;
         }
 
-        // 用户不可达
-        if (service.isUserUnaccessable(this.t)) {
+        // 用户不存在或已删除
+        if (!service.isAuthExist(this.t) || service.isUserDeleted(this.t)) {
             this.customException = new ServiceException(UserConstant.USER_NOT_EXIST);
-            // 用户被禁用
-            if (service.isAuthExist(this.t) && service.isUserEnabled(this.t)) {
-                this.customException = new ServiceException(UserConstant.USER_HAS_BEEN_BANNED);
-            }
+            return false;
+        }
+
+        // 用户被禁用
+        if (!service.isUserEnabled(this.t)) {
+            this.customException = new ServiceException(UserConstant.USER_HAS_BEEN_BANNED);
             return false;
         }
 
