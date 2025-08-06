@@ -17,7 +17,8 @@ public class HttpCodeConstant {
     public static final String SERVER_ERROR = "SERVER_ERROR";
 
     public static final String VERIFY_FAILED = "VERIFY_FAILED";
-    
+
     public static final String POST_FAILED = "POST_FAILED";
     public static final String UPDATE_FAILED = "UPDATE_FAILED";
+    public static final String BANNED = "BANNED";
 }
