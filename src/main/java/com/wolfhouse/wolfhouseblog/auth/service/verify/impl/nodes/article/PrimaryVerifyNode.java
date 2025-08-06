@@ -20,8 +20,7 @@ public class PrimaryVerifyNode extends BaseVerifyNode<String> {
 
     @Override
     public boolean verify() {
-        super.verify();
-        return new StringVerifyNode(0L, 50L, true).target(t)
-                                                  .verify();
+        return super.verify() && new StringVerifyNode(0L, 50L, true).target(t)
+                                                                    .verify();
     }
 }
