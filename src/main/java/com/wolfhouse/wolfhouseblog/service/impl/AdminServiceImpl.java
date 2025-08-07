@@ -65,7 +65,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Boolean createAdmin(AdminPostDto dto) throws Exception {
+    public AdminVo createAdmin(AdminPostDto dto) throws Exception {
         // 登录用户应为管理员
         Long login = ServiceUtil.loginUserOrE();
         if (!isUserAdmin(login)) {
@@ -75,11 +75,11 @@ public class AdminServiceImpl implements AdminService {
                           authService,
                           UserVerifyNode.id(authService)
                                         .target(dto.getUserId()),
-                          AdminVerifyNode.id(this, authService)
+                          AdminVerifyNode.createId(this, authService)
                                          .target(dto.getUserId()))
                   .doVerify();
 
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
-        return mapper.insert(admin) == 1;
+        return mapper.insert(admin) != 1 ? null : getAdminVoById(admin.getId());
     }
 }

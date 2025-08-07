@@ -47,5 +47,8 @@ public interface AdminService extends IService<Admin> {
      */
     List<Authority> getAuthorities(Long userId);
 
-    Boolean createAdmin(AdminPostDto dto) throws Exception;
+    AdminVo createAdmin(AdminPostDto dto) throws Exception;
+
+
+    AdminVo updateAdmin(AdminUpdateDto dto) throws Exception;
 }
