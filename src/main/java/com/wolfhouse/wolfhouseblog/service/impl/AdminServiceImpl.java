@@ -52,11 +52,16 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<Authority> getAuthorities(Long userId) {
-        return isUserAdmin(userId) ? Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(
-                                                     Admin::getUserId,
-                                                     userId)))
-                                             .orElse(new Admin())
-                                             .getAuthorities() : Collections.emptyList();
+        List<Long> authIds = isUserAdmin(userId) ? Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(
+                                                                   Admin::getUserId,
+                                                                   userId)))
+                                                           .orElse(new Admin())
+                                                           .getAuthorities() : Collections.emptyList();
+        if (authIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return authorityMapper.selectListByIds(authIds);
     }
 
     @Override
