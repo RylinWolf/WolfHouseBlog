@@ -1,19 +1,26 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.AdminMapper;
+import com.wolfhouse.wolfhouseblog.mapper.AuthorityMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +33,13 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class AdminServiceImpl implements AdminService {
+public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
     private final AdminMapper mapper;
+    private final AuthorityMapper authorityMapper;
     private final UserAuthService authService;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper objectMapper;
+
 
     @Override
     public Optional<Admin> getAdminById(Long id) {
@@ -82,4 +93,26 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
         return mapper.insert(admin) != 1 ? null : getAdminVoById(admin.getId());
     }
+
+    @Override
+    public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
+        // 获取当前登录用户 验证权限
+        VerifyTool.ofLoginExist(
+                          authService,
+                          AdminVerifyNode.userId(this)
+                                         .target(ServiceUtil.loginUser()),
+                          new NotAllBlankVerifyNode(
+                                  JsonNullableUtil.getObjOrNull(dto.getName()),
+                                  JsonNullableUtil.getObjOrNull(dto.getAuthorities())),
+                          AdminVerifyNode.id(this)
+                                         .target(dto.getId()),
+                          AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())))
+                  .doVerify();
+
+        // 根据 Id 修改
+        Admin admin = objectMapper.convertValue(dto, Admin.class);
+
+        return mapper.update(admin, true) != 1 ? null : getAdminVoById(admin.getId());
+    }
+
 }

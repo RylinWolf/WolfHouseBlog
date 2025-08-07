@@ -4,6 +4,7 @@ import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 
 import java.util.List;
