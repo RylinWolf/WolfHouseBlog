@@ -7,13 +7,32 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
  * @author linexsong
  */
 public final class AdminVerifyNode {
-    private static AdminCreateIdVerifyNode ADMIN_VERIFY_NODE;
+    public static final AdminNameVerifyNode NAME = new AdminNameVerifyNode();
+    
+    private static AdminCreateIdVerifyNode CREATE_ID;
+    private static AdminIdVerifyNode ID;
+    private static AdminUserIdVerifyNode USER_ID;
 
-    public static AdminCreateIdVerifyNode id(AdminService s1, UserAuthService s2) {
-        if (ADMIN_VERIFY_NODE == null) {
-            ADMIN_VERIFY_NODE = new AdminCreateIdVerifyNode(s1, s2);
+    public static AdminCreateIdVerifyNode createId(AdminService s1, UserAuthService s2) {
+        if (CREATE_ID == null) {
+            CREATE_ID = new AdminCreateIdVerifyNode(s1, s2);
         }
-        return ADMIN_VERIFY_NODE;
+        return CREATE_ID;
     }
+
+    public static AdminIdVerifyNode id(AdminService service) {
+        if (ID == null) {
+            ID = new AdminIdVerifyNode(service);
+        }
+        return ID;
+    }
+
+    public static AdminUserIdVerifyNode userId(AdminService service) {
+        if (USER_ID == null) {
+            USER_ID = new AdminUserIdVerifyNode(service);
+        }
+        return USER_ID;
+    }
+
 
 }
