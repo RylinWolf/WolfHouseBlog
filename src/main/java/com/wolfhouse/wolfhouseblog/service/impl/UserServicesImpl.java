@@ -3,7 +3,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.NotEqualsVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotEqualsVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;

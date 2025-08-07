@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons;
+package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 

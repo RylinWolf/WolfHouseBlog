@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.LoginVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.LoginVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserIdVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
