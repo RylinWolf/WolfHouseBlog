@@ -5,13 +5,16 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
@@ -129,15 +132,28 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+        String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
+        String content = JsonNullableUtil.getObjOrNull(dto.getContent());
+        String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
+
         // TODO 在修改时，检查分区是否存在
         VerifyTool.ofLogin(
                           ArticleVerifyNode.id(dto.getId(), this),
-                          ArticleVerifyNode.title(JsonNullableUtil.getObjOrNull(dto.getTitle()), true)
+                          ArticleVerifyNode.title(title, true)
                                            .exception(ARTICLE.TITLE.getName()),
-                          ArticleVerifyNode.content(JsonNullableUtil.getObjOrNull(dto.getContent()), true)
+                          ArticleVerifyNode.content(content, true)
                                            .exception(ARTICLE.CONTENT.getName()),
-                          ArticleVerifyNode.primary(JsonNullableUtil.getObjOrNull(dto.getPrimary()), true)
-                                           .exception(ARTICLE.PRIMARY.getName()))
+                          ArticleVerifyNode.primary(primary, true)
+                                           .exception(ARTICLE.PRIMARY.getName()),
+                          new NotAllBlankVerifyNode(
+                                  title,
+                                  content,
+                                  primary,
+                                  dto.getVisibility(),
+                                  dto.getPartitionId(),
+                                  dto.getTags(),
+                                  dto.getComUseTags())
+                                  .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
         Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
