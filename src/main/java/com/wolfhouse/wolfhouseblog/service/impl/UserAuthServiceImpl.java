@@ -24,7 +24,6 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserAuthTableDef.USE
 @RequiredArgsConstructor
 public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> implements UserAuthService {
     private final PasswordEncoder encoder;
-    // TODO 实现用户验证服务
 
     @Override
     public Boolean isAuthExist(Long userId) {

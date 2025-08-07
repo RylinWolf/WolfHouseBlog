@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.service;
 
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,4 +42,6 @@ public interface AdminService {
      * @return 权限列表
      */
     List<Authority> getAuthorities(Long userId);
+
+    Boolean createAdmin(AdminPostDto dto) throws Exception;
 }
