@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Subscribe;
@@ -17,6 +18,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
@@ -24,13 +26,12 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.SubscribeTableDef.SUBSCRIBE;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
 
 /**
  * @author linexsong
@@ -168,13 +169,26 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public List<Long> getSubscribedUsers(Long userId) {
-        return subscribeMapper.selectListByQuery(QueryWrapper.create()
-                                                             .select(SUBSCRIBE.TO_USER)
-                                                             .where(SUBSCRIBE.FROM_USER.eq(userId)))
-                              .stream()
-                              .map(Subscribe::getToUser)
-                              .collect(Collectors.toList());
+    public PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception {
+        Long userId = dto.getFromUser();
+        VerifyTool.ofLoginExist(
+                          authService,
+                          UserVerifyNode.id(authService)
+                                        .target(userId))
+                  .doVerify();
+
+        // select * from user where user.id in (select to_user from sub where from_user = #{})
+        QueryWrapper subsWrapper = QueryWrapper.create()
+                                               .select(SUBSCRIBE.TO_USER)
+                                               .where(SUBSCRIBE.FROM_USER.eq(userId))
+                                               .from(SUBSCRIBE);
+        QueryWrapper getBriefWrapper = QueryWrapper.create()
+                                                   .select(UserBriefVo.COLUMNS)
+                                                   .from(USER)
+                                                   .where(USER.ID.in(subsWrapper));
+        return PageResult.of(
+                mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
+                UserBriefVo.class);
     }
 
     @Override

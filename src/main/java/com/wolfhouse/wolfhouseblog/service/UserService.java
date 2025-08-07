@@ -1,15 +1,15 @@
 package com.wolfhouse.wolfhouseblog.service;
 
 import com.mybatisflex.core.service.IService;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import jakarta.validation.Valid;
-
-import java.util.List;
 
 /**
  * @author linexsong
@@ -74,7 +74,7 @@ public interface UserService extends IService<User> {
 
     Boolean subsribe(UserSubDto dto) throws Exception;
 
-    List<Long> getSubscribedUsers(Long userId);
+    PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception;
 
     Boolean isSubscribed(UserSubDto dto);
 }

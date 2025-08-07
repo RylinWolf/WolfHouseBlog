@@ -4,11 +4,15 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -99,6 +103,15 @@ public class UserController {
                 HttpCodeConstant.FAILED,
                 UserConstant.SUBSCRIBE_FAILED,
                 userService.subsribe(dto));
+    }
+
+    @Operation(summary = "获取关注列表")
+    @PostMapping("/subscribe")
+    public HttpResult<PageResult<UserBriefVo>> getSubscribe(@RequestBody UserSubDto dto) throws Exception {
+        if (BeanUtil.isBlank(dto.getFromUser())) {
+            dto.setFromUser(ServiceUtil.loginUserOrE());
+        }
+        return HttpResult.success(userService.getSubscribedUsers(dto));
     }
 
 }

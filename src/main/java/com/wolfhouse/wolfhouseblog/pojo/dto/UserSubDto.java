@@ -1,7 +1,9 @@
 package com.wolfhouse.wolfhouseblog.pojo.dto;
 
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageDto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,7 +11,8 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-public class UserSubDto {
+@EqualsAndHashCode(callSuper = false)
+public class UserSubDto extends PageDto {
     private Long fromUser;
     @NotNull
     private Long toUser;
