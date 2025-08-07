@@ -207,4 +207,14 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                                               .where(SUBSCRIBE.FROM_USER.eq(dto.getFromUser()))
                                                               .and(SUBSCRIBE.TO_USER.eq(dto.getToUser()))) != 0;
     }
+
+    @Override
+    public Boolean deleteAccount(Long userId) throws Exception {
+        VerifyTool.ofLoginExist(
+                          authService,
+                          UserVerifyNode.id(authService)
+                                        .target(userId))
+                  .doVerify();
+        return authService.deleteAuth(userId);
+    }
 }

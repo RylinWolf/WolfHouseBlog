@@ -22,4 +22,5 @@ public class UserConstant {
     public static final String USER_HAS_BEEN_BANNED = "账号被停用";
     public static final String USER_UNACCESSIBLE = "无法访问该用户";
     public static final String USER_ALREADY_SUBSCRIBED = "已关注该用户";
+    public static final String DELETE_FAILED = "账号删除失败！";
 }

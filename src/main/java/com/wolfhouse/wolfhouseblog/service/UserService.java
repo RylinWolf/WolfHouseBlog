@@ -77,4 +77,6 @@ public interface UserService extends IService<User> {
     PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception;
 
     Boolean isSubscribed(UserSubDto dto);
+
+    Boolean deleteAccount(Long userId) throws Exception;
 }

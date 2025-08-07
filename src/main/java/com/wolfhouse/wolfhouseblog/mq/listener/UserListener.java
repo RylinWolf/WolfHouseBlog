@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.mq.listner;
+package com.wolfhouse.wolfhouseblog.mq.listener;
 
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqUserConstant;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;

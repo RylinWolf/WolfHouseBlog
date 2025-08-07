@@ -114,4 +114,14 @@ public class UserController {
         return HttpResult.success(userService.getSubscribedUsers(dto));
     }
 
+    @Operation(summary = "删除账号")
+    @DeleteMapping
+    public HttpResult<?> deleteAccount() throws Exception {
+        // TODO 删除账号设置缓冲期
+        return HttpResult.onCondition(
+                HttpCodeConstant.FAILED,
+                UserConstant.DELETE_FAILED,
+                userService.deleteAccount(ServiceUtil.loginUserOrE()));
+    }
+
 }
