@@ -1,8 +1,10 @@
 package com.wolfhouse.wolfhouseblog.service;
 
+import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +12,7 @@ import java.util.Optional;
 /**
  * @author linexsong
  */
-public interface AdminService {
+public interface AdminService extends IService<Admin> {
     /**
      * 查询用户是否为管理员
      *
@@ -34,6 +36,8 @@ public interface AdminService {
      * @return 管理员信息
      */
     Optional<Admin> getAdminByUserId(Long userId);
+
+    AdminVo getAdminVoById(Long id);
 
     /**
      * 获取权限列表

@@ -11,6 +11,7 @@ import com.wolfhouse.wolfhouseblog.mapper.AdminMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,11 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Optional<Admin> getAdminByUserId(Long userId) {
         return Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(Admin::getUserId, userId)));
+    }
+
+    @Override
+    public AdminVo getAdminVoById(Long id) {
+        return BeanUtil.copyProperties(mapper.selectOneById(id), AdminVo.class);
     }
 
     @Override
