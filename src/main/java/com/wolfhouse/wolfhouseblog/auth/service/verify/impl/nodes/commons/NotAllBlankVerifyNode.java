@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -27,12 +28,21 @@ public class NotAllBlankVerifyNode extends BaseVerifyNode<Object[]> {
         if (t == null) {
             return false;
         }
-        
+
         boolean allBlank = true;
         Iterator<?> iter = Arrays.stream(t)
                                  .iterator();
         while (iter.hasNext()) {
-            if (iter.next() != null) {
+            Object next = iter.next();
+            // 非空则 allBlank 为 false
+            if (next != null) {
+                if (JsonNullable.class.isAssignableFrom(next.getClass())) {
+                    var nullable = (JsonNullable<?>) next;
+                    // nullable 无数据或数据为空
+                    if (!nullable.isPresent() || nullable.get() == null) {
+                        continue;
+                    }
+                }
                 allBlank = false;
                 break;
             }
