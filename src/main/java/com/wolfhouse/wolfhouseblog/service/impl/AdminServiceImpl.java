@@ -99,13 +99,17 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
                           authService,
+                          // 登陆用户是否为管理员
                           AdminVerifyNode.userId(this)
                                          .target(ServiceUtil.loginUser()),
+                          // 至少有一个数据更新
                           new NotAllBlankVerifyNode(
                                   JsonNullableUtil.getObjOrNull(dto.getName()),
                                   JsonNullableUtil.getObjOrNull(dto.getAuthorities())),
+                          // 更新目标需要是有效的管理员
                           AdminVerifyNode.id(this)
                                          .target(dto.getId()),
+                          // 管理员名称验证
                           AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())))
                   .doVerify();
 
@@ -114,5 +118,4 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         return mapper.update(admin, true) != 1 ? null : getAdminVoById(admin.getId());
     }
-
 }
