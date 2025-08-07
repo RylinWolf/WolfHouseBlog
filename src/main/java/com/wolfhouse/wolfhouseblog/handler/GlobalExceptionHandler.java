@@ -54,7 +54,8 @@ public class GlobalExceptionHandler {
             }
             case AuthExceptionConstant.ACCESS_DENIED,
                  AdminConstant.ADMIN_EXISTS,
-                 AdminConstant.ADMIN_NOT_EXIST -> {
+                 AdminConstant.ADMIN_NOT_EXIST,
+                 VerifyConstant.NOT_ALL_BLANK -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }
