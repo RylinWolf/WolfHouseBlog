@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -51,7 +52,8 @@ public class GlobalExceptionHandler {
                 code = HttpCodeConstant.UN_LOGIN;
                 status = HttpStatus.UNAUTHORIZED.value();
             }
-            case AuthExceptionConstant.ACCESS_DENIED -> {
+            case AuthExceptionConstant.ACCESS_DENIED,
+                 AdminConstant.ADMIN_EXISTS -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }
