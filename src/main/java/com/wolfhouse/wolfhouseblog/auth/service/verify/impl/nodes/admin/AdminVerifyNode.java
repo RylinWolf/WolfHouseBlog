@@ -8,10 +8,11 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
  */
 public final class AdminVerifyNode {
     public static final AdminNameVerifyNode NAME = new AdminNameVerifyNode();
-    
+
     private static AdminCreateIdVerifyNode CREATE_ID;
     private static AdminIdVerifyNode ID;
     private static AdminUserIdVerifyNode USER_ID;
+    private static AuthorityIdVerifyNode AUTHORITY_ID;
 
     public static AdminCreateIdVerifyNode createId(AdminService s1, UserAuthService s2) {
         if (CREATE_ID == null) {
@@ -34,5 +35,11 @@ public final class AdminVerifyNode {
         return USER_ID;
     }
 
+    public static AuthorityIdVerifyNode authorityId(AdminService service) {
+        if (AUTHORITY_ID == null) {
+            AUTHORITY_ID = new AuthorityIdVerifyNode(service);
+        }
+        return AUTHORITY_ID;
+    }
 
 }

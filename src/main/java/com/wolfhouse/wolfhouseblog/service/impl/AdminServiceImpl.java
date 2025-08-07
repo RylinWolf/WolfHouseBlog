@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
@@ -96,6 +97,13 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
+        String name = JsonNullableUtil.getObjOrNull(dto.getName());
+        Long adminId = dto.getId();
+
+        // 权限
+        List<Long> authorityList = JsonNullableUtil.getObjOrNull(dto.getAuthorities());
+        Long[] authorities = authorityList == null ? null : authorityList.toArray(new Long[0]);
+
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
                           authService,
@@ -103,19 +111,42 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                           AdminVerifyNode.userId(this)
                                          .target(ServiceUtil.loginUser()),
                           // 至少有一个数据更新
-                          new NotAllBlankVerifyNode(
-                                  JsonNullableUtil.getObjOrNull(dto.getName()),
-                                  JsonNullableUtil.getObjOrNull(dto.getAuthorities())),
+                          new NotAllBlankVerifyNode(name, authorities)
+                                  .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
                           // 更新目标需要是有效的管理员
                           AdminVerifyNode.id(this)
-                                         .target(dto.getId()),
+                                         .target(adminId),
                           // 管理员名称验证
-                          AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())))
+                          AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())),
+                          // 权限验证
+                          AdminVerifyNode.authorityId(this)
+                                         .target(authorities)
+                               )
                   .doVerify();
 
-        // 根据 Id 修改
+        // 修改权限
+        // TODO 现在实现的是添加权限，应该做的是修改
+        Integer i = authorityMapper.addAuthorities(adminId, authorities);
+
+        // 修改其他信息
         Admin admin = objectMapper.convertValue(dto, Admin.class);
 
-        return mapper.update(admin, true) != 1 ? null : getAdminVoById(admin.getId());
+        // 目前管理员只有名称可以被修改，因此如果没有修改则没有更新项
+        if (name == null) {
+            return null;
+        }
+
+        if (mapper.update(admin, true) != 1 && i == 0) {
+            return null;
+        }
+
+        return getAdminVoById(admin.getId());
+    }
+
+    @Override
+    public Boolean isAuthoritiesExist(Long... authorityIds) {
+        long count = authorityMapper.selectCountByQuery(new QueryWrapper().in(Authority::getId, List.of(authorityIds)));
+
+        return count == authorityIds.length;
     }
 }
