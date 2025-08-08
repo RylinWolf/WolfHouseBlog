@@ -6,6 +6,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public interface AdminService extends IService<Admin> {
      * @param id 管理员ID
      * @return 管理员视图对象
      */
-    AdminVo getAdminVoById(Long id);
+    AdminVo getAdminVoById(Long id) throws Exception;
 
     /**
      * 获取权限列表
@@ -79,9 +80,8 @@ public interface AdminService extends IService<Admin> {
 
     Boolean isAuthoritiesExist(Long... authorityIds);
 
-    List<Long> getAuthoritiesByAdmin(Long adminId) throws Exception;
     List<Long> getAuthoritiesIdsByAdmin(Long adminId) throws Exception;
 
-    List<Authority> getAuthoritiesByAdminId(Long adminId) throws Exception;
+    List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception;
 
 }

@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 /**
  * @author linexsong
  */
@@ -13,6 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthorityVo {
-    private List<Long> id;
-
+    private Long id;
+    private String permissionName;
 }

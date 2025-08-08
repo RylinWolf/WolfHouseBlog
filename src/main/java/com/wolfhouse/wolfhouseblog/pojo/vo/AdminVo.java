@@ -1,6 +1,5 @@
 package com.wolfhouse.wolfhouseblog.pojo.vo;
 
-import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import lombok.Data;
 
 import java.util.List;
@@ -11,5 +10,5 @@ import java.util.List;
 @Data
 public class AdminVo {
     private String name;
-    private List<Authority> authorities;
+    private List<AuthorityVo> authorities;
 }

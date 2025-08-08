@@ -20,11 +20,13 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -52,8 +54,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public AdminVo getAdminVoById(Long id) {
-        return BeanUtil.copyProperties(mapper.selectOneById(id), AdminVo.class);
+    public AdminVo getAdminVoById(Long id) throws Exception {
+        AdminVo vo = BeanUtil.copyProperties(mapper.selectOneById(id), AdminVo.class);
+        vo.setAuthorities(getAuthoritiesByAdminId(id));
+        return vo;
     }
 
     @Override
@@ -96,11 +100,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 验证创建管理员的用户 ID 是否存在，是否已经是管理员
         VerifyTool.ofLoginExist(
-                          authService,
-                          UserVerifyNode.id(authService)
-                                        .target(dto.getUserId()),
-                          AdminVerifyNode.createId(this, authService)
-                                         .target(dto.getUserId()))
+                       authService,
+                       UserVerifyNode.id(authService)
+                                     .target(dto.getUserId()),
+                       AdminVerifyNode.createId(this, authService)
+                                      .target(dto.getUserId()))
                   .doVerify();
 
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
@@ -108,6 +112,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
         String name = JsonNullableUtil.getObjOrNull(dto.getName());
         Long adminId = dto.getId();
@@ -118,22 +123,21 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
-                          authService,
-                          // 登陆用户是否为管理员
-                          AdminVerifyNode.userId(this)
-                                         .target(ServiceUtil.loginUser()),
-                          // 至少有一个数据更新
-                          new NotAllBlankVerifyNode(name, authorities)
-                                  .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
-                          // 更新目标需要是有效的管理员
-                          AdminVerifyNode.id(this)
-                                         .target(adminId),
-                          // 管理员名称验证
-                          AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())),
-                          // 权限验证
-                          AdminVerifyNode.authorityId(this)
-                                         .target(authorities)
-                               )
+                       authService,
+                       // 登陆用户是否为管理员
+                       AdminVerifyNode.userId(this)
+                                      .target(ServiceUtil.loginUser()),
+                       // 至少有一个数据更新
+                       new NotAllBlankVerifyNode(name, authorities)
+                            .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
+                       // 更新目标需要是有效的管理员
+                       AdminVerifyNode.id(this)
+                                      .target(adminId),
+                       // 管理员名称验证
+                       AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())),
+                       // 权限验证
+                       AdminVerifyNode.authorityId(this)
+                                      .target(authorities))
                   .doVerify();
 
         // 修改权限
@@ -172,9 +176,9 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public List<Authority> getAuthoritiesByAdminId(Long adminId) throws Exception {
+    public List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception {
         List<Long> ids = getAuthoritiesIdsByAdmin(adminId);
-        return authorityMapper.selectListByIds(ids);
+        return BeanUtil.copyList(authorityMapper.selectListByIds(ids), AuthorityVo.class);
     }
 
 }
