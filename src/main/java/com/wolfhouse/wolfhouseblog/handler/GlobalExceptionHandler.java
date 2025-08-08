@@ -25,18 +25,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<HttpResult<?>> handleException(Exception e) {
         log.error("发生异常: [{}]", e.getMessage(), e);
         return HttpResult.failed(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpCodeConstant.SERVER_ERROR,
-                ServiceExceptionConstant.SERVER_ERROR);
+             HttpStatus.INTERNAL_SERVER_ERROR.value(),
+             HttpCodeConstant.SERVER_ERROR,
+             ServiceExceptionConstant.SERVER_ERROR);
     }
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleException(VerifyException e) {
         log.error("字段验证异常: [{}]", e.getMessage());
         return HttpResult.failed(
-                HttpStatus.FORBIDDEN.value(),
-                HttpCodeConstant.VERIFY_FAILED,
-                VerifyConstant.VERIFY_FAILED);
+             HttpStatus.FORBIDDEN.value(),
+             HttpCodeConstant.VERIFY_FAILED,
+             VerifyConstant.VERIFY_FAILED);
     }
 
     @ExceptionHandler
@@ -53,6 +53,7 @@ public class GlobalExceptionHandler {
                 status = HttpStatus.UNAUTHORIZED.value();
             }
             case AuthExceptionConstant.ACCESS_DENIED,
+                 AuthExceptionConstant.AUTHENTIC_FAILED,
                  AdminConstant.ADMIN_EXISTS,
                  AdminConstant.ADMIN_NOT_EXIST,
                  VerifyConstant.NOT_ALL_BLANK -> {
