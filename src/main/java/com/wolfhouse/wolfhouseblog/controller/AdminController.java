@@ -1,0 +1,70 @@
+package com.wolfhouse.wolfhouseblog.controller;
+
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
+import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
+import com.wolfhouse.wolfhouseblog.service.AdminService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * @author linexsong
+ */
+@RestController
+@RequestMapping("/api/a")
+@RequiredArgsConstructor
+public class AdminController {
+    private final AdminService service;
+
+    @GetMapping("/au")
+    public HttpResult<List<Long>> getAuthorities() throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        if (!service.isUserAdmin(login)) {
+            return HttpResult.failed(
+                 HttpCodeConstant.ACCESS_DENIED,
+                 AuthExceptionConstant.ACCESS_DENIED);
+        }
+        return HttpResult.success(service.getAuthoritiesIds(login));
+    }
+
+    @PostMapping
+    public HttpResult<AdminVo> postAdmin(@RequestBody AdminPostDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.FAILED,
+             AdminConstant.CREATE_FAILED,
+             service.createAdmin(dto));
+    }
+
+    @PutMapping
+    public HttpResult<AdminVo> updateAdmin(@RequestBody AdminUpdateDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.UPDATE_FAILED,
+             AdminConstant.UPDATE_FAILED,
+             service.updateAdmin(dto));
+    }
+
+    @DeleteMapping(value = "/{adminId}")
+    public HttpResult<?> deleteAdmin(@PathVariable Long adminId) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             AdminConstant.DELETE_FAILED,
+             service.delete(adminId));
+    }
+
+    @DeleteMapping("/user")
+    public HttpResult<?> deleteUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.DELETE_FAILED,
+             service.deleteUser(dto));
+    }
+}

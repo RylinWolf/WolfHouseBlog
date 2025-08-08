@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons;
+package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 
@@ -19,7 +19,6 @@ public class DateVerifyNode extends BaseVerifyNode<LocalDateTime> {
 
     @Override
     public boolean verify() {
-        super.verify();
-        return t.isAfter(start) && t.isBefore(end) || t.isEqual(start) || t.isEqual(end);
+        return super.verify() && t.isAfter(start) && t.isBefore(end) || t.isEqual(start) || t.isEqual(end);
     }
 }

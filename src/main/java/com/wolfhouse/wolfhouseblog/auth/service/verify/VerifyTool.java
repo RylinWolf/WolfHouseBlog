@@ -1,7 +1,10 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.LoginVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.LoginVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserIdVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +54,13 @@ public class VerifyTool {
         List<VerifyNode<?>> nodeList = new ArrayList<>(Arrays.stream(nodes)
                                                              .toList());
         nodeList.addFirst(new LoginVerifyNode());
+        return of(nodeList.toArray(new VerifyNode[0]));
+    }
+
+    public static BaseVerifyChain ofLoginExist(UserAuthService service, VerifyNode<?>... nodes) {
+        List<VerifyNode<?>> nodeList = new ArrayList<>(Arrays.stream(nodes)
+                                                             .toList());
+        nodeList.addFirst(new UserIdVerifyNode(service, ServiceUtil.loginUserOrE()));
         return of(nodeList.toArray(new VerifyNode[0]));
     }
 }

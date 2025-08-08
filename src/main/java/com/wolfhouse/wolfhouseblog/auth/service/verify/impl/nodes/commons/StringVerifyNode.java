@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons;
+package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 
@@ -6,9 +6,9 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
  * @author linexsong
  */
 public class StringVerifyNode extends BaseVerifyNode<String> {
-    private final Long min;
-    private final Long max;
-    private final Boolean allowNull;
+    protected final Long min;
+    protected final Long max;
+    protected final Boolean allowNull;
 
     public StringVerifyNode(Long min, Long max, Boolean allowNull) {
         this.min = min;

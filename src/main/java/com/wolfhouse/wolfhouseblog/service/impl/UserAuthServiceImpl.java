@@ -1,5 +1,8 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import com.mybatisflex.core.logicdelete.LogicDeleteManager;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -10,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.function.Supplier;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserAuthTableDef.USER_AUTH;
+
 /**
  * @author linexsong
  */
@@ -17,7 +24,31 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> implements UserAuthService {
     private final PasswordEncoder encoder;
-    // TODO 实现用户验证服务
+
+    @Override
+    public Boolean isAuthExist(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+
+        return selectWithoutLogicDelete(() -> exists(QueryWrapper.create()
+                                                                 .where(USER_AUTH.USER_ID.eq(userId))));
+    }
+
+    /**
+     * 若指定用户验证 ID 不存在，则抛出异常
+     *
+     * @param userId 用户 ID
+     */
+    private void throwIfNotExist(Long userId) {
+        if (!isAuthExist(userId)) {
+            throw new ServiceException(UserConstant.USER_NOT_EXIST);
+        }
+    }
+
+    private static <T> T selectWithoutLogicDelete(Supplier<T> supplier) {
+        return LogicDeleteManager.execWithoutLogicDelete(supplier);
+    }
 
     @Override
     public UserAuth createAuth(String password) {
@@ -32,24 +63,70 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
 
     @Override
     public Boolean createAuth(UserAuth userAuth) {
-        mapper.insert(userAuth);
-        return null;
+        userAuth.setUserId(null);
+        return mapper.insert(userAuth) == 1;
     }
 
     @Override
-    public Boolean updateAuth(UserAuth userAuth) {
-        return null;
+    public void enableAuth(Long userId) {
+        throwIfNotExist(userId);
+        UpdateChain.of(UserAuth.class)
+                   .where(USER_AUTH.USER_ID.eq(userId))
+                   .set(USER_AUTH.IS_ENABLED, true)
+                   .update();
+    }
+
+    @Override
+    public void disableAuth(Long userId) {
+        throwIfNotExist(userId);
+        UpdateChain.of(UserAuth.class)
+                   .where(USER_AUTH.USER_ID.eq(userId))
+                   .set(USER_AUTH.IS_ENABLED, false)
+                   .update();
     }
 
     @Override
     public Boolean deleteAuth(Long userId) {
-        return null;
+        return !isUserDeleted(userId) && mapper.deleteById(userId) > 0;
+    }
+
+    @Override
+    public Boolean isUserDeleted(Long userId) {
+        throwIfNotExist(userId);
+        return selectWithoutLogicDelete(
+                () -> mapper
+                        .selectOneByQuery(
+                                QueryWrapper.create()
+                                            .select(USER_AUTH.IS_DELETED)
+                                            .where(USER_AUTH.USER_ID.eq(userId)))
+                        .getIsDeleted());
+    }
+
+    @Override
+    public Boolean isUserEnabled(Long userId) {
+        throwIfNotExist(userId);
+        return selectWithoutLogicDelete(
+                () -> mapper
+                        .selectOneByQuery(
+                                QueryWrapper
+                                        .create()
+                                        .select(USER_AUTH.IS_ENABLED)
+                                        .where(USER_AUTH.USER_ID.eq(userId)))
+                        .getIsEnabled());
+    }
+
+    @Override
+    public Boolean isUserUnaccessible(Long userId) {
+        return !isAuthExist(userId) || isUserDeleted(userId) || !isUserEnabled(userId);
     }
 
     @Override
     public Boolean verifyPassword(String password, Long userId) {
+        throwIfNotExist(userId);
+
         return encoder.matches(
-                password, mapper.selectOneById(userId)
-                                .getPassword());
+                password,
+                mapper.selectOneById(userId)
+                      .getPassword());
     }
 }

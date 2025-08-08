@@ -55,12 +55,14 @@ CREATE TABLE IF NOT EXISTS user_auth
 ) AUTO_INCREMENT 10000 COMMENT '用户认证表';
 
 
+DROP TABLE IF EXISTS subscribe;
 
 CREATE TABLE IF NOT EXISTS subscribe
 (
     id        BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '关注 ID',
     from_user BIGINT NOT NULL COMMENT '关注用户 ID',
-    to_user   BIGINT NOT NULL COMMENT '被关注用户 ID'
+    to_user   BIGINT NOT NULL COMMENT '被关注用户 ID',
+    UNIQUE INDEX (from_user, to_user) COMMENT '联合索引'
 ) AUTO_INCREMENT 10000000 COMMENT '关注表';
 
 

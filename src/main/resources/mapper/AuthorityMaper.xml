@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wolfhouse.wolfhouseblog.mapper.AuthorityMapper">
+
+    <insert id="addAuthorities">
+        insert into admin_authority(admin_id, authority_id)
+        VALUES
+        <foreach collection="authorities" item="authId" separator=",">
+            (#{adminId}, #{authId})
+        </foreach>
+    </insert>
+
+    <delete id="removeAuthByAdmin">
+        delete
+        from admin_authority
+        where admin_id = #{adminId}
+        and authority_id in
+        <foreach collection="authIds" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -75,8 +75,9 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
 
     @Override
     public boolean verifyWithCustomE(Exception e) throws Exception {
+        this.customException = e;
         if (!verify()) {
-            throw e;
+            throw customException;
         }
         return true;
     }

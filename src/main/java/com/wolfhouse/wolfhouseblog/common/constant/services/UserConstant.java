@@ -14,7 +14,13 @@ public class UserConstant {
 
 
     public static final String USER_AUTH_CREATE_FAILED = "用户创建失败";
+    public static final String USER_NOT_EXIST = "用户不存在！";
     public static final String USER_ALREADY_EXIST = "用户已存在！";
     public static final String USER_UPDATE_FAILED = "用户修改失败！";
     public static final String VERIFY_FAILED = "字段验证失败！";
+    public static final String SUBSCRIBE_FAILED = "关注失败！";
+    public static final String USER_HAS_BEEN_BANNED = "账号被停用";
+    public static final String USER_UNACCESSIBLE = "无法访问该用户";
+    public static final String USER_ALREADY_SUBSCRIBED = "已关注该用户";
+    public static final String DELETE_FAILED = "账号删除失败！";
 }

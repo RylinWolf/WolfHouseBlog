@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.StringVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.StringVerifyNode;
 
 /**
  * @author linexsong

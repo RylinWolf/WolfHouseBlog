@@ -44,7 +44,7 @@ public class ArticleController {
                 articleService.post(dto));
     }
 
-    @PutMapping
+    @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
                 HttpCodeConstant.UPDATE_FAILED,

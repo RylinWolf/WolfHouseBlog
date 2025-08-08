@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.provider;
 
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
@@ -11,7 +12,6 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -30,10 +30,15 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
     private final AdminService adminService;
 
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) {
         // 获取用户
         String accountOrEmail = authentication.getName();
-        Optional<User> userO = userService.findByAccountOrEmail(accountOrEmail);
+        Optional<User> userO;
+        try {
+            userO = Optional.ofNullable(userService.findByAccountOrEmail(accountOrEmail));
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage(), e);
+        }
         var user = userO.orElseThrow(() -> new UsernameNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
         String password = authentication.getCredentials()
@@ -49,7 +54,9 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         // 获取权限
         List<Authority> authorities = Collections.emptyList();
         if (adminService.isUserAdmin(userId)) {
-            authorities = adminService.getAuthorities(userId);
+            try {
+                authorities = adminService.getAuthorities(userId);
+            } catch (Exception ignored) {}
         }
 
         return new UsernamePasswordAuthenticationToken(userId, password, authorities);

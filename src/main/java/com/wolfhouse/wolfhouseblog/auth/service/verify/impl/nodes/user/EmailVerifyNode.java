@@ -17,8 +17,12 @@ public class EmailVerifyNode extends BaseVerifyNode<String> {
         super.verify();
         String email = this.t.toLowerCase();
 
-        return service.getUserVoById(ServiceUtil.loginUser())
-                      .getEmail()
-                      .equals(email) || !service.hasAccountOrEmail(email);
+        try {
+            return service.getUserVoById(ServiceUtil.loginUser())
+                          .getEmail()
+                          .equals(email) || !service.hasAccountOrEmail(email);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 }

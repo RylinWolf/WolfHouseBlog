@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.comons.StringVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.StringVerifyNode;
 
 /**
  * @author linexsong
@@ -20,8 +20,7 @@ public class PrimaryVerifyNode extends BaseVerifyNode<String> {
 
     @Override
     public boolean verify() {
-        super.verify();
-        return new StringVerifyNode(0L, 50L, true).target(t)
-                                                  .verify();
+        return super.verify() && new StringVerifyNode(0L, 50L, true).target(t)
+                                                                    .verify();
     }
 }

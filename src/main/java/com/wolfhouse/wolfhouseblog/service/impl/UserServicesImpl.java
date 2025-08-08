@@ -3,46 +3,83 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotEqualsVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Subscribe;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
 
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.SubscribeTableDef.SUBSCRIBE;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
+
 /**
  * @author linexsong
  */
 @Service
+@RequiredArgsConstructor
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private final SubscribeMapper subscribeMapper;
+    private final UserAuthService authService;
+    private final JwtUtil jwtUtil;
+
     @Override
-    public Optional<User> findByAccountOrEmail(String s) {
+    public User findByAccountOrEmail(String s) throws Exception {
         QueryWrapper wrap = new QueryWrapper();
         wrap.eq(User::getAccount, s)
             .or(wrapper -> {
                 wrapper.eq(User::getEmail, s);
             });
-        return Optional.ofNullable(this.mapper.selectOneByQuery(wrap));
+        Optional<User> user = Optional.ofNullable(this.mapper.selectOneByQuery(wrap));
+        if (user.isEmpty()) {
+            return null;
+        }
+
+        User u = user.get();
+        // 用户停用或删除
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(u.getId()))
+                  .doVerify();
+        return u;
     }
 
     @Override
-    public Optional<User> findByUserId(Long userId) {
-        return Optional.ofNullable(this.mapper.selectOneById(userId));
+    public User findByUserId(Long userId) throws Exception {
+        Optional<User> user = Optional.ofNullable(this.mapper.selectOneById(userId));
+        if (user.isEmpty()) {
+            return null;
+        }
+        User u = user.get();
+        // 用户停用或删除
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(u.getId()))
+                  .doVerify();
+        return u;
     }
 
     @Override
-    public UserRegisterVo createUser(UserRegisterDto dto) {
+    public UserRegisterVo createUser(UserRegisterDto dto) throws Exception {
         int insert = mapper.insert(
                 User.builder()
                     .id(dto.getUserId())
@@ -53,13 +90,14 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                             dto.getUsername(),
                             UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
                     .build(), true);
-
         // 插入不成功
         if (insert <= 0) {
             return null;
         }
 
-        return BeanUtil.copyProperties(getUserVoById(dto.getUserId()), UserRegisterVo.class);
+        UserRegisterVo vo = BeanUtil.copyProperties(getUserVoById(dto.getUserId()), UserRegisterVo.class);
+        vo.setToken(jwtUtil.getToken(String.valueOf(vo.getId())));
+        return vo;
     }
 
     @Override
@@ -68,6 +106,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         // 验证 DTO
         VerifyTool.ofAllMsg(
                           UserConstant.USER_UPDATE_FAILED,
+                          UserVerifyNode.id(authService)
+                                        .target(login),
                           UserVerifyNode.BIRTH.target(dto.getBirth()),
                           UserVerifyNode.email(this)
                                         .target(dto.getEmail()))
@@ -87,9 +127,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public String generateAccount(String username, Integer codeLen) {
         int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
         String account = username + UserConstant.ACCOUNT_SEPARATOR;
-
         account += String.format("%0" + codeLen + "d", countCode);
-
 
         // 生成账号重复，重新生成
         // TODO 使用 Redis 优化
@@ -100,7 +138,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public UserVo getUserVoById(Long id) {
+    public UserVo getUserVoById(Long id) throws Exception {
+        // 检查 ID 是否可达
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(id))
+                  .doVerify();
+
         return BeanUtil.copyProperties(mapper.selectOneById(id), UserVo.class);
     }
 
@@ -111,5 +154,76 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                   .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
         return count > 0;
 
+    }
+
+    @Override
+    public Boolean subsribe(UserSubDto dto) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        Long toUser = dto.getToUser();
+        VerifyTool.ofLoginExist(
+                          authService,
+                          new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
+                  .doVerify();
+
+        if (authService.isUserUnaccessible(toUser)) {
+            throw new ServiceException(UserConstant.USER_UNACCESSIBLE);
+        }
+
+        dto.setFromUser(login);
+        if (isSubscribed(dto)) {
+            throw new ServiceException(UserConstant.USER_ALREADY_SUBSCRIBED);
+        }
+
+        return subscribeMapper.insert(BeanUtil.copyProperties(dto, Subscribe.class)) == 1;
+    }
+
+    @Override
+    public PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception {
+        Long userId = dto.getFromUser();
+        VerifyTool.ofLoginExist(
+                          authService,
+                          UserVerifyNode.id(authService)
+                                        .target(userId))
+                  .doVerify();
+
+        // select * from user where user.id in (select to_user from sub where from_user = #{})
+        QueryWrapper subsWrapper = QueryWrapper.create()
+                                               .select(SUBSCRIBE.TO_USER)
+                                               .where(SUBSCRIBE.FROM_USER.eq(userId))
+                                               .from(SUBSCRIBE);
+        QueryWrapper getBriefWrapper = QueryWrapper.create()
+                                                   .select(UserBriefVo.COLUMNS)
+                                                   .from(USER)
+                                                   .where(USER.ID.in(subsWrapper));
+        return PageResult.of(
+                mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
+                UserBriefVo.class);
+    }
+
+    @Override
+    public Boolean isSubscribed(UserSubDto dto) {
+        if (BeanUtil.isAnyBlank(dto.getFromUser(), dto.getToUser())) {
+            throw new ServiceException(ServiceExceptionConstant.ARG_FORMAT_ERROR);
+        }
+
+        // 关注用户为自己
+        if (dto.getToUser()
+               .equals(dto.getFromUser())) {
+            return true;
+        }
+
+        return subscribeMapper.selectCountByQuery(QueryWrapper.create()
+                                                              .where(SUBSCRIBE.FROM_USER.eq(dto.getFromUser()))
+                                                              .and(SUBSCRIBE.TO_USER.eq(dto.getToUser()))) != 0;
+    }
+
+    @Override
+    public Boolean deleteAccount(Long userId) throws Exception {
+        VerifyTool.ofLoginExist(
+                          authService,
+                          UserVerifyNode.id(authService)
+                                        .target(userId))
+                  .doVerify();
+        return authService.deleteAuth(userId);
     }
 }
