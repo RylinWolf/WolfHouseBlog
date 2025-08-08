@@ -10,4 +10,5 @@ public class AdminConstant {
     public static final String UPDATE_FAILED = "更新失败！";
     public static final String AUTHORITIES_NOT_EXIST = "权限不存在！";
     public static final String AUTHORITIES_CHANGE_FAILED = "权限修改失败";
+    public static final String DELETE_FAILED = "管理员删除失败";
 }

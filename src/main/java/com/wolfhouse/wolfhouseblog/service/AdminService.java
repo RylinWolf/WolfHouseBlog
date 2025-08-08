@@ -122,4 +122,13 @@ public interface AdminService extends IService<Admin> {
      * @throws Exception 更新过程中可能发生的异常
      */
     Integer changeAuthorities(Long adminId, Long[] authorities) throws Exception;
+
+    /**
+     * 删除指定管理员
+     *
+     * @param adminId 要删除的管理员ID
+     * @return 删除是否成功
+     * @throws Exception 删除过程中可能发生的异常
+     */
+    Boolean delete(Long adminId) throws Exception;
 }

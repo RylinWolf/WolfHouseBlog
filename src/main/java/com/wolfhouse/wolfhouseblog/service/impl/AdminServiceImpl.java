@@ -254,4 +254,26 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
         return removeCount + addCount;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean delete(Long adminId) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        if (!isUserAdmin(login)) {
+            throw ServiceException.notAllowed();
+        }
+
+        VerifyTool.of(
+                       UserVerifyNode.id(authService)
+                                     .target(login),
+                       AdminVerifyNode.id(this)
+                                      .target(adminId))
+                  .doVerify();
+
+        if (mapper.deleteById(adminId) != 1) {
+            throw new ServiceException(AdminConstant.DELETE_FAILED);
+        }
+        authorityMapper.removeAllByAdmin(adminId);
+        return true;
+    }
 }

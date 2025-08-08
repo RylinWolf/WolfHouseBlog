@@ -42,4 +42,12 @@ public class AdminController {
              AdminConstant.UPDATE_FAILED,
              service.updateAdmin(dto));
     }
+
+    @DeleteMapping(value = "/{adminId}")
+    public HttpResult<?> deleteAdmin(@PathVariable Long adminId) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             AdminConstant.DELETE_FAILED,
+             service.delete(adminId));
+    }
 }
