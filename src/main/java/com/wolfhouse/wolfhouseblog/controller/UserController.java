@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -95,6 +96,10 @@ public class UserController {
     @Operation(summary = "获取信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
+        // 需要登陆
+        VerifyTool.ofLoginExist(authService)
+                  .doVerify();
+        
         return HttpResult.failedIfBlank(
                 HttpCodeConstant.FAILED,
                 UserConstant.USER_UNACCESSIBLE,
