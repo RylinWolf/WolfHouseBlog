@@ -153,7 +153,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         Admin admin = objectMapper.convertValue(dto, Admin.class);
 
         // 目前管理员只有名称可以被修改，因此如果没有修改则没有更新项
-        if (name == null) {
+        if (name == null && i == 0) {
             return null;
         }
 
