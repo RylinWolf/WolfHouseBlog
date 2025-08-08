@@ -34,10 +34,14 @@ public class JwtUtil {
      * @return 生成的JWT令牌字符串
      */
     public String getToken(Authentication authentication) {
-        String name = authentication.getName();
+        String id = authentication.getName();
 
+        return getToken(id);
+    }
+
+    public String getToken(String id) {
         return Jwts.builder()
-                   .setSubject(name)
+                   .setSubject(id)
                    .setExpiration(new Date(System.currentTimeMillis() + properties.expiration()))
                    .signWith(key(), SignatureAlgorithm.HS256)
                    .compact();
