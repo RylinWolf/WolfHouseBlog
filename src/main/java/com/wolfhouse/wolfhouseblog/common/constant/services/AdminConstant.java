@@ -9,4 +9,5 @@ public class AdminConstant {
     public static final String ADMIN_NOT_EXIST = "管理员不存在！";
     public static final String UPDATE_FAILED = "更新失败！";
     public static final String AUTHORITIES_NOT_EXIST = "权限不存在！";
+    public static final String AUTHORITIES_CHANGE_FAILED = "权限修改失败";
 }
