@@ -63,20 +63,28 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public List<Authority> getAuthorities(Long userId) {
+    public List<Long> getAuthoritiesIds(Long userId) throws Exception {
+        // 获取管理员
         Optional<Admin> admin = getAdminByUserId(userId);
         if (admin.isEmpty()) {
             return Collections.emptyList();
         }
 
-        Long[] authIds = getAuthoritiesByAdmin(admin.get()
-                                                    .getId());
+        // 通过管理员 ID 获取权限
+        List<Long> authIds = getAuthoritiesByAdmin(admin.get()
+                                                        .getId());
 
-        if (authIds.length == 0) {
+        if (authIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return authorityMapper.selectListByIds(List.of(authIds));
+        return authIds;
+    }
+
+    @Override
+    public List<Authority> getAuthorities(Long userId) throws Exception {
+        var authIds = getAuthoritiesIds(userId);
+        return authorityMapper.selectListByIds(authIds);
     }
 
     @Override
@@ -86,6 +94,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         if (!isUserAdmin(login)) {
             throw ServiceException.notAllowed();
         }
+
+        // 验证创建管理员的用户 ID 是否存在，是否已经是管理员
         VerifyTool.ofLoginExist(
                           authService,
                           UserVerifyNode.id(authService)
@@ -154,8 +164,12 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public Long[] getAuthoritiesByAdmin(Long adminId) {
-        return authorityMapper.getIdsByAdminId(adminId);
+    public List<Long> getAuthoritiesByAdmin(Long adminId) throws Exception {
+        VerifyTool.of(AdminVerifyNode.id(this)
+                                     .target(adminId))
+                  .doVerify();
+
+        return List.of(authorityMapper.getIdsByAdminId(adminId));
     }
 
 }

@@ -54,7 +54,9 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         // 获取权限
         List<Authority> authorities = Collections.emptyList();
         if (adminService.isUserAdmin(userId)) {
-            authorities = adminService.getAuthorities(userId);
+            try {
+                authorities = adminService.getAuthorities(userId);
+            } catch (Exception ignored) {}
         }
 
         return new UsernamePasswordAuthenticationToken(userId, password, authorities);

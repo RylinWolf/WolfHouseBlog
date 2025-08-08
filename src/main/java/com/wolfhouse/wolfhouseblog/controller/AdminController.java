@@ -3,12 +3,15 @@ package com.wolfhouse.wolfhouseblog.controller;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author linexsong
@@ -18,6 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService service;
+
+    @GetMapping("/au")
+    public HttpResult<List<Long>> getAuthorities() throws Exception {
+        return HttpResult.success(service.getAuthoritiesIds(ServiceUtil.loginUserOrE()));
+    }
 
     @PostMapping
     public HttpResult<AdminVo> postAdmin(@RequestBody AdminPostDto dto) throws Exception {

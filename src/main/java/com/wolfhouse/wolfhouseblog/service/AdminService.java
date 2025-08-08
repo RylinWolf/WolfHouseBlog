@@ -54,7 +54,9 @@ public interface AdminService extends IService<Admin> {
      * @param userId 用户 ID
      * @return 权限列表
      */
-    List<Authority> getAuthorities(Long userId);
+    List<Authority> getAuthorities(Long userId) throws Exception;
+
+    List<Long> getAuthoritiesIds(Long userId) throws Exception;
 
     /**
      * 创建新的管理员
@@ -77,5 +79,5 @@ public interface AdminService extends IService<Admin> {
 
     Boolean isAuthoritiesExist(Long... authorityIds);
 
-    Long[] getAuthoritiesByAdmin(Long adminId);
+    List<Long> getAuthoritiesByAdmin(Long adminId) throws Exception;
 }
