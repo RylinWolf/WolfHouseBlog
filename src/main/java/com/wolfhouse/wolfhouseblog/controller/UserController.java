@@ -69,7 +69,8 @@ public class UserController {
     @Operation(summary = "注册")
     @PostMapping("/register")
     @Transactional(rollbackFor = Exception.class)
-    public ResponseEntity<HttpResult<UserRegisterVo>> register(@RequestBody @Valid UserRegisterDto dto) {
+    public ResponseEntity<HttpResult<UserRegisterVo>> register(@RequestBody @Valid UserRegisterDto dto)
+            throws Exception {
         log.info("用户注册: {}", dto);
         // 检查用户是否存在
         if (userService.hasAccountOrEmail(dto.getEmail())) {
@@ -89,6 +90,15 @@ public class UserController {
                 HttpCodeConstant.FAILED,
                 UserConstant.USER_AUTH_CREATE_FAILED,
                 userService.createUser(dto));
+    }
+
+    @Operation(summary = "获取信息")
+    @GetMapping("/{id}")
+    public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
+        return HttpResult.failedIfBlank(
+                HttpCodeConstant.FAILED,
+                UserConstant.USER_UNACCESSIBLE,
+                userService.getUserVoById(id));
     }
 
     @Operation(summary = "修改")

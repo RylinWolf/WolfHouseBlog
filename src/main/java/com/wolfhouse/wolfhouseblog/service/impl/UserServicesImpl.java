@@ -79,7 +79,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public UserRegisterVo createUser(UserRegisterDto dto) {
+    public UserRegisterVo createUser(UserRegisterDto dto) throws Exception {
         int insert = mapper.insert(
                 User.builder()
                     .id(dto.getUserId())
@@ -138,7 +138,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public UserVo getUserVoById(Long id) {
+    public UserVo getUserVoById(Long id) throws Exception {
+        // 检查 ID 是否可达
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(id))
+                  .doVerify();
+
         return BeanUtil.copyProperties(mapper.selectOneById(id), UserVo.class);
     }
 

@@ -49,7 +49,7 @@ public interface UserService extends IService<User> {
      * @param dto 用户注册数据传输对象，包含用户注册所需的所有信息
      * @return 用户注册结果视图对象
      */
-    UserRegisterVo createUser(UserRegisterDto dto);
+    UserRegisterVo createUser(UserRegisterDto dto) throws Exception;
 
     /**
      * 根据用户昵称生成唯一账号
@@ -66,7 +66,7 @@ public interface UserService extends IService<User> {
      * @param id 用户ID
      * @return 用户详细信息视图对象
      */
-    UserVo getUserVoById(Long id);
+    UserVo getUserVoById(Long id) throws Exception;
 
     /**
      * 更新当前已认证用户的个人信息
