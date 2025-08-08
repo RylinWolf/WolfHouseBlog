@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
@@ -24,7 +25,13 @@ public class AdminController {
 
     @GetMapping("/au")
     public HttpResult<List<Long>> getAuthorities() throws Exception {
-        return HttpResult.success(service.getAuthoritiesIds(ServiceUtil.loginUserOrE()));
+        Long login = ServiceUtil.loginUserOrE();
+        if (!service.isUserAdmin(login)) {
+            return HttpResult.failed(
+                 HttpCodeConstant.ACCESS_DENIED,
+                 AuthExceptionConstant.ACCESS_DENIED);
+        }
+        return HttpResult.success(service.getAuthoritiesIds(login));
     }
 
     @PostMapping
