@@ -116,6 +116,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+
         String name = JsonNullableUtil.getObjOrNull(dto.getName());
         Long adminId = dto.getId();
 
@@ -126,9 +128,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
                        authService,
+                       UserVerifyNode.id(authService)
+                                     .target(login),
                        // 登陆用户是否为管理员
                        AdminVerifyNode.userId(this)
-                                      .target(ServiceUtil.loginUser()),
+                                      .target(login),
                        // 至少有一个数据更新
                        new NotAllBlankVerifyNode(name, authorities)
                             .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
