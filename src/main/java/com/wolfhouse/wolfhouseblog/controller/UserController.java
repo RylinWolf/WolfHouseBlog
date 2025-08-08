@@ -82,8 +82,13 @@ public class UserController {
         // 设置用户 ID
         dto.setUserId(authService.createAuth(dto.getPassword())
                                  .getUserId());
+
         // 注册用户
-        return HttpResult.ok(userService.createUser(dto), null);
+        return HttpResult.failedIfBlank(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpCodeConstant.FAILED,
+                UserConstant.USER_AUTH_CREATE_FAILED,
+                userService.createUser(dto));
     }
 
     @Operation(summary = "修改")

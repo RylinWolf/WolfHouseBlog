@@ -9,6 +9,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
@@ -41,6 +42,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
     private final SubscribeMapper subscribeMapper;
     private final UserAuthService authService;
+    private final JwtUtil jwtUtil;
 
     @Override
     public User findByAccountOrEmail(String s) throws Exception {
@@ -93,7 +95,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             return null;
         }
 
-        return BeanUtil.copyProperties(getUserVoById(dto.getUserId()), UserRegisterVo.class);
+        UserRegisterVo vo = BeanUtil.copyProperties(getUserVoById(dto.getUserId()), UserRegisterVo.class);
+        vo.setToken(jwtUtil.getToken(String.valueOf(vo.getId())));
+        return vo;
     }
 
     @Override
