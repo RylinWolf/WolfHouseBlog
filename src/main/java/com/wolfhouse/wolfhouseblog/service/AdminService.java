@@ -84,4 +84,5 @@ public interface AdminService extends IService<Admin> {
 
     List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception;
 
+    Integer changeAuthorities(Long adminId, Long[] authorities) throws Exception;
 }

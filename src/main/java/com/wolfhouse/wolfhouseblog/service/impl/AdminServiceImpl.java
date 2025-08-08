@@ -181,4 +181,68 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         return BeanUtil.copyList(authorityMapper.selectListByIds(ids), AuthorityVo.class);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Integer changeAuthorities(Long adminId, Long[] newAuthIds) throws Exception {
+        // 0. 验证
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyTool.of(
+                       // 0.1 登录用户是否存在
+                       UserVerifyNode.id(authService)
+                                     .target(login),
+                       // 0.2 登陆用户是否为管理员
+                       AdminVerifyNode.id(this)
+                                      .target(login),
+                       // 0.3 修改的管理员是否存在
+                       AdminVerifyNode.id(this)
+                                      .target(adminId),
+                       // 0.4 权限列表是否存在
+                       AdminVerifyNode.authorityId(this)
+                                      .target(newAuthIds))
+                  .doVerify();
+
+        // 1.得到新增和重复权限
+        List<Long> authIds = new ArrayList<>(getAuthoritiesIdsByAdmin(adminId));
+        // 1.0 原权限列表为空
+        if (authIds.isEmpty()) {
+            if (newAuthIds.length == 0) {
+                return 0;
+            }
+            return authorityMapper.addAuthorities(adminId, newAuthIds);
+        }
+        // 1.1 对比列表
+        Set<Long> newAuthIdsSet = new HashSet<>(List.of(newAuthIds));
+        List<Long> repeatIds = new ArrayList<>();
+
+        newAuthIdsSet.forEach(a -> {
+            if (authIds.contains(a)) {
+                repeatIds.add(a);
+            }
+        });
+
+        // 1.2 得到重复项，从列表中去除
+        repeatIds.forEach(a -> {
+            authIds.remove(a);
+            newAuthIdsSet.remove(a);
+        });
+
+        // 2. 删除权限
+        Integer removeCount = 0;
+        // 去除列表即为去重后的原权限列表
+        if (!authIds.isEmpty()) {
+            removeCount = authorityMapper.removeAuthByAdmin(adminId, authIds);
+        }
+
+        // 3. 新增权限
+        // 新增列表即位去重后的新权限列表
+        Integer addCount = 0;
+        if (!newAuthIdsSet.isEmpty()) {
+            addCount = authorityMapper.addAuthorities(adminId, newAuthIdsSet.toArray(new Long[0]));
+        }
+
+        if (removeCount.equals(repeatIds.size()) && addCount.equals(newAuthIdsSet.size())) {
+            throw new ServiceException(AdminConstant.AUTHORITIES_CHANGE_FAILED);
+        }
+        return removeCount + addCount;
+    }
 }
