@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
@@ -25,9 +26,7 @@ import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author linexsong
@@ -71,8 +70,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
 
         // 通过管理员 ID 获取权限
-        List<Long> authIds = getAuthoritiesByAdmin(admin.get()
-                                                        .getId());
+        List<Long> authIds = getAuthoritiesIdsByAdmin(admin.get()
+                                                           .getId());
 
         if (authIds.isEmpty()) {
             return Collections.emptyList();
@@ -164,12 +163,18 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public List<Long> getAuthoritiesByAdmin(Long adminId) throws Exception {
+    public List<Long> getAuthoritiesIdsByAdmin(Long adminId) throws Exception {
         VerifyTool.of(AdminVerifyNode.id(this)
                                      .target(adminId))
                   .doVerify();
 
         return List.of(authorityMapper.getIdsByAdminId(adminId));
+    }
+
+    @Override
+    public List<Authority> getAuthoritiesByAdminId(Long adminId) throws Exception {
+        List<Long> ids = getAuthoritiesIdsByAdmin(adminId);
+        return authorityMapper.selectListByIds(ids);
     }
 
 }

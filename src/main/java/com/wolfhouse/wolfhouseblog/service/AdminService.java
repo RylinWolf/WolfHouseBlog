@@ -80,4 +80,8 @@ public interface AdminService extends IService<Admin> {
     Boolean isAuthoritiesExist(Long... authorityIds);
 
     List<Long> getAuthoritiesByAdmin(Long adminId) throws Exception;
+    List<Long> getAuthoritiesIdsByAdmin(Long adminId) throws Exception;
+
+    List<Authority> getAuthoritiesByAdminId(Long adminId) throws Exception;
+
 }
