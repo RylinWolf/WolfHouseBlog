@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.mapper;
 
 import com.mybatisflex.core.BaseMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -38,4 +39,12 @@ public interface AuthorityMapper extends BaseMapper<Authority> {
      * @return 受影响的行数
      */
     Integer removeAuthByAdmin(Long adminId, List<Long> authIds);
+
+    /**
+     * 删除指定管理员的所有权限。
+     *
+     * @param adminId 管理员的 ID
+     */
+    @Delete("delete from admin_authority where admin_id = #{adminId}")
+    void removeAllByAdmin(Long adminId);
 }
