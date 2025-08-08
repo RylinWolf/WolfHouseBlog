@@ -5,8 +5,6 @@ import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.mq.MqTools;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
-import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +23,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserListener {
     private final UserService userService;
-    private final UserAuthService userAuthService;
-    private final AdminService adminService;
     private final MqTools mqTools;
 
     @RabbitListener(
