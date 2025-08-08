@@ -25,6 +25,7 @@ import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ import java.util.*;
 /**
  * @author linexsong
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
@@ -87,7 +89,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public List<Authority> getAuthorities(Long userId) throws Exception {
         var authIds = getAuthoritiesIds(userId);
-        return authorityMapper.selectListByIds(authIds);
+        return authIds.isEmpty() ? List.of() : authorityMapper.selectListByIds(authIds);
     }
 
     @Override
@@ -177,7 +179,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception {
         List<Long> ids = getAuthoritiesIdsByAdmin(adminId);
-        return BeanUtil.copyList(authorityMapper.selectListByIds(ids), AuthorityVo.class);
+        return ids.isEmpty() ? List.of() : BeanUtil.copyList(authorityMapper.selectListByIds(ids), AuthorityVo.class);
     }
 
     @Override
