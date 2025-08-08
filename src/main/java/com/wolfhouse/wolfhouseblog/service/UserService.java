@@ -48,15 +48,17 @@ public interface UserService extends IService<User> {
      *
      * @param dto 用户注册数据传输对象，包含用户注册所需的所有信息
      * @return 用户注册结果视图对象
+     * @throws Exception 注册过程中可能发生的异常
      */
     UserRegisterVo createUser(UserRegisterDto dto) throws Exception;
 
     /**
-     * 根据用户昵称生成唯一账号
+     * 根据用户昵称生成唯一账号。
+     * 生成规则：使用用户昵称的拼音作为前缀，后面附加指定长度的随机数字
      *
      * @param username 用户昵称
      * @param codeLen  账号末尾随机数字的长度
-     * @return 生成的用户账号
+     * @return 生成的唯一用户账号
      */
     String generateAccount(String username, Integer codeLen);
 
@@ -65,6 +67,7 @@ public interface UserService extends IService<User> {
      *
      * @param id 用户ID
      * @return 用户详细信息视图对象
+     * @throws Exception 查询过程中可能发生的异常
      */
     UserVo getUserVoById(Long id) throws Exception;
 

@@ -42,21 +42,30 @@ public interface AdminService extends IService<Admin> {
     Optional<Admin> getAdminByUserId(Long userId);
 
     /**
-     * 通过管理员ID获取管理员视图对象
+     * 通过管理员ID获取管理员视图对象，包含管理员的基本信息和关联数据
      *
      * @param id 管理员ID
-     * @return 管理员视图对象
+     * @return 管理员视图对象，包含详细信息
+     * @throws Exception 获取过程中可能发生的异常
      */
     AdminVo getAdminVoById(Long id) throws Exception;
 
     /**
-     * 获取权限列表
+     * 获取用户的权限ID列表
      *
-     * @param userId 用户 ID
-     * @return 权限列表
+     * @param userId 用户ID
+     * @return 权限ID列表
+     * @throws Exception 获取过程中可能发生的异常
      */
     List<Authority> getAuthorities(Long userId) throws Exception;
 
+    /**
+     * 获取用户的权限ID列表
+     *
+     * @param userId 用户ID
+     * @return 权限ID列表
+     * @throws Exception 获取过程中可能发生的异常
+     */
     List<Long> getAuthoritiesIds(Long userId) throws Exception;
 
     /**
@@ -78,11 +87,39 @@ public interface AdminService extends IService<Admin> {
      */
     AdminVo updateAdmin(AdminUpdateDto dto) throws Exception;
 
+    /**
+     * 检查权限ID是否存在
+     *
+     * @param authorityIds 权限ID数组
+     * @return 权限是否存在
+     */
     Boolean isAuthoritiesExist(Long... authorityIds);
 
+    /**
+     * 获取指定管理员的权限ID列表
+     *
+     * @param adminId 管理员ID
+     * @return 权限ID列表
+     * @throws Exception 获取过程中可能发生的异常
+     */
     List<Long> getAuthoritiesIdsByAdmin(Long adminId) throws Exception;
 
+    /**
+     * 获取指定管理员的权限视图对象列表
+     *
+     * @param adminId 管理员ID
+     * @return 权限视图对象列表
+     * @throws Exception 获取过程中可能发生的异常
+     */
     List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception;
 
+    /**
+     * 更新管理员的权限列表
+     *
+     * @param adminId     管理员ID
+     * @param authorities 新的权限ID数组
+     * @return 更新影响的记录数
+     * @throws Exception 更新过程中可能发生的异常
+     */
     Integer changeAuthorities(Long adminId, Long[] authorities) throws Exception;
 }
