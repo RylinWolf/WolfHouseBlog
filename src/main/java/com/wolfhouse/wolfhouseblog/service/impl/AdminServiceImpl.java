@@ -210,7 +210,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         List<Long> authIds = new ArrayList<>(getAuthoritiesIdsByAdmin(adminId));
         // 1.0 原权限列表为空
         if (authIds.isEmpty()) {
-            if (newAuthIds.length == 0) {
+            if (newAuthIds == null || newAuthIds.length == 0) {
                 return 0;
             }
             return authorityMapper.addAuthorities(adminId, newAuthIds);
