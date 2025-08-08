@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 
@@ -131,4 +132,15 @@ public interface AdminService extends IService<Admin> {
      * @throws Exception 删除过程中可能发生的异常
      */
     Boolean delete(Long adminId) throws Exception;
+
+    /**
+     * 删除指定用户。此方法会验证管理员密码，并通过消息队列异步删除用户数据。
+     * 删除操作会移除用户的所有相关数据，包括个人信息、权限等。
+     * 该操作不可逆，请谨慎使用。
+     *
+     * @param dto 封装了要删除的用户以及管理员密码的 DTO，用于身份验证和确认操作
+     * @return 是否删除成功，true表示删除请求已成功发送到消息队列
+     * @throws Exception 当管理员密码验证失败、用户不存在或系统错误时抛出异常
+     */
+    Boolean deleteUser(AdminUserDeleteDto dto) throws Exception;
 }

@@ -10,16 +10,20 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAll
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.AdminMapper;
 import com.wolfhouse.wolfhouseblog.mapper.AuthorityMapper;
+import com.wolfhouse.wolfhouseblog.mq.service.MqUserService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
@@ -42,6 +46,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private final AdminMapper mapper;
     private final AuthorityMapper authorityMapper;
     private final UserAuthService authService;
+    private final MqUserService mqUserService;
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper objectMapper;
 
@@ -276,6 +281,27 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
             throw new ServiceException(AdminConstant.DELETE_FAILED);
         }
         authorityMapper.removeAllByAdmin(adminId);
+        return true;
+    }
+
+    @Override
+    public Boolean deleteUser(AdminUserDeleteDto dto) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyTool.of(
+                       AdminVerifyNode.userId(this)
+                                      .target(login),
+                       UserVerifyNode.id(authService)
+                                     .target(dto.getUserId())
+                                     .exception(UserConstant.USER_NOT_EXIST),
+                       UserVerifyNode.pwd(authService)
+                                     .userId(login)
+                                     .target(dto.getPassword()))
+                  .doVerify();
+
+        MqUserAuthDto authDto = new MqUserAuthDto();
+        authDto.setUserId(dto.getUserId());
+
+        mqUserService.deleteUser(authDto);
         return true;
     }
 }

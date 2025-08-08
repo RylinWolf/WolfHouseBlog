@@ -2,11 +2,13 @@ package com.wolfhouse.wolfhouseblog.controller;
 
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +58,13 @@ public class AdminController {
              HttpCodeConstant.FAILED,
              AdminConstant.DELETE_FAILED,
              service.delete(adminId));
+    }
+
+    @DeleteMapping("/user")
+    public HttpResult<?> deleteUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.DELETE_FAILED,
+             service.deleteUser(dto));
     }
 }
