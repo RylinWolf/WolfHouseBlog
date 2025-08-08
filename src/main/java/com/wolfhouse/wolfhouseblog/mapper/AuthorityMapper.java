@@ -5,6 +5,8 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 /**
  * @author linexsong
  */
@@ -27,4 +29,13 @@ public interface AuthorityMapper extends BaseMapper<Authority> {
      */
     @Select("select authority_id from admin_authority where admin_id = #{adminId}")
     Long[] getIdsByAdminId(Long adminId);
+
+    /**
+     * 移除指定管理员的权限。
+     *
+     * @param adminId 管理员的 ID
+     * @param authIds 要移除的权限 ID 列表
+     * @return 受影响的行数
+     */
+    Integer removeAuthByAdmin(Long adminId, List<Long> authIds);
 }

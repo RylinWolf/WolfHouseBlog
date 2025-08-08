@@ -9,4 +9,14 @@
             #{adminId}, #{authId}
         </foreach>
     </insert>
+
+    <delete id="removeAuthByAdmin">
+        delete
+        from admin_authority
+        where admin_id = #{adminId}
+        and authority_id in
+        <foreach collection="authIds" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
 </mapper>
