@@ -30,16 +30,16 @@ public class AdminController {
     @PostMapping
     public HttpResult<AdminVo> postAdmin(@RequestBody AdminPostDto dto) throws Exception {
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.FAILED,
-                AdminConstant.CREATE_FAILED,
-                service.createAdmin(dto));
+             HttpCodeConstant.FAILED,
+             AdminConstant.CREATE_FAILED,
+             service.createAdmin(dto));
     }
 
     @PutMapping
     public HttpResult<AdminVo> updateAdmin(@RequestBody AdminUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.UPDATE_FAILED,
-                AdminConstant.UPDATE_FAILED,
-                service.updateAdmin(dto));
+             HttpCodeConstant.UPDATE_FAILED,
+             AdminConstant.UPDATE_FAILED,
+             service.updateAdmin(dto));
     }
 }
