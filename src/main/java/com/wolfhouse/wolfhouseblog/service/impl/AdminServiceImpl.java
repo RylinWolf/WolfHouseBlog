@@ -64,16 +64,19 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public List<Authority> getAuthorities(Long userId) {
-        List<Long> authIds = isUserAdmin(userId) ? Optional.ofNullable(mapper.selectOneByQuery(new QueryWrapper().eq(
-                                                                   Admin::getUserId,
-                                                                   userId)))
-                                                           .orElse(new Admin())
-                                                           .getAuthorities() : Collections.emptyList();
-        if (authIds.isEmpty()) {
+        Optional<Admin> admin = getAdminByUserId(userId);
+        if (admin.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return authorityMapper.selectListByIds(authIds);
+        Long[] authIds = getAuthoritiesByAdmin(admin.get()
+                                                    .getId());
+
+        if (authIds.length == 0) {
+            return Collections.emptyList();
+        }
+
+        return authorityMapper.selectListByIds(List.of(authIds));
     }
 
     @Override
