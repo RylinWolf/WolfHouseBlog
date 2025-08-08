@@ -5,8 +5,8 @@
     <insert id="addAuthorities">
         insert into admin_authority(admin_id, authority_id)
         VALUES
-        <foreach collection="authorities" open="(" close=")" separator="," item="authId">
-            #{adminId}, #{authId}
+        <foreach collection="authorities" item="authId" separator=",">
+            (#{adminId}, #{authId})
         </foreach>
     </insert>
 
