@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -132,7 +133,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                                      .target(login),
                        // 登陆用户是否为管理员
                        AdminVerifyNode.userId(this)
-                                      .target(login),
+                                      .target(login)
+                                      .exception(AuthExceptionConstant.ACCESS_DENIED),
                        // 至少有一个数据更新
                        new NotAllBlankVerifyNode(name, authorities)
                             .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
