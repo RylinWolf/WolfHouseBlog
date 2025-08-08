@@ -141,8 +141,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                   .doVerify();
 
         // 修改权限
-        // TODO 现在实现的是添加权限，应该做的是修改
-        Integer i = authorityMapper.addAuthorities(adminId, authorities);
+        Integer i = changeAuthorities(adminId, authorities);
 
         // 修改其他信息
         Admin admin = objectMapper.convertValue(dto, Admin.class);
