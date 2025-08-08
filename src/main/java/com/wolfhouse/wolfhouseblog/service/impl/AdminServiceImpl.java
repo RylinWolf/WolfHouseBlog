@@ -149,4 +149,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         return count == authorityIds.length;
     }
+
+    @Override
+    public Long[] getAuthoritiesByAdmin(Long adminId) {
+        return authorityMapper.getIdsByAdminId(adminId);
+    }
+
 }

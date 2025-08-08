@@ -76,4 +76,6 @@ public interface AdminService extends IService<Admin> {
     AdminVo updateAdmin(AdminUpdateDto dto) throws Exception;
 
     Boolean isAuthoritiesExist(Long... authorityIds);
+
+    Long[] getAuthoritiesByAdmin(Long adminId);
 }
