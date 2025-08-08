@@ -241,7 +241,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
             addCount = authorityMapper.addAuthorities(adminId, newAuthIdsSet.toArray(new Long[0]));
         }
 
-        if (removeCount.equals(repeatIds.size()) && addCount.equals(newAuthIdsSet.size())) {
+        if (!(removeCount.equals(authIds.size()) && addCount.equals(newAuthIdsSet.size()))) {
+            log.error(
+                 "removeCount: {}, addCount: {}" +
+                 "repeatedIds: {}, newAuthIdsSet: {} ",
+                 removeCount, addCount, repeatIds, newAuthIdsSet);
             throw new ServiceException(AdminConstant.AUTHORITIES_CHANGE_FAILED);
         }
         return removeCount + addCount;
