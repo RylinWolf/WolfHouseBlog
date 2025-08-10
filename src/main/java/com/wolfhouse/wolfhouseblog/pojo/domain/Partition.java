@@ -11,6 +11,7 @@ import lombok.Data;
 @Table("partition")
 public class Partition {
     private Long id;
+    private Long userId;
     private String name;
     private Long parentId;
     private VisibilityEnum visibility;
