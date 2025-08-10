@@ -1,0 +1,14 @@
+package com.wolfhouse.wolfhouseblog.pojo.dto;
+
+import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import lombok.Data;
+
+/**
+ * @author linexsong
+ */
+@Data
+public class PartitionDto {
+    private String name;
+    private Long parentId;
+    private VisibilityEnum visibility;
+}
