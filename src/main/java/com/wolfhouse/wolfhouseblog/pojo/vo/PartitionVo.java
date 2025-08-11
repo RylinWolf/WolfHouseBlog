@@ -1,8 +1,10 @@
 package com.wolfhouse.wolfhouseblog.pojo.vo;
 
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
@@ -11,6 +13,8 @@ import java.util.Objects;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PartitionVo {
     private Long id;
     private String name;
