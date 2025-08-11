@@ -17,4 +17,6 @@ public interface PartitionService extends IService<Partition> {
     PartitionVo getPartitionVoByName(String name);
 
     Boolean isUserPartitionExist(Long userId, Long partitionId);
+
+    List<PartitionVo> getPartitionVoStructure(Long userId);
 }
