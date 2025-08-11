@@ -5,12 +5,14 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 
+import java.util.List;
+
 /**
  * @author linexsong
  */
 public interface PartitionService extends IService<Partition> {
 
-    PartitionVo addPartition(PartitionDto dto);
+    List<PartitionVo> addPartition(PartitionDto dto);
 
     PartitionVo getPartitionVos();
 

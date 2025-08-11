@@ -6,11 +6,14 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @author linexsong
@@ -22,7 +25,7 @@ public class PartitionController {
     private final PartitionService service;
 
     @PostMapping
-    public HttpResult<PartitionVo> addPartition(@RequestBody PartitionDto dto) {
+    public HttpResult<List<PartitionVo>> addPartition(@RequestBody @Valid PartitionDto dto) {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              PartitionConstant.ADD_FAILED,

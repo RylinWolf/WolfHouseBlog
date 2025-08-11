@@ -140,9 +140,23 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         return null;
     }
 
-    public PartitionVo addPartition(PartitionDto dto) {
+    @Override
+    public List<PartitionVo> addPartition(PartitionDto dto) {
+        Long login = ServiceUtil.loginUserOrE();
         // 验证字段
-        return null;
+        // 暂未使用分区可见性验证，因为自动映射会处理
+        VerifyTool.of(
+             UserVerifyNode.id(authService)
+                           .target(login),
+             // 验证分区名格式及是否已存在
+             PartitionVerifyNode.name(this)
+                                .target(dto.getName()),
+             PartitionVerifyNode.id(this)
+                                .target(dto.getParentId())
+                                .allowNull(true));
+
+        // TODO
+        return getPartitionVoStructure(login);
     }
 
     @Override
