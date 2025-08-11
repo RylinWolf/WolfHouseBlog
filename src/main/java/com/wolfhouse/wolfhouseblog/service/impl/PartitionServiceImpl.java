@@ -37,4 +37,11 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         // 验证字段
         return null;
     }
+
+    @Override
+    public Boolean isUserPartitionExist(Long userId, Long partitionId) {
+        return mapper.selectCountByQuery(QueryWrapper.create()
+                                                     .eq(Partition::getUserId, userId)
+                                                     .eq(Partition::getId, partitionId)) > 0;
+    }
 }
