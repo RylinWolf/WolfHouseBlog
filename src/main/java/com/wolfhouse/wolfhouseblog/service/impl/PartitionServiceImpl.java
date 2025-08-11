@@ -35,10 +35,19 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public List<PartitionVo> getPartitionVoStructure(Long userId) {
-        // TODO 自关联查询实现
+        return getPartitionVoStructure(userId, null);
+    }
+
+    @Override
+    public List<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
+        // TODO 优化逻辑
+        // TODO 获取指定分区 ID 下的分区结构
         // 获取用户的全部分区
-        List<Partition> partitions = mapper.selectListByQuery(QueryWrapper.create()
-                                                                          .eq(Partition::getUserId, userId));
+        List<Partition> partitions = mapper.selectListByQuery(
+             QueryWrapper.create()
+                         .eq(Partition::getUserId, userId)
+                         .eq(Partition::getId, partitionId, partitionId != null));
+
         Map<Long, PartitionVo> partitionMap = partitions.stream()
                                                         .collect(Collectors.toMap(
                                                              Partition::getId,
@@ -155,7 +164,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                                 .target(dto.getParentId())
                                 .allowNull(true));
 
-        // TODO
+        // TODO 添加分区
         return getPartitionVoStructure(login);
     }
 
