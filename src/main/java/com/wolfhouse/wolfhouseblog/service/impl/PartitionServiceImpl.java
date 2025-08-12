@@ -28,9 +28,12 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     private final UserAuthService authService;
 
     @Override
-    public PartitionVo getPartitionVos() {
-        // TODO
-        return null;
+    public List<PartitionVo> getPartitionVos() throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(login))
+                  .doVerify();
+        return getPartitionVoStructure(login);
     }
 
     @Override
@@ -40,8 +43,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public List<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
-        // TODO 优化逻辑
-        // TODO 获取指定分区 ID 下的分区结构
+        // TODO 优化逻辑，可以先获取所有父节点，再根据父节点获取其孩子节点
         // 获取用户的全部分区
         List<Partition> partitions = mapper.selectListByQuery(
              QueryWrapper.create()
@@ -94,9 +96,13 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
         // 遍历森林，构建 Vo 结构
         // 最大深度遍历
-        List<PartitionVo> vos = new ArrayList<>(deepSearch(idMap, null, new HashSet<>(), partitionMap).values()
-                                                                                                      .stream()
-                                                                                                      .toList());
+        List<PartitionVo> vos = new ArrayList<>(deepSearchPartitionVos(
+             idMap,
+             null,
+             new HashSet<>(),
+             partitionMap).values()
+                          .stream()
+                          .toList());
         vos.addAll(singlesList);
         return vos;
     }
@@ -109,8 +115,10 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
      * @param idMap id 森林
      * @return 分区 Vo 列表
      */
-    private Map<Long, PartitionVo> deepSearch(Map<Long, Set<Long>> idMap, Set<Long> ids, Set<Long> processed,
-                                              Map<Long, PartitionVo> partitionMap) {
+    private Map<Long, PartitionVo> deepSearchPartitionVos(Map<Long, Set<Long>> idMap,
+                                                          Set<Long> ids,
+                                                          Set<Long> processed,
+                                                          Map<Long, PartitionVo> partitionMap) {
         Map<Long, PartitionVo> vos = new HashMap<>(idMap.size());
         ids = ids == null ? idMap.keySet() : ids;
 
@@ -131,8 +139,12 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
             // 若有孩子，则递归添加孩子
             if (children != null && !children.isEmpty()) {
                 // 获取孩子的搜索结果
-                vo.setChildren(deepSearch(idMap, children, processed, partitionMap).values()
-                                                                                   .toArray(new PartitionVo[0]));
+                vo.setChildren(deepSearchPartitionVos(
+                     idMap,
+                     children,
+                     processed,
+                     partitionMap).values()
+                                  .toArray(new PartitionVo[0]));
             }
 
             // 将自身添加至结果，表示已处理过

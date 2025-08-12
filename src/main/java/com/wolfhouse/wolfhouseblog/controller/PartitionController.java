@@ -8,10 +8,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,5 +27,10 @@ public class PartitionController {
              HttpCodeConstant.FAILED,
              PartitionConstant.ADD_FAILED,
              service.addPartition(dto));
+    }
+
+    @GetMapping
+    public HttpResult<List<PartitionVo>> getAllPartition() throws Exception {
+        return HttpResult.success(service.getPartitionVos());
     }
 }
