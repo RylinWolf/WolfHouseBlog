@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  */
 @Slf4j
 @ControllerAdvice
+@Hidden
 public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleException(Exception e) {
