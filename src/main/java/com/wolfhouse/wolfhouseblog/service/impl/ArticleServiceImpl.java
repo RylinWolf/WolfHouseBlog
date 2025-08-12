@@ -103,9 +103,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo getById(Long id) throws Exception {
-        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(
-                id,
-                this).setStrategy(VerifyStrategy.NORMAL));
+        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(this).target(id)
+                                                                             .setStrategy(VerifyStrategy.NORMAL));
 
         return chain.doVerify() ? BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class) : null;
     }
@@ -165,7 +164,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean deleteById(Long id) throws Exception {
-        VerifyTool.ofLogin(ArticleVerifyNode.id(id, this))
+        VerifyTool.ofLogin(ArticleVerifyNode.id(this)
+                                            .target(id))
                   .doVerify();
 
         return mapper.deleteById(id) == 1;

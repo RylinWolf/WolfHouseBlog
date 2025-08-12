@@ -9,9 +9,13 @@ public class ArticleVerifyNode {
     public static final ContentVerifyNode CONTENT = new ContentVerifyNode();
     public static final PrimaryVerifyNode PRIMARY = new PrimaryVerifyNode();
     public static final TitleVerifyNode TITLE = new TitleVerifyNode();
+    private static IdReachableVerifyNode ID;
 
-    public static IdReachableVerifyNode id(Long id, ArticleService service) {
-        return new IdReachableVerifyNode(id, service);
+    public static IdReachableVerifyNode id(ArticleService service) {
+        if (ID == null) {
+            ID = new IdReachableVerifyNode(service);
+        }
+        return ID;
     }
 
     public static ContentVerifyNode content(String t, Boolean allowNull) {

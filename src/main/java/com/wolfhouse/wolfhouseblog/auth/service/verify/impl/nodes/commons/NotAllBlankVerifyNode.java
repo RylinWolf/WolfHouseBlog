@@ -38,8 +38,8 @@ public class NotAllBlankVerifyNode extends BaseVerifyNode<Object[]> {
             if (next != null) {
                 if (JsonNullable.class.isAssignableFrom(next.getClass())) {
                     var nullable = (JsonNullable<?>) next;
-                    // nullable 无数据或数据为空
-                    if (!nullable.isPresent() || nullable.get() == null) {
+                    // nullable 无数据
+                    if (!nullable.isPresent()) {
                         continue;
                     }
                 }

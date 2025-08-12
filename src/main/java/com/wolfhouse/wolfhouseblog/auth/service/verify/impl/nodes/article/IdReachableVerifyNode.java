@@ -19,10 +19,16 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
     private final ArticleService service;
 
-    public IdReachableVerifyNode(Long id, ArticleService service) {
-        super(id);
+    public IdReachableVerifyNode(ArticleService service) {
+        super();
         this.service = service;
         this.customException = ServiceException.notAllowed();
+    }
+
+    @Override
+    public IdReachableVerifyNode target(Long target) {
+        this.t = target;
+        return this;
     }
 
     @Override
