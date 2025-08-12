@@ -9,4 +9,5 @@ public class PartitionConstant {
     public static final String NOT_EXIST = "分区不存在！";
     public static final String UPDATE_FAILED = "分区修改失败！";
     public static final String LOOP = "分区循环！";
+    public static final String DELETE_FAILED = "分区删除失败！";
 }
