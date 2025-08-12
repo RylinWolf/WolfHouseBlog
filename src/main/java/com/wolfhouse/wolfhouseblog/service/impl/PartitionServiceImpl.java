@@ -235,12 +235,14 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                            .target(login),
              // 验证分区名格式及是否已存在
              PartitionVerifyNode.name(this)
+                                .login(login)
                                 .target(dto.getName()),
              PartitionVerifyNode.id(this)
                                 .target(dto.getParentId())
                                 .allowNull(true));
 
         // TODO 添加分区
+        
         return getPartitionVoStructure(login);
     }
 
