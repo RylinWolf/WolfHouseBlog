@@ -35,7 +35,7 @@ public class PartitionController {
         return HttpResult.success(service.getPartitionVos());
     }
 
-    @PutMapping
+    @PatchMapping
     public HttpResult<SortedSet<PartitionVo>> updatePartition(@RequestBody PartitionUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.UPDATE_FAILED,
