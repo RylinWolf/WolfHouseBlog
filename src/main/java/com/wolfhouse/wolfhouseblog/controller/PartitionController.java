@@ -10,7 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.SortedSet;
 
 /**
  * @author linexsong
@@ -22,7 +22,7 @@ public class PartitionController {
     private final PartitionService service;
 
     @PostMapping
-    public HttpResult<List<PartitionVo>> addPartition(@RequestBody @Valid PartitionDto dto) throws Exception {
+    public HttpResult<SortedSet<PartitionVo>> addPartition(@RequestBody @Valid PartitionDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              PartitionConstant.ADD_FAILED,
@@ -30,7 +30,8 @@ public class PartitionController {
     }
 
     @GetMapping
-    public HttpResult<List<PartitionVo>> getAllPartition() throws Exception {
+    public HttpResult<SortedSet<PartitionVo>> getAllPartition() throws Exception {
         return HttpResult.success(service.getPartitionVos());
     }
+
 }

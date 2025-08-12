@@ -19,6 +19,6 @@ public interface PartitionMapper extends BaseMapper<Partition> {
      * @param partitionId
      * @return
      */
-    @Select("select id from `partition` where parent_id = #{partitionId}")
+    @Select("select id from `partition` where parent_id = #{partitionId} order by sort")
     Set<Long> getChildrenIds(Long partitionId);
 }

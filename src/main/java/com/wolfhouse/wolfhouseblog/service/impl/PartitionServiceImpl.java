@@ -32,7 +32,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     private final UserAuthService authService;
 
     @Override
-    public List<PartitionVo> getPartitionVos() throws Exception {
+    public SortedSet<PartitionVo> getPartitionVos() throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         VerifyTool.of(UserVerifyNode.id(authService)
                                     .target(login))
@@ -41,12 +41,12 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
-    public List<PartitionVo> getPartitionVoStructure(Long userId) {
+    public SortedSet<PartitionVo> getPartitionVoStructure(Long userId) {
         return getPartitionVoStructure(userId, null);
     }
 
     @Override
-    public List<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
+    public SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
         // TODO 优化逻辑，可以先获取所有父节点，再根据父节点获取其孩子节点
 
         // 要得到指定 ID 的分区视图，关键在于 获取和指定 ID 有关的全部分区列表
@@ -79,13 +79,11 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
         // 遍历森林，构建 Vo 结构
         // 最大深度遍历
-        List<PartitionVo> vos = new ArrayList<>(deepSearchPartitionVos(
+        SortedSet<PartitionVo> vos = deepSearchPartitionVos(
              mapping.idMap(),
              null,
              new HashSet<>(),
-             partitionMap).values()
-                          .stream()
-                          .toList());
+             partitionMap);
         vos.addAll(singlesList);
         return vos;
     }
@@ -111,7 +109,9 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     private List<Partition> getAllPartitions(Long userId) {
         return mapper.selectListByQuery(
              QueryWrapper.create()
-                         .eq(Partition::getUserId, userId));
+                         .eq(Partition::getUserId, userId)
+                         .orderBy(Partition::getOrder, true)
+                         .orderBy(Partition::getId, true));
     }
 
     /**
@@ -165,18 +165,23 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     private record PartitionIdMapping(Map<Long, Set<Long>> idMap, Set<Long> singleIds) {}
 
     /**
-     * 最大深度搜索，要组成一个父节点对应孩子节点的树。
-     * 遍历每个节点，若节点有孩子，则会递归获取其所有子孙。
+     * 最大深度搜索，将指定的 ids 中的每个 ID 获取其 Vo 对象，并填充其后代。
+     * 遍历要处理的每个节点，通过分区映射获取到对应的分区 Vo。
+     * 若节点有孩子，则会递归获取其所有子孙。
+     * 初始的 ids 应为 id 森林的所有键。
+     * 每次处理一个 ID 后，将其添加入 processed 列表，表示其要么作为根节点的 Vo ，要么作为孩子已经存在，无需再次处理。
      *
-     * @param ids   要搜索的 id 列表
-     * @param idMap id 森林
+     * @param ids          本次要搜索的 id 列表
+     * @param idMap        id 森林，id -> childrenIds
+     * @param partitionMap 分区映射, id -> Vo
+     * @param processed    已处理过的 id
      * @return 分区 Vo 列表
      */
-    private Map<Long, PartitionVo> deepSearchPartitionVos(Map<Long, Set<Long>> idMap,
+    private SortedSet<PartitionVo> deepSearchPartitionVos(Map<Long, Set<Long>> idMap,
                                                           Set<Long> ids,
                                                           Set<Long> processed,
                                                           Map<Long, PartitionVo> partitionMap) {
-        Map<Long, PartitionVo> vos = new HashMap<>(idMap.size());
+        SortedSet<PartitionVo> vos = new TreeSet<>();
         ids = ids == null ? idMap.keySet() : ids;
 
         ids.forEach(id -> {
@@ -200,12 +205,11 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                      idMap,
                      children,
                      processed,
-                     partitionMap).values()
-                                  .toArray(new PartitionVo[0]));
+                     partitionMap).toArray(new PartitionVo[0]));
             }
 
             // 将自身添加至结果，表示已处理过
-            vos.put(id, vo);
+            vos.add(vo);
             processed.add(id);
         });
 
@@ -230,7 +234,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<PartitionVo> addPartition(PartitionDto dto) throws Exception {
+    public SortedSet<PartitionVo> addPartition(PartitionDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证字段
         // 暂未使用分区可见性验证，因为自动映射会处理
@@ -247,7 +251,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                   .doVerify();
         Partition partition = BeanUtil.copyProperties(dto, Partition.class);
         partition.setUserId(login);
-        
+
         if (mapper.insert(partition, true) != 1) {
             throw new ServiceException(PartitionConstant.ADD_FAILED);
         }
