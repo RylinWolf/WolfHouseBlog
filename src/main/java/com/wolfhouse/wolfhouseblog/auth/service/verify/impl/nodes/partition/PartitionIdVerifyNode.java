@@ -1,6 +1,8 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 
@@ -29,7 +31,7 @@ public class PartitionIdVerifyNode extends BaseVerifyNode<Long> {
         if (t == null && allowNull) {
             return true;
         }
-
+        this.customException = new ServiceException(PartitionConstant.NOT_EXIST);
         return super.verify() && service.isUserPartitionExist(ServiceUtil.loginUserOrE(), t);
     }
 }
