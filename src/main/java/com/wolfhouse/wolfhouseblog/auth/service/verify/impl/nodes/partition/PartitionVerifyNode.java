@@ -7,6 +7,7 @@ import com.wolfhouse.wolfhouseblog.service.PartitionService;
  */
 public class PartitionVerifyNode {
     public static final PartitionVisibleVerifyNode VISIBILITY = new PartitionVisibleVerifyNode();
+    public static final PartitionIdLoopVerifyNode ID_LOOP = new PartitionIdLoopVerifyNode();
 
     private static PartitionIdVerifyNode ID;
     private static PartitionNameVerifyNode NAME;
