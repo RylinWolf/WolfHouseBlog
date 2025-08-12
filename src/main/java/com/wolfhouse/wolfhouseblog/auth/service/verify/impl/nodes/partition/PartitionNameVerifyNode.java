@@ -19,7 +19,6 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
     public PartitionNameVerifyNode(PartitionService service) {
         super();
         this.service = service;
-        this.customException = new ServiceException(PartitionConstant.ALREADY_EXIST);
     }
 
     public PartitionNameVerifyNode(PartitionService service, String t) {
@@ -44,6 +43,7 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
         }
         // 分区已存在
         try {
+            this.exception(new ServiceException(PartitionConstant.ALREADY_EXIST));
             if (service.exists(QueryWrapper.create()
                                            .eq(Partition::getUserId, login)
                                            .eq(Partition::getName, this.t))) {
@@ -52,6 +52,7 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
             }
         } catch (Exception e) {
             this.exception(new ServiceException(PartitionConstant.ALREADY_EXIST + e));
+            return false;
         }
         this.exception(VerifyConstant.VERIFY_FAILED + "[name]");
         return super.verify() &&
