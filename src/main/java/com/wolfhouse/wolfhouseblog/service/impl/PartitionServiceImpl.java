@@ -293,19 +293,25 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     public SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
 
+        JsonNullable<Long> parentId = dto.getParentId();
+        Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
+
+        // 验证是否循环
+        checkCirculate(dto.getId(), parentLong);
+
         JsonNullable<String> name = dto.getName();
         JsonNullable<VisibilityEnum> visibility = dto.getVisibility();
         JsonNullable<Long> order = dto.getOrder();
-        JsonNullable<Long> parentId = dto.getParentId();
 
+        Long id = dto.getId();
         String nameString = JsonNullableUtil.getObjOrNull(name);
-        Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
+
 
         VerifyTool.of(
                        UserVerifyNode.id(authService)
                                      .target(login),
                        PartitionVerifyNode.id(this)
-                                          .target(dto.getId()),
+                                          .target(id),
                        PartitionVerifyNode.id(this)
                                           .target(parentLong)
                                           .allowNull(true),
@@ -323,16 +329,42 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
         // 构建更新链
         UpdateChain<Partition> chain = UpdateChain.of(Partition.class)
-                                                  .where(PARTITION.ID.eq(dto.getId()));
+                                                  .where(PARTITION.ID.eq(id));
 
+        // 分区名
         name.ifPresent(n -> chain.set(PARTITION.NAME, n));
+        // 父分区
         parentId.ifPresent(p -> chain.set(PARTITION.PARENT_ID, p));
+        // 可见性
         visibility.ifPresent(v -> chain.set(PARTITION.VISIBILITY, v));
+        // 排序
         order.ifPresent(o -> chain.set(PARTITION.ORDER, o));
-
+        
         if (!chain.update()) {
             throw new ServiceException(PartitionConstant.UPDATE_FAILED);
         }
         return getPartitionVos(dto.getId());
+    }
+
+    /**
+     * 检查是否存在循环引用的情况。
+     *
+     * @param id       当前节点的ID
+     * @param parentId 父节点的ID，如果为null则表示无父节点
+     */
+    private void checkCirculate(Long id, Long parentId) throws Exception {
+        if (parentId == null) {
+            return;
+        }
+        // 获取相关的所有 ID
+        Set<Long> ids = getPartitionIdWithChildren(parentId);
+        // 获取分区结构
+        List<Partition> partitions = listByIds(ids);
+        Map<Long, Set<Long>> idMap = getPartitionIdMapping(partitions).idMap();
+        // 验证成环
+        VerifyTool.of(PartitionVerifyNode.ID_LOOP.target(id)
+                                                 .idMap(idMap)
+                                                 .parent(parentId))
+                  .doVerify();
     }
 }
