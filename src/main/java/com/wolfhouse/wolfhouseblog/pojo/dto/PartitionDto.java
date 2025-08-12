@@ -15,4 +15,5 @@ public class PartitionDto {
     private String name;
     private Long parentId;
     private VisibilityEnum visibility;
+    private Long order;
 }

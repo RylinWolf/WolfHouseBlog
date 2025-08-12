@@ -15,10 +15,11 @@ import java.util.Objects;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PartitionVo {
+public class PartitionVo implements Comparable<PartitionVo> {
     private Long id;
     private String name;
     private VisibilityEnum visibility;
+    private Long order;
     private PartitionVo[] children;
 
     @Override
@@ -34,4 +35,14 @@ public class PartitionVo {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+    @Override
+    public int compareTo(PartitionVo o) {
+        int i = order.compareTo(o.getOrder());
+        if (i != 0) {
+            return i;
+        }
+        return id.compareTo(o.getId());
+    }
+
 }

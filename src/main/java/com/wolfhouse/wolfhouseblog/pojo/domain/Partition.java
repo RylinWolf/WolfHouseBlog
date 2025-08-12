@@ -17,4 +17,5 @@ public class Partition {
     private String name;
     private Long parentId;
     private VisibilityEnum visibility;
+    private Long order;
 }
