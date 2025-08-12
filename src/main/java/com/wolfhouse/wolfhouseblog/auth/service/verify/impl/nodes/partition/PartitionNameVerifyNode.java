@@ -32,10 +32,14 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
             return true;
         }
         // 分区已存在
-        if (service.getPartitionVoByName(this.t) != null) {
-            this.customException =
-                 customException == null ? new ServiceException(PartitionConstant.ALREADY_EXIST)
-                                         : customException;
+        try {
+            if (service.getPartitionVoByName(this.t) != null) {
+                this.customException =
+                     customException == null ? new ServiceException(PartitionConstant.ALREADY_EXIST)
+                                             : customException;
+                return false;
+            }
+        } catch (Exception ignored) {
             return false;
         }
         return super.verify() && new StringVerifyNode(1L, 10L, allowNull).verify();

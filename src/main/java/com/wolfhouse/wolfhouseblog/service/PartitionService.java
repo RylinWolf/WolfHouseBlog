@@ -34,7 +34,7 @@ public interface PartitionService extends IService<Partition> {
      * @param name 分区名称
      * @return 分区视图对象
      */
-    PartitionVo getPartitionVoByName(String name);
+    PartitionVo getPartitionVoByName(String name) throws Exception;
 
     /**
      * 检查指定用户是否拥有指定分区
