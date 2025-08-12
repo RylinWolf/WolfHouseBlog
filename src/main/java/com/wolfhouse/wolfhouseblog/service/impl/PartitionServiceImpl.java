@@ -82,7 +82,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
             partitions = getAllPartitions(userId);
         } else {
             // 获取有关的分区
-            partitions = listByIds(getPartitionIdWithChildren(partitionId));
+            partitions = listByIds(getWithPartitionChildren(partitionId));
         }
 
         Map<Long, PartitionVo> partitionMap = partitions.stream()
@@ -90,7 +90,8 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                                                              Partition::getId,
                                                              p -> BeanUtil.copyProperties(p, PartitionVo.class)));
 
-        // 获取 ID -> 孩子ID 的映射
+        // 获取 ID -> 孩子 ID 的映射
+        // 由于会寻找父节点，所以可能在获取部分节点时会新增 partitionMap 中不包含的节点
         PartitionIdMapping mapping = getPartitionIdMapping(partitions);
 
         // 从森林中去除孤独节点
@@ -112,15 +113,21 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         return vos;
     }
 
+    /**
+     * 递归获取指定分区 ID 对应的分区及其所有子分区的 ID 集合。
+     *
+     * @param partitionId 指定的分区 ID，表示需要获取其子树的根分区 ID
+     * @return 包含指定分区 ID 及其所有子分区 ID 的集合
+     */
     @NonNull
-    private Set<Long> getPartitionIdWithChildren(Long partitionId) {
+    private Set<Long> getWithPartitionChildren(Long partitionId) {
         // 获取和指定 ID 有关的分区列表，先获取该 ID 的直接孩子，再递归获取孩子的孩子
         Set<Long> ids = new HashSet<>();
         // 获取所有的孩子 ID
         Set<Long> childrenIds = mapper.getChildrenIds(partitionId);
         // 遍历获取子孙 ID
         childrenIds.forEach(id -> {
-            ids.addAll(getPartitionIdWithChildren(id));
+            ids.addAll(getWithPartitionChildren(id));
         });
         // 添加自身
         ids.add(partitionId);
@@ -209,8 +216,8 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         ids = ids == null ? idMap.keySet() : ids;
 
         ids.forEach(id -> {
-            // 无该 ID
-            if (!idMap.containsKey(id)) {
+            // id 森林中无该 ID，或分区映射中无该 ID，则不处理该 ID
+            if (!idMap.containsKey(id) || partitionMap.get(id) == null) {
                 return;
             }
             // 已处理过，则 vo 已存在
@@ -296,16 +303,12 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         JsonNullable<Long> parentId = dto.getParentId();
         Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
 
-        // 验证是否循环
-        checkCirculate(dto.getId(), parentLong);
-
         JsonNullable<String> name = dto.getName();
         JsonNullable<VisibilityEnum> visibility = dto.getVisibility();
         JsonNullable<Long> order = dto.getOrder();
 
         Long id = dto.getId();
         String nameString = JsonNullableUtil.getObjOrNull(name);
-
 
         VerifyTool.of(
                        UserVerifyNode.id(authService)
@@ -319,7 +322,6 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                                           .target(nameString)
                                           .allowNull(true),
                        new NotAllBlankVerifyNode(
-                            login,
                             parentLong,
                             nameString,
                             visibility,
@@ -327,19 +329,22 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                        ))
                   .doVerify();
 
+        // 验证是否循环
+        checkCirculate(dto.getId(), parentLong);
+
         // 构建更新链
         UpdateChain<Partition> chain = UpdateChain.of(Partition.class)
                                                   .where(PARTITION.ID.eq(id));
 
         // 分区名
-        name.ifPresent(n -> chain.set(PARTITION.NAME, n));
+        name.ifPresent(n -> chain.set(PARTITION.NAME, n, n != null));
         // 父分区
         parentId.ifPresent(p -> chain.set(PARTITION.PARENT_ID, p));
         // 可见性
-        visibility.ifPresent(v -> chain.set(PARTITION.VISIBILITY, v));
+        visibility.ifPresent(v -> chain.set(PARTITION.VISIBILITY, v, v != null));
         // 排序
-        order.ifPresent(o -> chain.set(PARTITION.ORDER, o));
-        
+        order.ifPresent(o -> chain.set(PARTITION.ORDER, o, o != null));
+
         if (!chain.update()) {
             throw new ServiceException(PartitionConstant.UPDATE_FAILED);
         }
