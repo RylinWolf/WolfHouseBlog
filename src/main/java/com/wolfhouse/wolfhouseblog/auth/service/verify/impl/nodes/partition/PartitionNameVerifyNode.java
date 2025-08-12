@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition;
 
 import com.mybatisflex.core.query.QueryWrapper;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.StringVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
@@ -16,17 +17,19 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
     private Long login;
 
     public PartitionNameVerifyNode(PartitionService service) {
+        super();
         this.service = service;
+        this.customException = new ServiceException(PartitionConstant.ALREADY_EXIST);
     }
 
-    public PartitionNameVerifyNode(PartitionService service, String s) {
-        super(s);
-        this.service = service;
+    public PartitionNameVerifyNode(PartitionService service, String t) {
+        this(service);
+        this.t = t;
     }
 
-    public PartitionNameVerifyNode(PartitionService service, String s, Boolean allowNull) {
-        super(s, allowNull);
-        this.service = service;
+    public PartitionNameVerifyNode(PartitionService service, String t, Boolean allowNull) {
+        this(service, t);
+        this.allowNull = allowNull;
     }
 
     public PartitionNameVerifyNode login(Long login) {
@@ -44,14 +47,16 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
             if (service.exists(QueryWrapper.create()
                                            .eq(Partition::getUserId, login)
                                            .eq(Partition::getName, this.t))) {
-                this.customException =
-                     customException == null ? new ServiceException(PartitionConstant.ALREADY_EXIST)
-                                             : customException;
+
                 return false;
             }
-        } catch (Exception ignored) {
-            return false;
+        } catch (Exception e) {
+            this.exception(new ServiceException(PartitionConstant.ALREADY_EXIST + e));
         }
-        return super.verify() && new StringVerifyNode(1L, 10L, allowNull).verify();
+        this.exception(VerifyConstant.VERIFY_FAILED + "[name]");
+        return super.verify() &&
+               new StringVerifyNode(1L, 10L, allowNull)
+                    .target(this.t)
+                    .verify();
     }
 }
