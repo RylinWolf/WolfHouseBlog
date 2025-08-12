@@ -1,27 +1,35 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
+import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.PartitionMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PARTITION;
 
 /**
  * @author linexsong
@@ -33,20 +41,37 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos() throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
-        VerifyTool.of(UserVerifyNode.id(authService)
-                                    .target(login))
-                  .doVerify();
-        return getPartitionVoStructure(login);
+        return getPartitionVos(null);
     }
 
     @Override
     public SortedSet<PartitionVo> getPartitionVoStructure(Long userId) {
+    public SortedSet<PartitionVo> getPartitionVos(Long partitionId) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(login))
+                  .doVerify();
+        return getPartitionVoStructure(login, partitionId);
+    }
+
+    /**
+     * 根据用户ID获取分区结构数据。
+     *
+     * @param userId 用户的唯一标识ID
+     * @return 排序后的分区视图对象集合
+     */
+    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId) {
         return getPartitionVoStructure(userId, null);
     }
 
-    @Override
-    public SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
+    /**
+     * 获取分区视图对象的结构。
+     *
+     * @param userId      用户ID，用于筛选分区信息。
+     * @param partitionId 分区ID，如果为null，将获取用户的所有分区；否则获取指定分区及其子分区。
+     * @return 排序后的分区视图对象集合。
+     */
+    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
         // TODO 优化逻辑，可以先获取所有父节点，再根据父节点获取其孩子节点
 
         // 要得到指定 ID 的分区视图，关键在于 获取和指定 ID 有关的全部分区列表

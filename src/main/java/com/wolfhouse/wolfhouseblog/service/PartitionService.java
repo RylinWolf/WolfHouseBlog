@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.service;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 
 import java.util.SortedSet;
@@ -31,6 +32,16 @@ public interface PartitionService extends IService<Partition> {
     SortedSet<PartitionVo> getPartitionVos() throws Exception;
 
     /**
+     * 获取当前登录用户的指定分区视图对象
+     *
+     * @param partitionId 要获取的分区 ID
+     * @return 分区视图对象列表
+     * @throws Exception 未登录或验证失败时抛出异常
+     */
+    SortedSet<PartitionVo> getPartitionVos(Long partitionId) throws Exception;
+
+
+    /**
      * 根据分区名称获取分区视图对象。此方法会查找并返回指定名称的分区的详细信息。
      *
      * @param name 分区名称，用于查找对应的分区
@@ -47,15 +58,7 @@ public interface PartitionService extends IService<Partition> {
      * @return true表示存在，false表示不存在
      */
     Boolean isUserPartitionExist(Long userId, Long partitionId);
-
-    /**
-     * 获取指定用户特定分区的子结构
-     *
-     * @param userId      用户ID
-     * @param partitionId 分区ID
-     * @return 分区视图对象列表，包含层级结构
-     */
-    SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId);
+    
 
     /**
      * 获取指定用户的所有分区结构
