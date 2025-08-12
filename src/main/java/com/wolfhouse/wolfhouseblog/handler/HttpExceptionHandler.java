@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 /**
  * @author linexsong
  */
+@Hidden
 @ControllerAdvice
 @Order(1)
 @Slf4j
@@ -25,8 +27,8 @@ public class HttpExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleMethodNotAllowedException(HttpRequestMethodNotSupportedException e) {
         return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(HttpResult.failed(HttpCodeConstant.METHOD_NOT_ALLOWED, AuthExceptionConstant.ACCESS_DENIED));
+             .status(HttpStatus.METHOD_NOT_ALLOWED)
+             .body(HttpResult.failed(HttpCodeConstant.METHOD_NOT_ALLOWED, AuthExceptionConstant.ACCESS_DENIED));
     }
 
     @ExceptionHandler
@@ -41,17 +43,17 @@ public class HttpExceptionHandler {
         log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                              .body(HttpResult.failed(
-                                     HttpCodeConstant.ARG_NOT_VALID,
-                                     ServiceExceptionConstant.ARG_FORMAT_ERROR));
+                                  HttpCodeConstant.ARG_NOT_VALID,
+                                  ServiceExceptionConstant.ARG_FORMAT_ERROR));
     }
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleNoResourceFoundException(NoResourceFoundException e) {
         log.error(e.getMessage());
         return HttpResult.failed(
-                HttpStatus.NOT_FOUND.value(),
-                HttpCodeConstant.NOT_FOUND,
-                ServiceExceptionConstant.NO_RESOURCE);
+             HttpStatus.NOT_FOUND.value(),
+             HttpCodeConstant.NOT_FOUND,
+             ServiceExceptionConstant.NO_RESOURCE);
     }
 
 }
