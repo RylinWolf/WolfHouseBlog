@@ -362,7 +362,11 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
             return;
         }
         // 获取相关的所有 ID
-        Set<Long> ids = getPartitionIdWithChildren(parentId);
+        // 获取父分区的相关分区
+        Set<Long> ids = getWithPartitionChildren(parentId);
+        // 合并该分区的相关分区
+        ids.addAll(getWithPartitionChildren(id));
+
         // 获取分区结构
         List<Partition> partitions = listByIds(ids);
         Map<Long, Set<Long>> idMap = getPartitionIdMapping(partitions).idMap();
