@@ -29,6 +29,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,19 +69,19 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         });
         // 构建查询条件
         wrapper.eq(
-                       Article::getId,
-                       dto.getId()
-                          .orElse(null))
+                    Article::getId,
+                    dto.getId()
+                       .orElse(null))
                // 按标题查询
                .like(
-                       Article::getTitle,
-                       dto.getTitle()
-                          .orElse(null))
+                    Article::getTitle,
+                    dto.getTitle()
+                       .orElse(null))
                // 按作者查询
                .eq(
-                       Article::getAuthorId,
-                       dto.getAuthorId()
-                          .orElse(null));
+                    Article::getAuthorId,
+                    dto.getAuthorId()
+                       .orElse(null));
 
         // 日期范围查询
         LocalDateTime start = dto.getPostStart()
@@ -118,13 +119,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
         VerifyTool.of(
-                          ArticleVerifyNode.TITLE.target(dto.getTitle())
-                                                 .exception(ARTICLE.TITLE.getName()),
-                          ArticleVerifyNode.CONTENT.target(dto.getContent())
-                                                   .exception(ARTICLE.CONTENT.getName()),
-                          ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
-                                                   .allowNull(true)
-                                                   .exception(ARTICLE.PRIMARY.getName()))
+                       ArticleVerifyNode.TITLE.target(dto.getTitle())
+                                              .exception(ARTICLE.TITLE.getName()),
+                       ArticleVerifyNode.CONTENT.target(dto.getContent())
+                                                .exception(ARTICLE.CONTENT.getName()),
+                       ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
+                                                .allowNull(true)
+                                                .exception(ARTICLE.PRIMARY.getName()))
                   .doVerify();
 
         Article article = BeanUtil.copyProperties(dto, Article.class);
@@ -166,10 +167,30 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                             .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
-        Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
-        if (mapper.update(article, true) <= 0) {
-            return null;
+        UpdateChain<Article> updateChain = UpdateChain.of(Article.class)
+                                                      .where(ARTICLE.ID.eq(dto.getId()))
+                                                      .set(ARTICLE.TITLE, title, title != null)
+                                                      .set(ARTICLE.CONTENT, content, content != null);
+        // 可见性
+        dto.getVisibility()
+           .ifPresent(v -> updateChain.set(ARTICLE.VISIBILITY, v));
+        // 标签
+        dto.getTags()
+           .ifPresent(t -> updateChain.set(ARTICLE.TAGS, t));
+        // 常用标签
+        dto.getComUseTags()
+           .ifPresent(t -> updateChain.set(ARTICLE.COM_USE_TAGS, t));
+        // 摘要
+        dto.getPrimary()
+           .ifPresent(p -> updateChain.set(ARTICLE.PRIMARY, p));
+        // 分区
+        dto.getPartitionId()
+           .ifPresent(p -> updateChain.set(ARTICLE.PARTITION_ID, p));
+
+        if (!updateChain.update()) {
+            throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
+
         return getById(dto.getId());
     }
 
