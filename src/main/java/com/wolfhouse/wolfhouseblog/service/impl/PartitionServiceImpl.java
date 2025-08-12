@@ -407,4 +407,19 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         }
         return getPartitionVos();
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception {
+        // 验证 ID 是否存在
+        VerifyTool.of(PartitionVerifyNode.id(this)
+                                         .target(partitionId))
+                  .doVerify();
+
+        Set<Long> ids = getWithPartitionChildren(partitionId);
+        if (mapper.deleteBatchByIds(ids) != ids.size()) {
+            throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
+        }
+        return getPartitionVos();
+    }
 }

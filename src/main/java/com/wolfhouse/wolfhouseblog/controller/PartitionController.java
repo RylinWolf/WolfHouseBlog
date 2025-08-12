@@ -52,4 +52,12 @@ public class PartitionController {
              service.deleteOne(id));
     }
 
+    @DeleteMapping(value = "/batch/{id}")
+    public HttpResult<SortedSet<PartitionVo>> deletePartitionBatch(@PathVariable Long id) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.FAILED,
+             PartitionConstant.DELETE_FAILED,
+             service.deleteBatch(id));
+    }
+
 }

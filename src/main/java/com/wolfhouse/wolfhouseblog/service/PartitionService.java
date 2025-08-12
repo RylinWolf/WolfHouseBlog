@@ -64,4 +64,6 @@ public interface PartitionService extends IService<Partition> {
     SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception;
 
     SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception;
+
+    SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception;
 }
