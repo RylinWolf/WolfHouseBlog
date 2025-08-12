@@ -60,12 +60,5 @@ public interface PartitionService extends IService<Partition> {
     Boolean isUserPartitionExist(Long userId, Long partitionId);
     
 
-    /**
-     * 获取指定用户的所有分区结构
-     *
-     * @param userId 用户ID
-     * @return 分区视图对象列表，包含层级结构
-     */
-    SortedSet<PartitionVo> getPartitionVoStructure(Long userId);
-
+    SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception;
 }

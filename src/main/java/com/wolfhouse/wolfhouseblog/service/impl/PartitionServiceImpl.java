@@ -45,7 +45,6 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
-    public SortedSet<PartitionVo> getPartitionVoStructure(Long userId) {
     public SortedSet<PartitionVo> getPartitionVos(Long partitionId) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         VerifyTool.of(UserVerifyNode.id(authService)
@@ -288,5 +287,52 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         return mapper.selectCountByQuery(QueryWrapper.create()
                                                      .eq(Partition::getUserId, userId)
                                                      .eq(Partition::getId, partitionId)) > 0;
+    }
+
+    @Override
+    public SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+
+        JsonNullable<String> name = dto.getName();
+        JsonNullable<VisibilityEnum> visibility = dto.getVisibility();
+        JsonNullable<Long> order = dto.getOrder();
+        JsonNullable<Long> parentId = dto.getParentId();
+
+        String nameString = JsonNullableUtil.getObjOrNull(name);
+        Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
+
+        VerifyTool.of(
+                       UserVerifyNode.id(authService)
+                                     .target(login),
+                       PartitionVerifyNode.id(this)
+                                          .target(dto.getId()),
+                       PartitionVerifyNode.id(this)
+                                          .target(parentLong)
+                                          .allowNull(true),
+                       PartitionVerifyNode.name(this)
+                                          .target(nameString)
+                                          .allowNull(true),
+                       new NotAllBlankVerifyNode(
+                            login,
+                            parentLong,
+                            nameString,
+                            visibility,
+                            order
+                       ))
+                  .doVerify();
+
+        // 构建更新链
+        UpdateChain<Partition> chain = UpdateChain.of(Partition.class)
+                                                  .where(PARTITION.ID.eq(dto.getId()));
+
+        name.ifPresent(n -> chain.set(PARTITION.NAME, n));
+        parentId.ifPresent(p -> chain.set(PARTITION.PARENT_ID, p));
+        visibility.ifPresent(v -> chain.set(PARTITION.VISIBILITY, v));
+        order.ifPresent(o -> chain.set(PARTITION.ORDER, o));
+
+        if (!chain.update()) {
+            throw new ServiceException(PartitionConstant.UPDATE_FAILED);
+        }
+        return getPartitionVos(dto.getId());
     }
 }
