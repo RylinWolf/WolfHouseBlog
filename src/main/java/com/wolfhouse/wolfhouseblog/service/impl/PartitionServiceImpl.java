@@ -290,7 +290,17 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
-    public Boolean isUserPartitionExist(Long userId, Long partitionId) {
+    public Boolean isUserPartitionExist(Long partitionId) throws Exception {
+        return isUserPartitionExist(ServiceUtil.loginUserOrE(), partitionId);
+    }
+
+    @Override
+    public Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception {
+        VerifyTool.of(
+                       UserVerifyNode.id(authService)
+                                     .target(userId))
+                  .doVerify();
+
         return mapper.selectCountByQuery(QueryWrapper.create()
                                                      .eq(Partition::getUserId, userId)
                                                      .eq(Partition::getId, partitionId)) > 0;
@@ -375,5 +385,26 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                                                  .idMap(idMap)
                                                  .parent(parentId))
                   .doVerify();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception {
+        // 验证 ID 是否存在
+        VerifyTool.of(PartitionVerifyNode.id(this)
+                                         .target(partitionId))
+                  .doVerify();
+
+        Partition partition = getById(partitionId);
+        // 转移父类
+        boolean update = UpdateChain.of(Partition.class)
+                                    .where(PARTITION.PARENT_ID.eq(partitionId))
+                                    .set(PARTITION.PARENT_ID, partition.getParentId())
+                                    .update();
+        // 移除当前类
+        if (!update || mapper.deleteById(partitionId) != 1) {
+            throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
+        }
+        return getPartitionVos();
     }
 }

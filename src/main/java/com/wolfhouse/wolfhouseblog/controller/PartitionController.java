@@ -42,7 +42,14 @@ public class PartitionController {
              HttpCodeConstant.UPDATE_FAILED,
              PartitionConstant.UPDATE_FAILED,
              service.updatePatch(dto));
+    }
 
+    @DeleteMapping(value = "/{id}")
+    public HttpResult<SortedSet<PartitionVo>> deletePartition(@PathVariable Long id) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.FAILED,
+             PartitionConstant.DELETE_FAILED,
+             service.deleteOne(id));
     }
 
 }

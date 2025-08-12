@@ -57,7 +57,11 @@ public interface PartitionService extends IService<Partition> {
      * @param partitionId 分区ID
      * @return true表示存在，false表示不存在
      */
-    Boolean isUserPartitionExist(Long userId, Long partitionId);
+    Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception;
+
+    Boolean isUserPartitionExist(Long partitionId) throws Exception;
 
     SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception;
+
+    SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception;
 }
