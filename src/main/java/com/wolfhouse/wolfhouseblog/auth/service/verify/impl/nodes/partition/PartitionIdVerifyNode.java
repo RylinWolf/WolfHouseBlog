@@ -32,6 +32,10 @@ public class PartitionIdVerifyNode extends BaseVerifyNode<Long> {
             return true;
         }
         this.customException = new ServiceException(PartitionConstant.NOT_EXIST);
-        return super.verify() && service.isUserPartitionExist(ServiceUtil.loginUserOrE(), t);
+        try {
+            return super.verify() && service.isUserPartitionExist(ServiceUtil.loginUserOrE(), t);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
