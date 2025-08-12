@@ -210,9 +210,19 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
-    public PartitionVo getPartitionVoByName(String name) {
-        // TODO
-        return null;
+    public PartitionVo getPartitionVoByName(String name) throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyTool.of(UserVerifyNode.id(authService)
+                                    .target(login))
+                  .doVerify();
+
+        Partition p = mapper.selectOneByQuery(QueryWrapper.create()
+                                                          .eq(Partition::getUserId, login)
+                                                          .eq(Partition::getName, name));
+        if (p == null) {
+            return null;
+        }
+        return getPartitionVoStructure(login, p.getId()).getFirst();
     }
 
     @Override
