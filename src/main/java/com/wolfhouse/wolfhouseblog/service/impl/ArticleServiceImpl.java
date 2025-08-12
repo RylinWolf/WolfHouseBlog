@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
@@ -12,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -28,6 +30,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +42,12 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
  * @author linexsong
  */
 @Service
+@RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
 
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper jsonNullableObjectMapper;
+    private final PartitionService partitionService;
 
 
     @Override
@@ -134,25 +139,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
+        Long partitionId = JsonNullableUtil.getObjOrNull(dto.getPartitionId());
+
 
         // TODO 在修改时，检查分区是否存在
         VerifyTool.ofLogin(
-                          ArticleVerifyNode.id(dto.getId(), this),
-                          ArticleVerifyNode.title(title, true)
-                                           .exception(ARTICLE.TITLE.getName()),
-                          ArticleVerifyNode.content(content, true)
-                                           .exception(ARTICLE.CONTENT.getName()),
-                          ArticleVerifyNode.primary(primary, true)
-                                           .exception(ARTICLE.PRIMARY.getName()),
-                          new NotAllBlankVerifyNode(
-                                  title,
-                                  content,
-                                  primary,
-                                  dto.getVisibility(),
-                                  dto.getPartitionId(),
-                                  dto.getTags(),
-                                  dto.getComUseTags())
-                                  .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
+                       ArticleVerifyNode.id(this)
+                                        .target(dto.getId()),
+                       ArticleVerifyNode.title(title, true)
+                                        .exception(ARTICLE.TITLE.getName()),
+                       ArticleVerifyNode.content(content, true)
+                                        .exception(ARTICLE.CONTENT.getName()),
+                       ArticleVerifyNode.primary(primary, true)
+                                        .exception(ARTICLE.PRIMARY.getName()),
+                       PartitionVerifyNode.id(partitionService)
+                                          .target(partitionId)
+                                          .allowNull(true),
+                       new NotAllBlankVerifyNode(
+                            title,
+                            content,
+                            primary,
+                            dto.getVisibility(),
+                            dto.getPartitionId(),
+                            dto.getTags(),
+                            dto.getComUseTags())
+                            .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
         Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
