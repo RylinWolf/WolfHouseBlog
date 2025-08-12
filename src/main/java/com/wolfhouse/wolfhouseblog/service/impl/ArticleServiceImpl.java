@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
@@ -12,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -27,7 +29,9 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +43,12 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
  * @author linexsong
  */
 @Service
+@RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
 
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper jsonNullableObjectMapper;
+    private final PartitionService partitionService;
 
 
     @Override
@@ -63,19 +69,19 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         });
         // 构建查询条件
         wrapper.eq(
-                       Article::getId,
-                       dto.getId()
-                          .orElse(null))
+                    Article::getId,
+                    dto.getId()
+                       .orElse(null))
                // 按标题查询
                .like(
-                       Article::getTitle,
-                       dto.getTitle()
-                          .orElse(null))
+                    Article::getTitle,
+                    dto.getTitle()
+                       .orElse(null))
                // 按作者查询
                .eq(
-                       Article::getAuthorId,
-                       dto.getAuthorId()
-                          .orElse(null));
+                    Article::getAuthorId,
+                    dto.getAuthorId()
+                       .orElse(null));
 
         // 日期范围查询
         LocalDateTime start = dto.getPostStart()
@@ -103,9 +109,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo getById(Long id) throws Exception {
-        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(
-                id,
-                this).setStrategy(VerifyStrategy.NORMAL));
+        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(this).target(id)
+                                                                             .setStrategy(VerifyStrategy.NORMAL));
 
         return chain.doVerify() ? BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class) : null;
     }
@@ -114,13 +119,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
         VerifyTool.of(
-                          ArticleVerifyNode.TITLE.target(dto.getTitle())
-                                                 .exception(ARTICLE.TITLE.getName()),
-                          ArticleVerifyNode.CONTENT.target(dto.getContent())
-                                                   .exception(ARTICLE.CONTENT.getName()),
-                          ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
-                                                   .allowNull(true)
-                                                   .exception(ARTICLE.PRIMARY.getName()))
+                       ArticleVerifyNode.TITLE.target(dto.getTitle())
+                                              .exception(ARTICLE.TITLE.getName()),
+                       ArticleVerifyNode.CONTENT.target(dto.getContent())
+                                                .exception(ARTICLE.CONTENT.getName()),
+                       ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
+                                                .allowNull(true)
+                                                .exception(ARTICLE.PRIMARY.getName()))
                   .doVerify();
 
         Article article = BeanUtil.copyProperties(dto, Article.class);
@@ -135,37 +140,64 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
+        Long partitionId = JsonNullableUtil.getObjOrNull(dto.getPartitionId());
+
 
         // TODO 在修改时，检查分区是否存在
         VerifyTool.ofLogin(
-                          ArticleVerifyNode.id(dto.getId(), this),
-                          ArticleVerifyNode.title(title, true)
-                                           .exception(ARTICLE.TITLE.getName()),
-                          ArticleVerifyNode.content(content, true)
-                                           .exception(ARTICLE.CONTENT.getName()),
-                          ArticleVerifyNode.primary(primary, true)
-                                           .exception(ARTICLE.PRIMARY.getName()),
-                          new NotAllBlankVerifyNode(
-                                  title,
-                                  content,
-                                  primary,
-                                  dto.getVisibility(),
-                                  dto.getPartitionId(),
-                                  dto.getTags(),
-                                  dto.getComUseTags())
-                                  .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
+                       ArticleVerifyNode.id(this)
+                                        .target(dto.getId()),
+                       ArticleVerifyNode.title(title, true)
+                                        .exception(ARTICLE.TITLE.getName()),
+                       ArticleVerifyNode.content(content, true)
+                                        .exception(ARTICLE.CONTENT.getName()),
+                       ArticleVerifyNode.primary(primary, true)
+                                        .exception(ARTICLE.PRIMARY.getName()),
+                       PartitionVerifyNode.id(partitionService)
+                                          .target(partitionId)
+                                          .allowNull(true),
+                       new NotAllBlankVerifyNode(
+                            title,
+                            content,
+                            primary,
+                            dto.getVisibility(),
+                            dto.getPartitionId(),
+                            dto.getTags(),
+                            dto.getComUseTags())
+                            .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
-        Article article = jsonNullableObjectMapper.convertValue(dto, Article.class);
-        if (mapper.update(article, true) <= 0) {
-            return null;
+        UpdateChain<Article> updateChain = UpdateChain.of(Article.class)
+                                                      .where(ARTICLE.ID.eq(dto.getId()))
+                                                      .set(ARTICLE.TITLE, title, title != null)
+                                                      .set(ARTICLE.CONTENT, content, content != null);
+        // 可见性
+        dto.getVisibility()
+           .ifPresent(v -> updateChain.set(ARTICLE.VISIBILITY, v));
+        // 标签
+        dto.getTags()
+           .ifPresent(t -> updateChain.set(ARTICLE.TAGS, t));
+        // 常用标签
+        dto.getComUseTags()
+           .ifPresent(t -> updateChain.set(ARTICLE.COM_USE_TAGS, t));
+        // 摘要
+        dto.getPrimary()
+           .ifPresent(p -> updateChain.set(ARTICLE.PRIMARY, p));
+        // 分区
+        dto.getPartitionId()
+           .ifPresent(p -> updateChain.set(ARTICLE.PARTITION_ID, p));
+
+        if (!updateChain.update()) {
+            throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
+
         return getById(dto.getId());
     }
 
     @Override
     public Boolean deleteById(Long id) throws Exception {
-        VerifyTool.ofLogin(ArticleVerifyNode.id(id, this))
+        VerifyTool.ofLogin(ArticleVerifyNode.id(this)
+                                            .target(id))
                   .doVerify();
 
         return mapper.deleteById(id) == 1;
