@@ -18,8 +18,8 @@ import java.util.Objects;
 public class PartitionVo {
     private Long id;
     private String name;
-    private PartitionVo[] children;
     private VisibilityEnum visibility;
+    private PartitionVo[] children;
 
     @Override
     public boolean equals(Object o) {
