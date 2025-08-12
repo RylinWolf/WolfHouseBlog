@@ -22,7 +22,7 @@ public class PartitionController {
     private final PartitionService service;
 
     @PostMapping
-    public HttpResult<List<PartitionVo>> addPartition(@RequestBody @Valid PartitionDto dto) {
+    public HttpResult<List<PartitionVo>> addPartition(@RequestBody @Valid PartitionDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              PartitionConstant.ADD_FAILED,

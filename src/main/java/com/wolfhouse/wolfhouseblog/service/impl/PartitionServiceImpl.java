@@ -5,6 +5,8 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.PartitionMapper;
@@ -16,6 +18,7 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -226,24 +229,29 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
-    public List<PartitionVo> addPartition(PartitionDto dto) {
+    @Transactional(rollbackFor = Exception.class)
+    public List<PartitionVo> addPartition(PartitionDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证字段
         // 暂未使用分区可见性验证，因为自动映射会处理
         VerifyTool.of(
-             UserVerifyNode.id(authService)
-                           .target(login),
-             // 验证分区名格式及是否已存在
-             PartitionVerifyNode.name(this)
-                                .login(login)
-                                .target(dto.getName()),
-             PartitionVerifyNode.id(this)
-                                .target(dto.getParentId())
-                                .allowNull(true));
-
-        // TODO 添加分区
+                       UserVerifyNode.id(authService)
+                                     .target(login),
+                       // 验证分区名格式及是否已存在
+                       PartitionVerifyNode.name(this)
+                                          .login(login)
+                                          .target(dto.getName()),
+                       PartitionVerifyNode.id(this)
+                                          .target(dto.getParentId())
+                                          .allowNull(true))
+                  .doVerify();
+        Partition partition = BeanUtil.copyProperties(dto, Partition.class);
+        partition.setUserId(login);
         
-        return getPartitionVoStructure(login);
+        if (mapper.insert(partition, true) != 1) {
+            throw new ServiceException(PartitionConstant.ADD_FAILED);
+        }
+        return getPartitionVoStructure(login, partition.getId());
     }
 
     @Override
