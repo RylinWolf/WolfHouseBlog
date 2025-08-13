@@ -45,6 +45,7 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
         if (node.verify()) {
             return login;
         }
+        ServiceUtil.removeLogin();
         throw node.getException();
     }
 
