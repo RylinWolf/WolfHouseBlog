@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
+import com.mybatisflex.annotation.Id;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ import lombok.Data;
 @Schema(name = "常用标签")
 @Data
 public class Tag {
+    @Id
     private Long id;
     private String name;
 }
