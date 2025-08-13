@@ -6,6 +6,7 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserIdVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
@@ -70,18 +71,22 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
      * @param partitionId 分区ID，如果为null，将获取用户的所有分区；否则获取指定分区及其子分区。
      * @return 排序后的分区视图对象集合。
      */
-    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
+    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) throws Exception {
         // TODO 优化逻辑，可以先获取所有父节点，再根据父节点获取其孩子节点
 
         // 要得到指定 ID 的分区视图，关键在于 获取和指定 ID 有关的全部分区列表
         // 基于分区列表构建结构的部分是通用的
-
         List<Partition> partitions;
         if (partitionId == null) {
             // 获取用户的全部分区
+            new UserIdVerifyNode(authService).target(userId)
+                                             .verifyWithCustomE();
             partitions = getAllPartitions(userId);
         } else {
             // 获取有关的分区
+            if (!isUserPartitionExist(userId, partitionId)) {
+                return null;
+            }
             partitions = listByIds(getWithPartitionChildren(partitionId));
         }
 
