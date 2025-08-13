@@ -23,4 +23,5 @@ public class UserConstant {
     public static final String USER_UNACCESSIBLE = "无法访问该用户";
     public static final String USER_ALREADY_SUBSCRIBED = "已关注该用户";
     public static final String DELETE_FAILED = "账号删除失败！";
+    public static final String DISABLE_FAILED = "账号禁用失败！";
 }
