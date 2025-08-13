@@ -67,4 +67,12 @@ public class AdminController {
              UserConstant.DELETE_FAILED,
              service.deleteUser(dto));
     }
+
+    @DeleteMapping("/user/disable")
+    public HttpResult<?> disableUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.DISABLE_FAILED,
+             service.disableUser(dto));
+    }
 }

@@ -143,4 +143,6 @@ public interface AdminService extends IService<Admin> {
      * @throws Exception 当管理员密码验证失败、用户不存在或系统错误时抛出异常
      */
     Boolean deleteUser(AdminUserDeleteDto dto) throws Exception;
+
+    Boolean disableUser(AdminUserDeleteDto dto) throws Exception;
 }

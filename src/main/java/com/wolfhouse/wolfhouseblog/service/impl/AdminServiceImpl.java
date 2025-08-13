@@ -287,7 +287,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public Boolean deleteUser(AdminUserDeleteDto dto) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
+        Long login = authService.loginUserOrE();
         VerifyTool.of(
                        AdminVerifyNode.userId(this)
                                       .target(login),
@@ -303,6 +303,27 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         authDto.setUserId(dto.getUserId());
 
         mqUserService.deleteUser(authDto);
+        return true;
+    }
+
+    @Override
+    public Boolean disableUser(AdminUserDeleteDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        VerifyTool.of(
+                       // 验证管理员是否存在
+                       AdminVerifyNode.userId(this)
+                                      .target(login),
+                       // 验证用户是否存在
+                       UserVerifyNode.id(authService)
+                                     .target(dto.getUserId()),
+                       // 验证密码是否正确
+                       UserVerifyNode.pwd(authService)
+                                     .userId(login)
+                                     .target(dto.getPassword())
+                     )
+                  .doVerify();
+
+        mqUserService.disableUser(new MqUserAuthDto(dto.getUserId()));
         return true;
     }
 }
