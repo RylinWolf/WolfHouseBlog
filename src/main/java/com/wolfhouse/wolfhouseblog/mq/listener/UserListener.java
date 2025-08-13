@@ -55,4 +55,18 @@ public class UserListener {
             throw new ServiceException(e.getMessage(), e);
         }
     }
+
+    @RabbitListener(
+         bindings = @QueueBinding(
+              value = @Queue(name = MqUserConstant.DISABLE_QUEUE),
+              exchange = @Exchange(
+                   name = MqUserConstant.DISABLE_EXCHANGE,
+                   type = ExchangeTypes.TOPIC
+              ),
+              key = {MqUserConstant.DISABLE_KEY}
+         ))
+    public void userDisableListener(MqUserAuthDto dto) throws Exception {
+        mqTools.setLoginAuth(dto);
+        userService.disableAccount(dto.getUserId());
+    }
 }
