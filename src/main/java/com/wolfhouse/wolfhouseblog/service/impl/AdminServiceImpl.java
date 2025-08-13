@@ -23,7 +23,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
@@ -301,7 +301,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public Boolean deleteUser(AdminUserDeleteDto dto) throws Exception {
+    public Boolean deleteUser(AdminUserControlDto dto) throws Exception {
         Long login = authService.loginUserOrE();
         VerifyTool.of(
                        AdminVerifyNode.userId(this)
@@ -322,7 +322,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public Boolean disableUser(AdminUserDeleteDto dto) throws Exception {
+    public Boolean disableUser(AdminUserControlDto dto) throws Exception {
         Long login = authService.loginUserOrE();
         VerifyTool.of(
                        // 验证管理员是否存在

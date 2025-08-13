@@ -9,7 +9,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,7 +70,7 @@ public class AdminController {
 
     @DeleteMapping("/user")
     @Operation(summary = "删除用户")
-    public HttpResult<?> deleteUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
+    public HttpResult<?> deleteUser(@RequestBody AdminUserControlDto dto) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
              UserConstant.DELETE_FAILED,
@@ -79,7 +79,7 @@ public class AdminController {
 
     @DeleteMapping("/user/disable")
     @Operation(summary = "禁用用户")
-    public HttpResult<?> disableUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
+    public HttpResult<?> disableUser(@RequestBody AdminUserControlDto dto) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
              UserConstant.DISABLE_FAILED,
