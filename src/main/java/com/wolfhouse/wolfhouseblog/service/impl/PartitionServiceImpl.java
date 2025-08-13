@@ -14,9 +14,11 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.PartitionMapper;
+import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
@@ -38,6 +40,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PA
 @RequiredArgsConstructor
 public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition> implements PartitionService {
     private final UserAuthService authService;
+    private final MqArticleService mqArticleService;
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos() throws Exception {
@@ -382,35 +385,48 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception {
-        // TODO 通知文章服务，修改归属分区
         // 验证 ID 是否存在
-        isUserPartitionExist(authService.loginUserOrE(), partitionId);
+        Long login = authService.loginUserOrE();
+        if (!isUserPartitionExist(login, partitionId)) {
+            throw new ServiceException(PartitionConstant.NOT_EXIST);
+        }
 
         Partition partition = getById(partitionId);
+        Long parentId = partition.getParentId();
         // 转移父类
-        boolean update = UpdateChain.of(Partition.class)
-                                    .where(PARTITION.PARENT_ID.eq(partitionId))
-                                    .set(PARTITION.PARENT_ID, partition.getParentId())
-                                    .update();
+        UpdateChain.of(Partition.class)
+                   .where(PARTITION.PARENT_ID.eq(partitionId))
+                   .set(PARTITION.PARENT_ID, parentId)
+                   .update();
         // 移除当前类
-        if (!update || mapper.deleteById(partitionId) != 1) {
+        if (mapper.deleteById(partitionId) != 1) {
             throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
         }
+
+        MqPartitionChangeDto dto = new MqPartitionChangeDto(Set.of(partitionId), parentId);
+        dto.setUserId(login);
+        mqArticleService.articlePartitionChange(dto);
         return getPartitionVos();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception {
-        // TODO 通知文章服务，修改归属分区
-        // TODO 验证是否登陆
         // 验证 ID 是否存在
-        isUserPartitionExist(authService.loginUserOrE(), partitionId);
+        Long login = authService.loginUserOrE();
+        if (!isUserPartitionExist(login, partitionId)) {
+            throw new ServiceException(PartitionConstant.NOT_EXIST);
+        }
 
         Set<Long> ids = getWithPartitionChildren(partitionId);
         if (mapper.deleteBatchByIds(ids) != ids.size()) {
             throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
         }
+
+        // 通知文章服务，修改归属分区
+        MqPartitionChangeDto dto = new MqPartitionChangeDto(ids, null);
+        dto.setUserId(login);
+        mqArticleService.articlePartitionChange(dto);
         return getPartitionVos();
     }
 }
