@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
@@ -31,10 +32,13 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
 /**
  * @author linexsong
@@ -125,12 +129,13 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Transactional(rollbackFor = Exception.class)
     public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
-
-        String name = JsonNullableUtil.getObjOrNull(dto.getName());
         Long adminId = dto.getId();
 
+        String name = JsonNullableUtil.getObjOrNull(dto.getName());
+
         // 权限
-        List<Long> authorityList = JsonNullableUtil.getObjOrNull(dto.getAuthorities());
+        JsonNullable<List<Long>> authoritiesNullable = dto.getAuthorities();
+        List<Long> authorityList = JsonNullableUtil.getObjOrNull(authoritiesNullable);
         Long[] authorities = authorityList == null ? null : authorityList.toArray(new Long[0]);
 
         // 获取当前登录用户 验证权限
@@ -149,28 +154,35 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                        AdminVerifyNode.id(this)
                                       .target(adminId),
                        // 管理员名称验证
-                       AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())),
+                       AdminVerifyNode.NAME.target(name)
+                                           .allowNull(true),
                        // 权限验证
                        AdminVerifyNode.authorityId(this)
-                                      .target(authorities))
+                                      .target(authorities)
+                                      .allowNull(true))
                   .doVerify();
 
         // 修改权限
-        Integer i = changeAuthorities(adminId, authorities);
+        authoritiesNullable.ifPresent(a -> {
+            try {
+                changeAuthorities(adminId, a.toArray(Long[]::new));
+            } catch (Exception e) {
+                throw new ServiceException(e.getMessage(), e);
+            }
+        });
 
         // 修改其他信息
-        Admin admin = objectMapper.convertValue(dto, Admin.class);
+        UpdateChain<Admin> chain = UpdateChain.of(Admin.class);
+        dto.getName()
+           .ifPresent(n -> chain.set(ADMIN.NAME, n, n != null));
+        boolean update = chain.update();
 
         // 目前管理员只有名称可以被修改，因此如果没有修改则没有更新项
-        if (name == null && i == 0) {
+        if (!authoritiesNullable.isPresent() && !update) {
             return null;
         }
 
-        if (mapper.update(admin, true) != 1 && i == 0) {
-            return null;
-        }
-
-        return getAdminVoById(admin.getId());
+        return getAdminVoById(adminId);
     }
 
     @Override
