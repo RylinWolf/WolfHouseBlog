@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.mybatisflex.annotation.EnumValue;
 
 /**
@@ -12,6 +13,7 @@ public enum VisibilityEnum {
     PRIVATE(1);
 
     @EnumValue
+    @JsonValue
     public final Integer value;
 
     VisibilityEnum(Integer value) {
