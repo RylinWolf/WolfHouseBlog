@@ -6,6 +6,7 @@ import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
@@ -340,5 +341,31 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         mqUserService.disableUser(new MqUserAuthDto(dto.getUserId()));
         return true;
+    }
+
+    @Override
+    public Boolean enableUser(AdminUserControlDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        Long userId = dto.getUserId();
+
+        VerifyTool.of(
+                       UserVerifyNode.pwd(authService)
+                                     .userId(login)
+                                     .target(dto.getPassword()),
+                       AdminVerifyNode.userId(this)
+                                      .target(login),
+                       // 用户不存在
+                       new BaseVerifyNode<Long>() {}
+                            .predicate(authService::isAuthExist)
+                            .target(userId)
+                            .exception(new ServiceException(UserConstant.USER_NOT_EXIST)),
+                       // 账号已启用
+                       new BaseVerifyNode<Long>() {}
+                            .predicate(u -> !authService.isUserEnabled(u))
+                            .target(userId)
+                            .exception(new ServiceException(UserConstant.USER_HAS_ENABLED)))
+                  .doVerify();
+
+        return authService.enableAuth(userId);
     }
 }

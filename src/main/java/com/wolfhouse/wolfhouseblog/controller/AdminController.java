@@ -87,4 +87,13 @@ public class AdminController {
              UserConstant.DISABLE_FAILED,
              service.disableUser(dto));
     }
+
+    @PutMapping("/user/enable")
+    @Operation(summary = "启用用户")
+    public HttpResult<?> enableUser(@RequestBody AdminUserControlDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.ENABLE_FAILED,
+             service.enableUser(dto));
+    }
 }

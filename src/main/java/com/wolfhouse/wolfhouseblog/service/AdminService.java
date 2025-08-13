@@ -5,7 +5,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 
@@ -144,6 +144,7 @@ public interface AdminService extends IService<Admin> {
      */
     Boolean deleteUser(AdminUserControlDto dto) throws Exception;
 
-    Boolean disableUser(AdminUserDeleteDto dto) throws Exception;
     Boolean disableUser(AdminUserControlDto dto) throws Exception;
+
+    Boolean enableUser(AdminUserControlDto dto) throws Exception;
 }
