@@ -210,4 +210,16 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                   .doVerify();
         return authService.deleteAuth(userId);
     }
+
+    @Override
+    public void disableAccount(Long userId) throws Exception {
+        VerifyTool.ofLoginExist(
+                       authService,
+                       UserVerifyNode.id(authService)
+                                     .target(userId)
+                               )
+                  .doVerify();
+        authService.disableAuth(userId);
+
+    }
 }

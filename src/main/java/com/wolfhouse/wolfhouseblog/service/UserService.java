@@ -113,4 +113,6 @@ public interface UserService extends IService<User> {
      * @throws Exception 删除过程中可能发生的异常
      */
     Boolean deleteAccount(Long userId) throws Exception;
+
+    void disableAccount(Long userId) throws Exception;
 }
