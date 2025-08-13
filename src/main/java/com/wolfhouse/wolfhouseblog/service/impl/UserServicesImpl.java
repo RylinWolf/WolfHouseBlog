@@ -45,51 +45,35 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     private final JwtUtil jwtUtil;
 
     @Override
-    public User findByAccountOrEmail(String s) throws Exception {
+    public User findByAccountOrEmail(String s) {
         QueryWrapper wrap = new QueryWrapper();
         wrap.eq(User::getAccount, s)
             .or(wrapper -> {
                 wrapper.eq(User::getEmail, s);
             });
         Optional<User> user = Optional.ofNullable(this.mapper.selectOneByQuery(wrap));
-        if (user.isEmpty()) {
-            return null;
-        }
+        return user.orElse(null);
 
-        User u = user.get();
-        // 用户停用或删除
-        VerifyTool.of(UserVerifyNode.id(authService)
-                                    .target(u.getId()))
-                  .doVerify();
-        return u;
     }
 
     @Override
     public User findByUserId(Long userId) throws Exception {
         Optional<User> user = Optional.ofNullable(this.mapper.selectOneById(userId));
-        if (user.isEmpty()) {
-            return null;
-        }
-        User u = user.get();
-        // 用户停用或删除
-        VerifyTool.of(UserVerifyNode.id(authService)
-                                    .target(u.getId()))
-                  .doVerify();
-        return u;
+        return user.orElse(null);
     }
 
     @Override
     public UserRegisterVo createUser(UserRegisterDto dto) throws Exception {
         int insert = mapper.insert(
-                User.builder()
-                    .id(dto.getUserId())
-                    .email(dto.getEmail())
-                    .username(dto.getUsername())
-                    // 随机生成账号
-                    .account(generateAccount(
-                            dto.getUsername(),
-                            UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
-                    .build(), true);
+             User.builder()
+                 .id(dto.getUserId())
+                 .email(dto.getEmail())
+                 .username(dto.getUsername())
+                 // 随机生成账号
+                 .account(generateAccount(
+                      dto.getUsername(),
+                      UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
+                 .build(), true);
         // 插入不成功
         if (insert <= 0) {
             return null;
@@ -105,12 +89,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
         VerifyTool.ofAllMsg(
-                          UserConstant.USER_UPDATE_FAILED,
-                          UserVerifyNode.id(authService)
-                                        .target(login),
-                          UserVerifyNode.BIRTH.target(dto.getBirth()),
-                          UserVerifyNode.email(this)
-                                        .target(dto.getEmail()))
+                       UserConstant.USER_UPDATE_FAILED,
+                       UserVerifyNode.id(authService)
+                                     .target(login),
+                       UserVerifyNode.BIRTH.target(dto.getBirth()),
+                       UserVerifyNode.email(this)
+                                     .target(dto.getEmail()))
                   .doVerify();
 
         User user = BeanUtil.copyProperties(dto, User.class);
@@ -150,8 +134,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public Boolean hasAccountOrEmail(String s) {
         long count = mapper.selectCountByQuery(
-                new QueryWrapper().eq(User::getAccount, s)
-                                  .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
+             new QueryWrapper().eq(User::getAccount, s)
+                               .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
         return count > 0;
 
     }
@@ -161,8 +145,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Long login = ServiceUtil.loginUserOrE();
         Long toUser = dto.getToUser();
         VerifyTool.ofLoginExist(
-                          authService,
-                          new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
+                       authService,
+                       new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
                   .doVerify();
 
         if (authService.isUserUnaccessible(toUser)) {
@@ -181,9 +165,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception {
         Long userId = dto.getFromUser();
         VerifyTool.ofLoginExist(
-                          authService,
-                          UserVerifyNode.id(authService)
-                                        .target(userId))
+                       authService,
+                       UserVerifyNode.id(authService)
+                                     .target(userId))
                   .doVerify();
 
         // select * from user where user.id in (select to_user from sub where from_user = #{})
@@ -196,8 +180,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                                    .from(USER)
                                                    .where(USER.ID.in(subsWrapper));
         return PageResult.of(
-                mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
-                UserBriefVo.class);
+             mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
+             UserBriefVo.class);
     }
 
     @Override
@@ -220,9 +204,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public Boolean deleteAccount(Long userId) throws Exception {
         VerifyTool.ofLoginExist(
-                          authService,
-                          UserVerifyNode.id(authService)
-                                        .target(userId))
+                       authService,
+                       UserVerifyNode.id(authService)
+                                     .target(userId))
                   .doVerify();
         return authService.deleteAuth(userId);
     }

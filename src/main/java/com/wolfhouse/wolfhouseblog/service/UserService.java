@@ -22,9 +22,8 @@ public interface UserService extends IService<User> {
      *
      * @param s 账号或邮箱
      * @return 用户对象，如果未找到则返回null
-     * @throws Exception 查询过程中可能发生的异常
      */
-    User findByAccountOrEmail(String s) throws Exception;
+    User findByAccountOrEmail(String s);
 
     /**
      * 根据用户ID查询用户信息
