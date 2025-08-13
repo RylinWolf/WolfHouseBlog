@@ -172,7 +172,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         });
 
         // 修改其他信息
-        UpdateChain<Admin> chain = UpdateChain.of(Admin.class);
+        UpdateChain<Admin> chain = UpdateChain.of(Admin.class)
+                                              .where(ADMIN.ID.eq(adminId));
         dto.getName()
            .ifPresent(n -> chain.set(ADMIN.NAME, n, n != null));
         boolean update = chain.update();
