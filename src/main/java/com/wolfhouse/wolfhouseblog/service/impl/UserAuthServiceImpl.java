@@ -82,12 +82,12 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     }
 
     @Override
-    public void enableAuth(Long userId) {
+    public Boolean enableAuth(Long userId) {
         throwIfNotExist(userId);
-        UpdateChain.of(UserAuth.class)
-                   .where(USER_AUTH.USER_ID.eq(userId))
-                   .set(USER_AUTH.IS_ENABLED, true)
-                   .update();
+        return UpdateChain.of(UserAuth.class)
+                          .where(USER_AUTH.USER_ID.eq(userId))
+                          .set(USER_AUTH.IS_ENABLED, true)
+                          .update();
     }
 
     @Override

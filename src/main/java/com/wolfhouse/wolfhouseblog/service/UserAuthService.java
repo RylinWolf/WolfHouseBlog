@@ -45,8 +45,9 @@ public interface UserAuthService extends IService<UserAuth> {
      * 启用用户认证状态
      *
      * @param userId 用户ID
+     * @return 是否启用成功
      */
-    void enableAuth(Long userId);
+    Boolean enableAuth(Long userId);
 
     /**
      * 禁用用户认证状态
