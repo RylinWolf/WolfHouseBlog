@@ -173,6 +173,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public Boolean isAuthoritiesExist(Long... authorityIds) {
+
         long count = authorityMapper.selectCountByQuery(new QueryWrapper().in(Authority::getId, List.of(authorityIds)));
 
         return count == authorityIds.length;

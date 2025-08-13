@@ -417,6 +417,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         if (!isUserPartitionExist(login, partitionId)) {
             throw new ServiceException(PartitionConstant.NOT_EXIST);
         }
+        // 获取分区及其子分区 ID，批量删除
         Partition partition = getById(partitionId);
         Set<Long> ids = getWithPartitionChildren(partitionId);
         if (mapper.deleteBatchByIds(ids) != ids.size()) {

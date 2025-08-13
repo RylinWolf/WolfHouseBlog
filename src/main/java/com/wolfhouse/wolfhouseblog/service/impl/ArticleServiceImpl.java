@@ -141,9 +141,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
         Long partitionId = JsonNullableUtil.getObjOrNull(dto.getPartitionId());
-
-
-        // TODO 在修改时，检查分区是否存在
+        
         VerifyTool.ofLogin(
                        ArticleVerifyNode.id(this)
                                         .target(dto.getId()),
