@@ -11,6 +11,8 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,10 +24,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/a")
 @RequiredArgsConstructor
+@Tag(name = "管理员接口")
 public class AdminController {
     private final AdminService service;
 
     @GetMapping("/au")
+    @Operation(summary = "获取权限列表")
     public HttpResult<List<Long>> getAuthorities() throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         if (!service.isUserAdmin(login)) {
@@ -37,6 +41,7 @@ public class AdminController {
     }
 
     @PostMapping
+    @Operation(summary = "添加管理员")
     public HttpResult<AdminVo> postAdmin(@RequestBody AdminPostDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
@@ -45,6 +50,7 @@ public class AdminController {
     }
 
     @PutMapping
+    @Operation(summary = "更新管理员")
     public HttpResult<AdminVo> updateAdmin(@RequestBody AdminUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.UPDATE_FAILED,
@@ -53,6 +59,7 @@ public class AdminController {
     }
 
     @DeleteMapping(value = "/{adminId}")
+    @Operation(summary = "删除管理员")
     public HttpResult<?> deleteAdmin(@PathVariable Long adminId) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
@@ -61,6 +68,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/user")
+    @Operation(summary = "删除用户")
     public HttpResult<?> deleteUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
@@ -69,6 +77,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/user/disable")
+    @Operation(summary = "禁用用户")
     public HttpResult<?> disableUser(@RequestBody AdminUserDeleteDto dto) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,

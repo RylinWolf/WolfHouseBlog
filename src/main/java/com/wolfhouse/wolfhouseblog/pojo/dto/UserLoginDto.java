@@ -12,10 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(name = "用户登录 Dto")
+@Schema(description = "用户登录 Dto")
 @Data
 public class UserLoginDto {
-    @Schema(name = "账号（或邮箱）")
+    @Schema(description = "账号（或邮箱）")
     private String account;
+    @Schema(description = "密码")
     private String password;
 }
