@@ -417,14 +417,14 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         if (!isUserPartitionExist(login, partitionId)) {
             throw new ServiceException(PartitionConstant.NOT_EXIST);
         }
-
+        Partition partition = getById(partitionId);
         Set<Long> ids = getWithPartitionChildren(partitionId);
         if (mapper.deleteBatchByIds(ids) != ids.size()) {
             throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
         }
 
         // 通知文章服务，修改归属分区
-        MqPartitionChangeDto dto = new MqPartitionChangeDto(ids, null);
+        MqPartitionChangeDto dto = new MqPartitionChangeDto(ids, partition.getParentId());
         dto.setUserId(login);
         mqArticleService.articlePartitionChange(dto);
         return getPartitionVos();
