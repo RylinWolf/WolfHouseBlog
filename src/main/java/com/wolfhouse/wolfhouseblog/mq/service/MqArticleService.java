@@ -17,7 +17,7 @@ public class MqArticleService {
     public void articlePartitionChange(MqPartitionChangeDto dto) {
         template.convertAndSend(
              MqArticleConstant.PARTITION_CHANGE_EXCHANGE,
-             MqArticleConstant.PARTITION_CHANGE_KEY,
+             MqArticleConstant.KEY_PARTITION_CHANGE,
              dto);
     }
 }

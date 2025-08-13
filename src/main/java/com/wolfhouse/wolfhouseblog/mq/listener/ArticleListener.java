@@ -31,7 +31,7 @@ public class ArticleListener {
                    name = MqArticleConstant.PARTITION_CHANGE_EXCHANGE,
                    type = ExchangeTypes.TOPIC
               ),
-              key = {MqArticleConstant.PARTITION_CHANGE_KEY}
+              key = {MqArticleConstant.KEY_PARTITION_CHANGE}
          ))
     public void partitionChangeListener(MqPartitionChangeDto dto) {
         log.info("监听到文章分区修改: {}", dto);
