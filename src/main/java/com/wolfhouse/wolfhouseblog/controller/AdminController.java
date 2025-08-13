@@ -6,11 +6,13 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,14 +33,14 @@ public class AdminController {
 
     @GetMapping("/au")
     @Operation(summary = "获取权限列表")
-    public HttpResult<List<Long>> getAuthorities() throws Exception {
+    public HttpResult<List<AuthorityVo>> getAuthorities() throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         if (!service.isUserAdmin(login)) {
             return HttpResult.failed(
                  HttpCodeConstant.ACCESS_DENIED,
                  AuthExceptionConstant.ACCESS_DENIED);
         }
-        return HttpResult.success(service.getAuthoritiesIds(login));
+        return HttpResult.success(BeanUtil.copyList(service.getAuthorities(login), AuthorityVo.class));
     }
 
     @PostMapping
