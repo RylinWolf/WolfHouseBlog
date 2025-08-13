@@ -9,6 +9,7 @@ import java.util.List;
  */
 @Data
 public class AdminVo {
+    private Long id;
     private String name;
     private List<AuthorityVo> authorities;
 }
