@@ -99,6 +99,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AdminVo createAdmin(AdminPostDto dto) throws Exception {
         // 登录用户应为管理员
         Long login = ServiceUtil.loginUserOrE();
@@ -116,7 +117,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                   .doVerify();
 
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
-        return mapper.insert(admin) != 1 ? null : getAdminVoById(admin.getId());
+        int insert = mapper.insert(admin);
+        return insert != 1 ? null : getAdminVoById(admin.getId());
     }
 
     @Override
