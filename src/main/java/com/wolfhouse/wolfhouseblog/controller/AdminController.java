@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
+import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
@@ -49,7 +50,7 @@ public class AdminController {
              service.createAdmin(dto));
     }
 
-    @PutMapping
+    @PatchMapping(consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     @Operation(summary = "更新管理员")
     public HttpResult<AdminVo> updateAdmin(@RequestBody AdminUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
