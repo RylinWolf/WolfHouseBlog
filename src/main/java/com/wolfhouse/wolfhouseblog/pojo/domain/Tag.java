@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
 import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
 import com.mybatisflex.annotation.Table;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -14,7 +15,7 @@ import lombok.Data;
 @Data
 @Table("tag")
 public class Tag {
-    @Id
+    @Id(keyType = KeyType.Auto)
     private Long id;
     private String name;
 }
