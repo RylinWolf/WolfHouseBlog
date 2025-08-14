@@ -26,12 +26,13 @@ public class TagController {
     private final TagService service;
 
     @GetMapping
-    @Operation(summary = "获取常用标签")
+    @Operation(summary = "获取常用标签列表")
     public HttpResult<List<TagVo>> getTags() throws Exception {
         return HttpResult.success(service.getTagVos());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "根据 ID 获取常用标签")
     public HttpResult<TagVo> getTag(@PathVariable Long id) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
