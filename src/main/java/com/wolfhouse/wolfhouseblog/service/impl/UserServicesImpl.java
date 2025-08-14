@@ -16,9 +16,9 @@ import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Subscribe;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
-import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -85,7 +85,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public UserVo updateAuthedUser(UserDto dto) throws Exception {
+    public UserVo updateAuthedUser(UserUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
         VerifyTool.ofAllMsg(

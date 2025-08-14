@@ -12,7 +12,7 @@ import java.time.LocalDate;
  */
 @Component
 @Data
-public class UserDto {
+public class UserUpdateDto {
     private String avatar;
     @Size(max = 50)
     private String personalStatus;
