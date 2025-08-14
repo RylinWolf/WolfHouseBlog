@@ -13,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +44,7 @@ public class ArticleController {
 
     @Operation(summary = "发布")
     @PostMapping
-    public HttpResult<ArticleVo> post(@RequestBody ArticleDto dto) throws Exception {
+    public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.POST_FAILED,
              ArticleConstant.POST_FAILED,
