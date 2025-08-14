@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.service;
 
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Tag;
+import com.wolfhouse.wolfhouseblog.pojo.dto.TagDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface TagService extends IService<Tag> {
     TagVo getTagById(Long id) throws Exception;
 
     Boolean isUserTagExist(Long userId, Long tagId);
+
+    List<TagVo> addTag(TagDto dto) throws Exception;
 }

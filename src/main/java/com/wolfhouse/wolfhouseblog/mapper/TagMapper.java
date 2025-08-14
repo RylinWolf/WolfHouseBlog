@@ -30,4 +30,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      */
     @Select("select tag_id from user_tag where user_id = #{userId}")
     List<Long> getTagIdsByUserId(Long userId);
+
+    @Select("select id from tag where `name` = #{name}")
+    Long getTagIdByName(String name);
 }
