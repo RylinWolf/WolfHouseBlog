@@ -315,6 +315,11 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         JsonNullable<Long> order = dto.getOrder();
 
         Long id = dto.getId();
+        Partition partition = getById(id);
+        // 名字相同则不修改
+        name = partition.getName()
+                        .equals(name.orElse(null)) ? JsonNullable.undefined() : name;
+
         String nameString = JsonNullableUtil.getObjOrNull(name);
 
         VerifyTool.of(
