@@ -5,4 +5,7 @@ package com.wolfhouse.wolfhouseblog.common.constant.services;
  */
 public class TagConstant {
     public static final String NOT_EXIST = "标签不存在！";
+    public static final String ALREADY_EXIST = "标签已存在！";
+    
+    public static final String ADD_FAILED = "标签添加失败！";
 }
