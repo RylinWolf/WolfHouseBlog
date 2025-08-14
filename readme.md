@@ -3,6 +3,12 @@
 一个基于 Spring Boot 3 的个人/团队博客与内容管理后端项目。集成用户认证与权限、文章/分区管理、常用标签、订阅关注等核心能力，并支持
 MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件。
 
+**默认管理员**：
+
+用户名：`admin`
+
+密码：`CoreWaGuanliDesuNe~1`
+
 ## 技术栈
 
 - 语言/运行环境：Java 21
