@@ -10,4 +10,5 @@ public class TagConstant {
     public static final String ADD_FAILED = "标签添加失败！";
     public static final String DELETE_FAILED = "标签删除失败！";
     public static final String UPDATE_FAILED = "标签修改失败！";
+    public static final String BAD_NAME_FORMAT = "标签名格式有误！";
 }
