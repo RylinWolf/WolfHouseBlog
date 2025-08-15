@@ -11,5 +11,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class MqUserAuthDto extends MqAuthDto {
-    private Long userId;
+    protected Long userId;
 }

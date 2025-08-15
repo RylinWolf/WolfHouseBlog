@@ -1,5 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.provider;
 
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
@@ -34,11 +36,8 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         // 获取用户
         String accountOrEmail = authentication.getName();
         Optional<User> userO;
-        try {
-            userO = Optional.ofNullable(userService.findByAccountOrEmail(accountOrEmail));
-        } catch (Exception e) {
-            throw new ServiceException(e.getMessage(), e);
-        }
+        userO = Optional.ofNullable(userService.findByAccountOrEmail(accountOrEmail));
+
         var user = userO.orElseThrow(() -> new UsernameNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED));
 
         String password = authentication.getCredentials()
@@ -49,6 +48,15 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
 
         if (!isVerified) {
             throw new AuthenticationCredentialsNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED);
+        }
+
+        // 验证用户是否可用
+        try {
+            VerifyTool.of(UserVerifyNode.id(authService)
+                                        .target(userId))
+                      .doVerify();
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage(), e);
         }
 
         // 获取权限

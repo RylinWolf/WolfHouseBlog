@@ -14,4 +14,13 @@ public class AdminNameVerifyNode extends StringVerifyNode {
     public AdminNameVerifyNode(Long min, Long max, Boolean allowNull) {
         super(min, max, allowNull);
     }
+
+    @Override
+    public boolean verify() {
+        if (t == null && allowNull) {
+            return true;
+        }
+        
+        return super.verify();
+    }
 }

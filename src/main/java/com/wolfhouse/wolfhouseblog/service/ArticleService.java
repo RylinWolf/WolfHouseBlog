@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import jakarta.validation.Valid;
 
 /**
  * @author linexsong
@@ -49,7 +50,7 @@ public interface ArticleService extends IService<Article> {
      * @return 文章详细信息
      * @throws Exception 查询失败时抛出异常
      */
-    ArticleVo getById(Long id) throws Exception;
+    ArticleVo getVoById(Long id) throws Exception;
 
     /**
      * 发布新文章
@@ -58,7 +59,7 @@ public interface ArticleService extends IService<Article> {
      * @return 已发布的文章信息
      * @throws Exception 发布失败时抛出异常
      */
-    ArticleVo post(ArticleDto dto) throws Exception;
+    ArticleVo post(@Valid ArticleDto dto) throws Exception;
 
     /**
      * 更新文章信息

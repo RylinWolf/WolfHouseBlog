@@ -3,9 +3,9 @@ package com.wolfhouse.wolfhouseblog.service;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
-import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
@@ -22,9 +22,8 @@ public interface UserService extends IService<User> {
      *
      * @param s 账号或邮箱
      * @return 用户对象，如果未找到则返回null
-     * @throws Exception 查询过程中可能发生的异常
      */
-    User findByAccountOrEmail(String s) throws Exception;
+    User findByAccountOrEmail(String s);
 
     /**
      * 根据用户ID查询用户信息
@@ -78,7 +77,7 @@ public interface UserService extends IService<User> {
      * @return 更新后的用户详细信息视图对象
      * @throws Exception 更新过程中可能发生的异常
      */
-    UserVo updateAuthedUser(@Valid UserDto dto) throws Exception;
+    UserVo updateAuthedUser(@Valid UserUpdateDto dto) throws Exception;
 
     /**
      * 订阅其他用户
@@ -114,4 +113,8 @@ public interface UserService extends IService<User> {
      * @throws Exception 删除过程中可能发生的异常
      */
     Boolean deleteAccount(Long userId) throws Exception;
+
+    void disableAccount(Long userId) throws Exception;
+
+    Boolean unsubscribe(@Valid UserSubDto dto) throws Exception;
 }

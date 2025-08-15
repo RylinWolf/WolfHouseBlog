@@ -9,10 +9,10 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.pojo.dto.UserDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.UserUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
@@ -52,18 +52,18 @@ public class UserController {
     public ResponseEntity<HttpResult<UserLoginVo>> login(@RequestBody UserLoginDto dto) {
         try {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
-                    dto.getAccount(),
-                    dto.getPassword()));
+                 dto.getAccount(),
+                 dto.getPassword()));
             log.info("用户[{}]登陆", auth.getPrincipal());
             return HttpResult.ok(UserLoginVo.token(jwtUtil.getToken(auth)), null);
 
         } catch (AuthenticationException e) {
             // 验证失败
             return HttpResult.failed(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    HttpCodeConstant.AUTH_FAILED,
-                    AuthExceptionConstant.AUTHENTIC_FAILED,
-                    null);
+                 HttpStatus.UNAUTHORIZED.value(),
+                 HttpCodeConstant.AUTH_FAILED,
+                 AuthExceptionConstant.AUTHENTIC_FAILED,
+                 null);
         }
     }
 
@@ -71,15 +71,15 @@ public class UserController {
     @PostMapping("/register")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<HttpResult<UserRegisterVo>> register(@RequestBody @Valid UserRegisterDto dto)
-            throws Exception {
+         throws Exception {
         log.info("用户注册: {}", dto);
         // 检查用户是否存在
         if (userService.hasAccountOrEmail(dto.getEmail())) {
             return HttpResult.failed(
-                    HttpStatus.CONFLICT.value(),
-                    HttpCodeConstant.USER_ALREADY_EXIST,
-                    UserConstant.USER_ALREADY_EXIST,
-                    null);
+                 HttpStatus.CONFLICT.value(),
+                 HttpCodeConstant.USER_ALREADY_EXIST,
+                 UserConstant.USER_ALREADY_EXIST,
+                 null);
         }
         // 设置用户 ID
         dto.setUserId(authService.createAuth(dto.getPassword())
@@ -87,10 +87,10 @@ public class UserController {
 
         // 注册用户
         return HttpResult.failedIfBlank(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpCodeConstant.FAILED,
-                UserConstant.USER_AUTH_CREATE_FAILED,
-                userService.createUser(dto));
+             HttpStatus.INTERNAL_SERVER_ERROR.value(),
+             HttpCodeConstant.FAILED,
+             UserConstant.USER_AUTH_CREATE_FAILED,
+             userService.createUser(dto));
     }
 
     @Operation(summary = "获取信息")
@@ -99,30 +99,39 @@ public class UserController {
         // 需要登陆
         VerifyTool.ofLoginExist(authService)
                   .doVerify();
-        
+
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.FAILED,
-                UserConstant.USER_UNACCESSIBLE,
-                userService.getUserVoById(id));
+             HttpCodeConstant.FAILED,
+             UserConstant.USER_UNACCESSIBLE,
+             userService.getUserVoById(id));
     }
 
     @Operation(summary = "修改")
     @PutMapping
-    public HttpResult<UserVo> update(@RequestBody @Valid UserDto dto) throws Exception {
+    public HttpResult<UserVo> update(@RequestBody @Valid UserUpdateDto dto) throws Exception {
 
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.UPDATE_FAILED,
-                UserConstant.USER_UPDATE_FAILED,
-                userService.updateAuthedUser(dto));
+             HttpCodeConstant.UPDATE_FAILED,
+             UserConstant.USER_UPDATE_FAILED,
+             userService.updateAuthedUser(dto));
     }
 
     @Operation(summary = "关注")
     @PutMapping("/subscribe")
     public HttpResult<?> subscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
         return HttpResult.onCondition(
-                HttpCodeConstant.FAILED,
-                UserConstant.SUBSCRIBE_FAILED,
-                userService.subsribe(dto));
+             HttpCodeConstant.FAILED,
+             UserConstant.SUBSCRIBE_FAILED,
+             userService.subsribe(dto));
+    }
+
+    @Operation(summary = "取消关注")
+    @DeleteMapping("/subscribe")
+    public HttpResult<?> unSubscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.UNSUBSCRIBE_FAILED,
+             userService.unsubscribe(dto));
     }
 
     @Operation(summary = "获取关注列表")
@@ -139,9 +148,9 @@ public class UserController {
     public HttpResult<?> deleteAccount() throws Exception {
         // TODO 删除账号设置缓冲期
         return HttpResult.onCondition(
-                HttpCodeConstant.FAILED,
-                UserConstant.DELETE_FAILED,
-                userService.deleteAccount(ServiceUtil.loginUserOrE()));
+             HttpCodeConstant.FAILED,
+             UserConstant.DELETE_FAILED,
+             userService.deleteAccount(ServiceUtil.loginUserOrE()));
     }
 
 }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
-public class AdminUserDeleteDto {
+public class AdminUserControlDto {
     private Long userId;
     private String password;
 }

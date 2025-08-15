@@ -42,7 +42,7 @@ public class ServiceUtil {
 
     public static void setLoginUser(Long loginId) {
         SecurityContext context = SecurityContextHolder.getContext();
-        
+
         context.setAuthentication(new UsernamePasswordAuthenticationToken(loginId, null));
     }
 
@@ -54,5 +54,10 @@ public class ServiceUtil {
             auth = new UsernamePasswordAuthenticationToken(null, null, authorities);
         }
         context.setAuthentication(auth);
+    }
+
+    public static void removeLogin() {
+        SecurityContextHolder.getContext()
+                             .setAuthentication(null);
     }
 }

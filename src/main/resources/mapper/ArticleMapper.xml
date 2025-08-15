@@ -23,4 +23,20 @@
                 #{tags,typeHandler=com.mybatisflex.core.handler.JacksonTypeHandler},
                 #{comUseTags,typeHandler=com.mybatisflex.core.handler.JacksonTypeHandler})
     </insert>
+
+    <update id="removeTags">
+        update article
+        set com_use_tags = (
+        select JSON_ARRAYAGG(tag)
+        from JSON_TABLE(com_use_tags, '$[*]' COLUMNS (tag VARCHAR(255) PATH '$')) as jt
+        where 1 = 1
+        <if test="tagIds != null and !tagIds.isEmpty()">
+            and jt.tag not in
+            <foreach collection="tagIds" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </if>
+        )
+        where author_id = #{userId};
+    </update>
 </mapper>

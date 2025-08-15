@@ -4,6 +4,7 @@ spring:
   profiles:
     active: dev
 
+
   datasource:
     url: ${spring.datasource.url}
     username: ${spring.datasource.username}
@@ -44,3 +45,8 @@ custom:
   jwt:
     secret: ${custom.jwt.secret}
     expiration: ${custom.jwt.expiration}
+
+logging:
+  level:
+    com.wolfhouse.wolfhouseblog.*: info
+

@@ -23,4 +23,8 @@ public class MqUserService {
         template.convertAndSend(MqUserConstant.DELETE_EXCHANGE, MqUserConstant.KEY_DELETE_USER, dto);
     }
 
+    public void disableUser(MqUserAuthDto dto) {
+        template.convertAndSend(MqUserConstant.DISABLE_EXCHANGE, MqUserConstant.DISABLE_KEY, dto);
+        
+    }
 }

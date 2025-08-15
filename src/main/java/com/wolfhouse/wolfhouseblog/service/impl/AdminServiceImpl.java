@@ -2,9 +2,11 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
@@ -22,7 +24,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
@@ -31,10 +33,13 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
 /**
  * @author linexsong
@@ -99,6 +104,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AdminVo createAdmin(AdminPostDto dto) throws Exception {
         // 登录用户应为管理员
         Long login = ServiceUtil.loginUserOrE();
@@ -116,19 +122,21 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                   .doVerify();
 
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
-        return mapper.insert(admin) != 1 ? null : getAdminVoById(admin.getId());
+        int insert = mapper.insert(admin);
+        return insert != 1 ? null : getAdminVoById(admin.getId());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AdminVo updateAdmin(AdminUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
-
-        String name = JsonNullableUtil.getObjOrNull(dto.getName());
         Long adminId = dto.getId();
 
+        String name = JsonNullableUtil.getObjOrNull(dto.getName());
+
         // 权限
-        List<Long> authorityList = JsonNullableUtil.getObjOrNull(dto.getAuthorities());
+        JsonNullable<List<Long>> authoritiesNullable = dto.getAuthorities();
+        List<Long> authorityList = JsonNullableUtil.getObjOrNull(authoritiesNullable);
         Long[] authorities = authorityList == null ? null : authorityList.toArray(new Long[0]);
 
         // 获取当前登录用户 验证权限
@@ -147,32 +155,41 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                        AdminVerifyNode.id(this)
                                       .target(adminId),
                        // 管理员名称验证
-                       AdminVerifyNode.NAME.target(JsonNullableUtil.getObjOrNull(dto.getName())),
+                       AdminVerifyNode.NAME.target(name)
+                                           .allowNull(true),
                        // 权限验证
                        AdminVerifyNode.authorityId(this)
-                                      .target(authorities))
+                                      .target(authorities)
+                                      .allowNull(true))
                   .doVerify();
 
         // 修改权限
-        Integer i = changeAuthorities(adminId, authorities);
+        authoritiesNullable.ifPresent(a -> {
+            try {
+                changeAuthorities(adminId, a.toArray(Long[]::new));
+            } catch (Exception e) {
+                throw new ServiceException(e.getMessage(), e);
+            }
+        });
 
         // 修改其他信息
-        Admin admin = objectMapper.convertValue(dto, Admin.class);
+        UpdateChain<Admin> chain = UpdateChain.of(Admin.class)
+                                              .where(ADMIN.ID.eq(adminId));
+        dto.getName()
+           .ifPresent(n -> chain.set(ADMIN.NAME, n, n != null));
+        boolean update = chain.update();
 
         // 目前管理员只有名称可以被修改，因此如果没有修改则没有更新项
-        if (name == null && i == 0) {
+        if (!authoritiesNullable.isPresent() && !update) {
             return null;
         }
 
-        if (mapper.update(admin, true) != 1 && i == 0) {
-            return null;
-        }
-
-        return getAdminVoById(admin.getId());
+        return getAdminVoById(adminId);
     }
 
     @Override
     public Boolean isAuthoritiesExist(Long... authorityIds) {
+
         long count = authorityMapper.selectCountByQuery(new QueryWrapper().in(Authority::getId, List.of(authorityIds)));
 
         return count == authorityIds.length;
@@ -285,8 +302,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     @Override
-    public Boolean deleteUser(AdminUserDeleteDto dto) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
+    public Boolean deleteUser(AdminUserControlDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
         VerifyTool.of(
                        AdminVerifyNode.userId(this)
                                       .target(login),
@@ -303,5 +320,52 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         mqUserService.deleteUser(authDto);
         return true;
+    }
+
+    @Override
+    public Boolean disableUser(AdminUserControlDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        VerifyTool.of(
+                       // 验证管理员是否存在
+                       AdminVerifyNode.userId(this)
+                                      .target(login),
+                       // 验证用户是否存在
+                       UserVerifyNode.id(authService)
+                                     .target(dto.getUserId()),
+                       // 验证密码是否正确
+                       UserVerifyNode.pwd(authService)
+                                     .userId(login)
+                                     .target(dto.getPassword())
+                     )
+                  .doVerify();
+
+        mqUserService.disableUser(new MqUserAuthDto(dto.getUserId()));
+        return true;
+    }
+
+    @Override
+    public Boolean enableUser(AdminUserControlDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        Long userId = dto.getUserId();
+
+        VerifyTool.of(
+                       UserVerifyNode.pwd(authService)
+                                     .userId(login)
+                                     .target(dto.getPassword()),
+                       AdminVerifyNode.userId(this)
+                                      .target(login),
+                       // 用户不存在
+                       new BaseVerifyNode<Long>() {}
+                            .predicate(authService::isAuthExist)
+                            .target(userId)
+                            .exception(new ServiceException(UserConstant.USER_NOT_EXIST)),
+                       // 账号已启用
+                       new BaseVerifyNode<Long>() {}
+                            .predicate(u -> !authService.isUserEnabled(u))
+                            .target(userId)
+                            .exception(new ServiceException(UserConstant.USER_HAS_ENABLED)))
+                  .doVerify();
+
+        return authService.enableAuth(userId);
     }
 }

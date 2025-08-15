@@ -11,6 +11,9 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,42 +23,48 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/article")
 @RequiredArgsConstructor
+@Tag(name = "文章接口")
 public class ArticleController {
     private final ArticleService articleService;
 
+    @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) {
         return HttpResult.success(articleService.getBriefQuery(dto));
     }
 
+    @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public HttpResult<ArticleVo> get(@PathVariable Long id) throws Exception {
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.ACCESS_DENIED,
-                ArticleConstant.ACCESS_DENIED,
-                articleService.getById(id));
+             HttpCodeConstant.ACCESS_DENIED,
+             ArticleConstant.ACCESS_DENIED,
+             articleService.getVoById(id));
     }
 
+    @Operation(summary = "发布")
     @PostMapping
-    public HttpResult<ArticleVo> post(@RequestBody ArticleDto dto) throws Exception {
+    public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.POST_FAILED,
-                ArticleConstant.POST_FAILED,
-                articleService.post(dto));
+             HttpCodeConstant.POST_FAILED,
+             ArticleConstant.POST_FAILED,
+             articleService.post(dto));
     }
 
+    @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
-                HttpCodeConstant.UPDATE_FAILED,
-                ArticleConstant.UPDATE_FAILED,
-                articleService.update(dto));
+             HttpCodeConstant.UPDATE_FAILED,
+             ArticleConstant.UPDATE_FAILED,
+             articleService.update(dto));
     }
 
+    @Operation(summary = "删除")
     @DeleteMapping("/{id}")
     public HttpResult<?> delete(@PathVariable Long id) throws Exception {
         return HttpResult.onCondition(
-                HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED,
-                articleService.deleteById(id));
+             HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED,
+             articleService.deleteById(id));
     }
 }

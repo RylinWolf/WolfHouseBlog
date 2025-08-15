@@ -6,7 +6,7 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserIdVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -14,9 +14,11 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.PartitionMapper;
+import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
@@ -38,6 +40,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PA
 @RequiredArgsConstructor
 public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition> implements PartitionService {
     private final UserAuthService authService;
+    private final MqArticleService mqArticleService;
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos() throws Exception {
@@ -46,10 +49,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos(Long partitionId) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
-        VerifyTool.of(UserVerifyNode.id(authService)
-                                    .target(login))
-                  .doVerify();
+        Long login = authService.loginUserOrE();
         return getPartitionVoStructure(login, partitionId);
     }
 
@@ -59,7 +59,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
      * @param userId 用户的唯一标识ID
      * @return 排序后的分区视图对象集合
      */
-    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId) {
+    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId) throws Exception {
         return getPartitionVoStructure(userId, null);
     }
 
@@ -70,18 +70,22 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
      * @param partitionId 分区ID，如果为null，将获取用户的所有分区；否则获取指定分区及其子分区。
      * @return 排序后的分区视图对象集合。
      */
-    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) {
+    private SortedSet<PartitionVo> getPartitionVoStructure(Long userId, Long partitionId) throws Exception {
         // TODO 优化逻辑，可以先获取所有父节点，再根据父节点获取其孩子节点
 
         // 要得到指定 ID 的分区视图，关键在于 获取和指定 ID 有关的全部分区列表
         // 基于分区列表构建结构的部分是通用的
-
         List<Partition> partitions;
         if (partitionId == null) {
             // 获取用户的全部分区
+            new UserIdVerifyNode(authService).target(userId)
+                                             .verifyWithCustomE();
             partitions = getAllPartitions(userId);
         } else {
             // 获取有关的分区
+            if (!isUserPartitionExist(userId, partitionId)) {
+                return null;
+            }
             partitions = listByIds(getWithPartitionChildren(partitionId));
         }
 
@@ -249,10 +253,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public PartitionVo getPartitionVoByName(String name) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
-        VerifyTool.of(UserVerifyNode.id(authService)
-                                    .target(login))
-                  .doVerify();
+        Long login = authService.loginUserOrE();
 
         Partition p = mapper.selectOneByQuery(QueryWrapper.create()
                                                           .eq(Partition::getUserId, login)
@@ -260,18 +261,17 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         if (p == null) {
             return null;
         }
-        return getPartitionVoStructure(login, p.getId()).getFirst();
+        SortedSet<PartitionVo> vos = getPartitionVoStructure(login, p.getId());
+        return vos == null ? null : vos.first();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> addPartition(PartitionDto dto) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
+        Long login = authService.loginUserOrE();
         // 验证字段
         // 暂未使用分区可见性验证，因为自动映射会处理
         VerifyTool.of(
-                       UserVerifyNode.id(authService)
-                                     .target(login),
                        // 验证分区名格式及是否已存在
                        PartitionVerifyNode.name(this)
                                           .login(login)
@@ -296,10 +296,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception {
-        VerifyTool.of(
-                       UserVerifyNode.id(authService)
-                                     .target(userId))
-                  .doVerify();
+        authService.loginUserOrE();
 
         return mapper.selectCountByQuery(QueryWrapper.create()
                                                      .eq(Partition::getUserId, userId)
@@ -308,7 +305,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
+        authService.loginUserOrE();
 
         JsonNullable<Long> parentId = dto.getParentId();
         Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
@@ -318,11 +315,14 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         JsonNullable<Long> order = dto.getOrder();
 
         Long id = dto.getId();
+        Partition partition = getById(id);
+        // 名字相同则不修改
+        name = partition.getName()
+                        .equals(name.orElse(null)) ? JsonNullable.undefined() : name;
+
         String nameString = JsonNullableUtil.getObjOrNull(name);
 
         VerifyTool.of(
-                       UserVerifyNode.id(authService)
-                                     .target(login),
                        PartitionVerifyNode.id(this)
                                           .target(id),
                        PartitionVerifyNode.id(this)
@@ -391,20 +391,26 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception {
         // 验证 ID 是否存在
-        VerifyTool.of(PartitionVerifyNode.id(this)
-                                         .target(partitionId))
-                  .doVerify();
+        Long login = authService.loginUserOrE();
+        if (!isUserPartitionExist(login, partitionId)) {
+            throw new ServiceException(PartitionConstant.NOT_EXIST);
+        }
 
         Partition partition = getById(partitionId);
+        Long parentId = partition.getParentId();
         // 转移父类
-        boolean update = UpdateChain.of(Partition.class)
-                                    .where(PARTITION.PARENT_ID.eq(partitionId))
-                                    .set(PARTITION.PARENT_ID, partition.getParentId())
-                                    .update();
+        UpdateChain.of(Partition.class)
+                   .where(PARTITION.PARENT_ID.eq(partitionId))
+                   .set(PARTITION.PARENT_ID, parentId)
+                   .update();
         // 移除当前类
-        if (!update || mapper.deleteById(partitionId) != 1) {
+        if (mapper.deleteById(partitionId) != 1) {
             throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
         }
+
+        MqPartitionChangeDto dto = new MqPartitionChangeDto(Set.of(partitionId), parentId);
+        dto.setUserId(login);
+        mqArticleService.articlePartitionChange(dto);
         return getPartitionVos();
     }
 
@@ -412,14 +418,21 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception {
         // 验证 ID 是否存在
-        VerifyTool.of(PartitionVerifyNode.id(this)
-                                         .target(partitionId))
-                  .doVerify();
-
+        Long login = authService.loginUserOrE();
+        if (!isUserPartitionExist(login, partitionId)) {
+            throw new ServiceException(PartitionConstant.NOT_EXIST);
+        }
+        // 获取分区及其子分区 ID，批量删除
+        Partition partition = getById(partitionId);
         Set<Long> ids = getWithPartitionChildren(partitionId);
         if (mapper.deleteBatchByIds(ids) != ids.size()) {
             throw ServiceException.processingFailed(PartitionConstant.DELETE_FAILED);
         }
+
+        // 通知文章服务，修改归属分区
+        MqPartitionChangeDto dto = new MqPartitionChangeDto(ids, partition.getParentId());
+        dto.setUserId(login);
+        mqArticleService.articlePartitionChange(dto);
         return getPartitionVos();
     }
 }

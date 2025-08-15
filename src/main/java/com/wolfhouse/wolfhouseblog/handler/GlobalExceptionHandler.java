@@ -6,6 +6,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -61,7 +62,12 @@ public class GlobalExceptionHandler {
                  AdminConstant.ADMIN_NOT_EXIST,
                  VerifyConstant.NOT_ALL_BLANK,
                  PartitionConstant.NOT_EXIST,
-                 PartitionConstant.ALREADY_EXIST -> {
+                 PartitionConstant.ALREADY_EXIST,
+                 TagConstant.ALREADY_EXIST,
+                 TagConstant.NOT_EXIST,
+                 TagConstant.ADD_FAILED,
+                 UserConstant.NOT_SUBSCRIBED,
+                 UserConstant.USER_ALREADY_SUBSCRIBED -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }

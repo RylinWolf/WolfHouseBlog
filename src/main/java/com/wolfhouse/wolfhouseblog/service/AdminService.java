@@ -5,7 +5,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserDeleteDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 
@@ -142,5 +142,9 @@ public interface AdminService extends IService<Admin> {
      * @return 是否删除成功，true表示删除请求已成功发送到消息队列
      * @throws Exception 当管理员密码验证失败、用户不存在或系统错误时抛出异常
      */
-    Boolean deleteUser(AdminUserDeleteDto dto) throws Exception;
+    Boolean deleteUser(AdminUserControlDto dto) throws Exception;
+
+    Boolean disableUser(AdminUserControlDto dto) throws Exception;
+
+    Boolean enableUser(AdminUserControlDto dto) throws Exception;
 }

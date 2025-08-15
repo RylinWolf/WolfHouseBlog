@@ -11,6 +11,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ComUseTagVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
@@ -30,12 +31,14 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
 
@@ -49,6 +52,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper jsonNullableObjectMapper;
     private final PartitionService partitionService;
+    private final UserAuthService authService;
+    /** 常用标签验证节点 */
+    private final ComUseTagVerifyNode comUseTagVerifyNode;
 
 
     @Override
@@ -108,7 +114,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public ArticleVo getById(Long id) throws Exception {
+    public ArticleVo getVoById(Long id) throws Exception {
         BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(this).target(id)
                                                                              .setStrategy(VerifyStrategy.NORMAL));
 
@@ -118,6 +124,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+
+        // TODO 常用标签验证
         VerifyTool.of(
                        ArticleVerifyNode.TITLE.target(dto.getTitle())
                                               .exception(ARTICLE.TITLE.getName()),
@@ -125,48 +134,63 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                                                 .exception(ARTICLE.CONTENT.getName()),
                        ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
                                                 .allowNull(true)
-                                                .exception(ARTICLE.PRIMARY.getName()))
+                                                .exception(ARTICLE.PRIMARY.getName()),
+                       comUseTagVerifyNode.userId(login)
+                                          .target(dto.getComUseTags())
+                                          .allowNull(true))
                   .doVerify();
 
         Article article = BeanUtil.copyProperties(dto, Article.class);
-        article.setAuthorId(ServiceUtil.loginUser());
+        article.setAuthorId(login);
 
         mapper.insertWithPkBack(article);
-        return getById(article.getId());
+        return getVoById(article.getId());
     }
 
     @Override
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+        // TODO 常用标签验证
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
         Long partitionId = JsonNullableUtil.getObjOrNull(dto.getPartitionId());
+        Set<Long> comUseTags = JsonNullableUtil.getObjOrNull(dto.getComUseTags());
 
-
-        // TODO 在修改时，检查分区是否存在
-        VerifyTool.ofLogin(
+        VerifyTool.ofLoginExist(
+                       authService,
+                       // 文章 ID
                        ArticleVerifyNode.id(this)
                                         .target(dto.getId()),
+                       // 标题
                        ArticleVerifyNode.title(title, true)
                                         .exception(ARTICLE.TITLE.getName()),
+                       // 内容
                        ArticleVerifyNode.content(content, true)
                                         .exception(ARTICLE.CONTENT.getName()),
+                       // 摘要
                        ArticleVerifyNode.primary(primary, true)
                                         .exception(ARTICLE.PRIMARY.getName()),
+                       // 分区 ID
                        PartitionVerifyNode.id(partitionService)
                                           .target(partitionId)
                                           .allowNull(true),
+                       // 常用标签
+                       comUseTagVerifyNode.target(comUseTags)
+                                          .allowNull(true),
+
+                       // 不得全为空
                        new NotAllBlankVerifyNode(
                             title,
                             content,
                             primary,
+                            comUseTags,
                             dto.getVisibility(),
                             dto.getPartitionId(),
-                            dto.getTags(),
-                            dto.getComUseTags())
+                            dto.getTags())
                             .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
+        // 设置标题、内容
         UpdateChain<Article> updateChain = UpdateChain.of(Article.class)
                                                       .where(ARTICLE.ID.eq(dto.getId()))
                                                       .set(ARTICLE.TITLE, title, title != null)
@@ -191,7 +215,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
 
-        return getById(dto.getId());
+        return getVoById(dto.getId());
     }
 
     @Override

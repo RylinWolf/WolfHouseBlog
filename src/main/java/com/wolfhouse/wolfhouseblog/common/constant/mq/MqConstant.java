@@ -20,6 +20,8 @@ public class MqConstant {
     public static final String ERROR_QUEUE = "error.queue";
     public static final String ERROR_EXCHANGE = "error.exchange";
 
+    public static final String USER_ERROR_QUEUE = MqUserConstant.USER + ERROR_QUEUE;
+    public static final String ARTICLE_ERROR_QUEUE = MqArticleConstant.ARTICLE + ERROR_QUEUE;
 
     public static final String EXCEPTION_SERVICE = "业务异常";
     public static final String CONCURRENCY = "5";

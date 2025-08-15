@@ -4,8 +4,11 @@ import com.mybatisflex.core.logicdelete.LogicDeleteManager;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserIdVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.mapper.UserAuthMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserAuth;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
@@ -33,6 +36,17 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
 
         return selectWithoutLogicDelete(() -> exists(QueryWrapper.create()
                                                                  .where(USER_AUTH.USER_ID.eq(userId))));
+    }
+
+    @Override
+    public Long loginUserOrE() throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
+        VerifyNode<Long> node = new UserIdVerifyNode(this).target(login);
+        if (node.verify()) {
+            return login;
+        }
+        ServiceUtil.removeLogin();
+        throw node.getException();
     }
 
     /**
@@ -68,12 +82,12 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     }
 
     @Override
-    public void enableAuth(Long userId) {
+    public Boolean enableAuth(Long userId) {
         throwIfNotExist(userId);
-        UpdateChain.of(UserAuth.class)
-                   .where(USER_AUTH.USER_ID.eq(userId))
-                   .set(USER_AUTH.IS_ENABLED, true)
-                   .update();
+        return UpdateChain.of(UserAuth.class)
+                          .where(USER_AUTH.USER_ID.eq(userId))
+                          .set(USER_AUTH.IS_ENABLED, true)
+                          .update();
     }
 
     @Override
@@ -94,25 +108,25 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     public Boolean isUserDeleted(Long userId) {
         throwIfNotExist(userId);
         return selectWithoutLogicDelete(
-                () -> mapper
-                        .selectOneByQuery(
-                                QueryWrapper.create()
-                                            .select(USER_AUTH.IS_DELETED)
-                                            .where(USER_AUTH.USER_ID.eq(userId)))
-                        .getIsDeleted());
+             () -> mapper
+                  .selectOneByQuery(
+                       QueryWrapper.create()
+                                   .select(USER_AUTH.IS_DELETED)
+                                   .where(USER_AUTH.USER_ID.eq(userId)))
+                  .getIsDeleted());
     }
 
     @Override
     public Boolean isUserEnabled(Long userId) {
         throwIfNotExist(userId);
         return selectWithoutLogicDelete(
-                () -> mapper
-                        .selectOneByQuery(
-                                QueryWrapper
-                                        .create()
-                                        .select(USER_AUTH.IS_ENABLED)
-                                        .where(USER_AUTH.USER_ID.eq(userId)))
-                        .getIsEnabled());
+             () -> mapper
+                  .selectOneByQuery(
+                       QueryWrapper
+                            .create()
+                            .select(USER_AUTH.IS_ENABLED)
+                            .where(USER_AUTH.USER_ID.eq(userId)))
+                  .getIsEnabled());
     }
 
     @Override
@@ -125,8 +139,8 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
         throwIfNotExist(userId);
 
         return encoder.matches(
-                password,
-                mapper.selectOneById(userId)
-                      .getPassword());
+             password,
+             mapper.selectOneById(userId)
+                   .getPassword());
     }
 }
