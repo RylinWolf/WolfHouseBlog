@@ -14,6 +14,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Tag;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserTag;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.TagUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqArticleTagRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
@@ -136,5 +137,29 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         // 通知文章服务移除标签
         mqArticleService.articleComUseTagsRemove(new MqArticleTagRemoveDto(login, ids));
         return true;
+    }
+
+    @Override
+    public TagVo updateTag(TagUpdateDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        Long id = dto.getId();
+
+        VerifyTool.of(
+                       TagVerifyNode.NAME.target(dto.getName()),
+                       TagVerifyNode.id(this)
+                                    .userId(login)
+                                    .target(id))
+                  .doVerify();
+
+        if (!mapper.getTagIdByName(dto.getName())
+                   .equals(id)) {
+            throw new ServiceException(TagConstant.ALREADY_EXIST);
+        }
+
+        Tag tag = BeanUtil.copyProperties(dto, Tag.class);
+        if (mapper.update(tag) != 1) {
+            throw new ServiceException(TagConstant.UPDATE_FAILED);
+        }
+        return getTagVoById(id);
     }
 }

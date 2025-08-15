@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.TagUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,4 +57,14 @@ public class TagController {
              TagConstant.DELETE_FAILED,
              service.deleteTags(dto));
     }
+
+    @PutMapping
+    @Operation(summary = "修改标签")
+    public HttpResult<TagVo> updateTag(@RequestBody TagUpdateDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.UPDATE_FAILED,
+             TagConstant.UPDATE_FAILED,
+             service.updateTag(dto));
+    }
+
 }
