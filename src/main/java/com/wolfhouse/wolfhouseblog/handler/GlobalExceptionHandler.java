@@ -65,7 +65,9 @@ public class GlobalExceptionHandler {
                  PartitionConstant.ALREADY_EXIST,
                  TagConstant.ALREADY_EXIST,
                  TagConstant.NOT_EXIST,
-                 TagConstant.ADD_FAILED -> {
+                 TagConstant.ADD_FAILED,
+                 UserConstant.NOT_SUBSCRIBED,
+                 UserConstant.USER_ALREADY_SUBSCRIBED -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }
