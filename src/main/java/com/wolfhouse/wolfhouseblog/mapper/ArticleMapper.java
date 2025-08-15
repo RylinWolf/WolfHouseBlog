@@ -4,6 +4,8 @@ import com.mybatisflex.core.BaseMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.Set;
+
 /**
  * @author linexsong
  */
@@ -17,4 +19,6 @@ public interface ArticleMapper extends BaseMapper<Article> {
      * @return 影响的行数
      */
     Integer insertWithPkBack(Article article);
+
+    Integer removeTags(Long userId, Set<Long> tagIds);
 }
