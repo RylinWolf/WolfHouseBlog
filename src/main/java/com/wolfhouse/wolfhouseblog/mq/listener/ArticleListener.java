@@ -63,7 +63,6 @@ public class ArticleListener {
     public void comUseTagsRemoveListener(MqArticleTagRemoveDto dto) throws Exception {
         log.info("监听到移除常用标签: {}", dto);
         mqTools.setLoginAuth(dto);
-        System.out.println(dto.getTagIds());
         if (mapper.removeTags(dto.getUserId(), dto.getTagIds()) == 0) {
             log.warn("没有文章的标签被修改");
         }
