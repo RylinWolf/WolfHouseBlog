@@ -9,9 +9,12 @@ import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.mapper.TagMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserTagMapper;
+import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Tag;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserTag;
+import com.wolfhouse.wolfhouseblog.pojo.dto.TagDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqArticleTagRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
@@ -20,6 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTagTableDef.USER_TAG;
 
 /**
  * @author linexsong
@@ -29,6 +36,7 @@ import java.util.List;
 public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagService {
     private final UserAuthService authService;
     private final UserTagMapper userTagMapper;
+    private final MqArticleService mqArticleService;
 
     @Override
     public List<TagVo> getTagVos() throws Exception {
@@ -61,7 +69,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     public Boolean isUserTagsExist(Long userId, Set<Long> tagId) {
         return userTagMapper.selectCountByQuery(QueryWrapper.create()
                                                             .eq(UserTag::getUserId, userId)
-                                                            .eq(UserTag::getTagId, tagId)) > 0;
+                                                            .in(UserTag::getTagId, tagId)) == tagId.size();
     }
 
     @Override
@@ -96,5 +104,37 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
             throw new ServiceException(TagConstant.ADD_FAILED);
         }
         return getTagVos();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteTags(TagDeleteDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        Set<Long> ids = dto.getIds();
+
+        // 用户常用标签不存在
+        Boolean exist = isUserTagsExist(login, ids);
+        if (!exist) {
+            throw new ServiceException(TagConstant.NOT_EXIST);
+        }
+
+        // 移除用户常用标签
+        userTagMapper.deleteByQuery(QueryWrapper.create()
+                                                .where(USER_TAG.USER_ID.eq(login)
+                                                                       .and(USER_TAG.TAG_ID.in(ids))));
+        // 获取常用标签仍在使用的用户数量
+        Map<Long, Long> usingCount = userTagMapper.getTagUsingCount(ids);
+        Set<Long> tagInUse = usingCount.keySet();
+        // 有标签变为野标签，移除
+        if (ids.size() != tagInUse.size()) {
+            // 去除仍在使用的标签，剩下的是野标签
+            ids.removeAll(tagInUse);
+            mapper.deleteBatchByIds(ids);
+        }
+
+        // TODO 未解决事务问题
+        // 通知文章服务移除标签
+        mqArticleService.articleComUseTagsRemove(new MqArticleTagRemoveDto(login, ids));
+        return true;
     }
 }

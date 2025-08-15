@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.controller;
 import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.pojo.dto.TagDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.TagDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
@@ -45,5 +46,14 @@ public class TagController {
              HttpCodeConstant.FAILED,
              TagConstant.ADD_FAILED,
              service.addTag(dto));
+    }
+
+    @DeleteMapping
+    @Operation(summary = "删除标签")
+    public HttpResult<?> deleteTag(@RequestBody TagDeleteDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             TagConstant.DELETE_FAILED,
+             service.deleteTags(dto));
     }
 }
