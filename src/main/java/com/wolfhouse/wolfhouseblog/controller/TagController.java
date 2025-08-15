@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +43,7 @@ public class TagController {
 
     @PostMapping
     @Operation(summary = "添加常用标签")
-    public HttpResult<List<TagVo>> addTag(@RequestBody TagDto dto) throws Exception {
+    public HttpResult<List<TagVo>> addTag(@RequestBody @Valid TagDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              TagConstant.ADD_FAILED,
@@ -60,7 +61,7 @@ public class TagController {
 
     @PutMapping
     @Operation(summary = "修改标签")
-    public HttpResult<TagVo> updateTag(@RequestBody TagUpdateDto dto) throws Exception {
+    public HttpResult<TagVo> updateTag(@RequestBody @Valid TagUpdateDto dto) throws Exception {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.UPDATE_FAILED,
              TagConstant.UPDATE_FAILED,
