@@ -17,6 +17,8 @@ public interface TagService extends IService<Tag> {
 
     TagVo getTagById(Long id) throws Exception;
 
+    Boolean isUserTagsExist(Long userId, Set<Long> tagId);
+
     Boolean isUserTagExist(Long userId, Long tagId);
 
     List<TagVo> addTag(TagDto dto) throws Exception;

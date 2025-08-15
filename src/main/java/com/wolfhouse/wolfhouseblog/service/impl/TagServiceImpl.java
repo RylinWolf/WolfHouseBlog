@@ -54,6 +54,11 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     public Boolean isUserTagExist(Long userId, Long tagId) {
+        return isUserTagsExist(userId, Set.of(tagId));
+    }
+
+    @Override
+    public Boolean isUserTagsExist(Long userId, Set<Long> tagId) {
         return userTagMapper.selectCountByQuery(QueryWrapper.create()
                                                             .eq(UserTag::getUserId, userId)
                                                             .eq(UserTag::getTagId, tagId)) > 0;
