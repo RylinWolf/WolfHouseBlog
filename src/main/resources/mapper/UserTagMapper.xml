@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wolfhouse.wolfhouseblog.mapper.UserTagMapper">
+
+    <select id="getTagUsingCount" resultType="java.util.Map">
+        select tag_id as `id`, count(*) `count`
+        from user_tag
+        where tag_id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        group by tag_id
+        having `count` > 0;
+    </select>
+</mapper>
