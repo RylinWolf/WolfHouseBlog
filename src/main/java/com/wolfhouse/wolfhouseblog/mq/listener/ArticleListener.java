@@ -2,7 +2,10 @@ package com.wolfhouse.wolfhouseblog.mq.listener;
 
 import com.mybatisflex.core.update.UpdateChain;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleConstant;
+import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
+import com.wolfhouse.wolfhouseblog.mq.MqTools;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqArticleTagRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,8 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 @Component
 @RequiredArgsConstructor
 public class ArticleListener {
+    private final MqTools mqTools;
+    private final ArticleMapper mapper;
 
     @RabbitListener(
          bindings = @QueueBinding(
@@ -43,6 +48,24 @@ public class ArticleListener {
                                     .update();
         if (!update) {
             log.warn("没有文章的分区进行修改");
+        }
+    }
+
+    @RabbitListener(
+         bindings = @QueueBinding(
+              value = @Queue(name = MqArticleConstant.TAG_REMOVE_QUEUE),
+              exchange = @Exchange(
+                   name = MqArticleConstant.TAG_REMOVE_EXCHANGE,
+                   type = ExchangeTypes.TOPIC
+              ),
+              key = {MqArticleConstant.KEY_TAG_REMOVE}
+         ))
+    public void comUseTagsRemoveListener(MqArticleTagRemoveDto dto) throws Exception {
+        log.info("监听到移除常用标签: {}", dto);
+        mqTools.setLoginAuth(dto);
+        System.out.println(dto.getTagIds());
+        if (mapper.removeTags(dto.getUserId(), dto.getTagIds()) == 0) {
+            log.warn("没有文章的标签被修改");
         }
     }
 }
