@@ -50,7 +50,7 @@ public interface ArticleService extends IService<Article> {
      * @return 文章详细信息
      * @throws Exception 查询失败时抛出异常
      */
-    ArticleVo getById(Long id) throws Exception;
+    ArticleVo getVoById(Long id) throws Exception;
 
     /**
      * 发布新文章

@@ -39,7 +39,7 @@ public class ArticleController {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.ACCESS_DENIED,
              ArticleConstant.ACCESS_DENIED,
-             articleService.getById(id));
+             articleService.getVoById(id));
     }
 
     @Operation(summary = "发布")
