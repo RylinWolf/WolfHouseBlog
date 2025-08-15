@@ -50,7 +50,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     }
 
     @Override
-    public TagVo getTagById(Long id) throws Exception {
+    public TagVo getTagVoById(Long id) throws Exception {
         Long login = authService.loginUserOrE();
         // 验证是否可达
         VerifyTool.of(TagVerifyNode.id(this)

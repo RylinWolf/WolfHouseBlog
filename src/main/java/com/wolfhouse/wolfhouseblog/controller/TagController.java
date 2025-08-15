@@ -36,7 +36,7 @@ public class TagController {
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              TagConstant.NOT_EXIST,
-             service.getTagById(id));
+             service.getTagVoById(id));
     }
 
     @PostMapping
