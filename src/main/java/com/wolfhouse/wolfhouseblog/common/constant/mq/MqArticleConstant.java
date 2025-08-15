@@ -9,15 +9,27 @@ public class MqArticleConstant {
     public static final String BASE = MqConstant.SERVICE + MqConstant.SEPARATOR + ARTICLE + MqConstant.SEPARATOR;
 
     public static final String PARTITION = "partition";
+    public static final String TAG = "tag";
 
     public static final String CHANGE = "change";
+    public static final String REMOVE = "remove";
 
+    /** 改变分区交换机 */
     public static final String PARTITION_CHANGE_EXCHANGE =
          BASE + PARTITION + CHANGE + MqConstant.SEPARATOR + MqConstant.EXCHANGE;
+    /** 移除标签交换机 */
+    public static final String TAG_REMOVE_EXCHANGE = BASE + TAG + REMOVE + MqConstant.SEPARATOR + MqConstant.EXCHANGE;
 
+    /** 改变分区队列 */
     public static final String PARTITION_CHANGE_QUEUE =
          BASE + PARTITION + CHANGE + MqConstant.SEPARATOR + MqConstant.QUEUE;
+    /** 移除标签队列 */
+    public static final String TAG_REMOVE_QUEUE = BASE + TAG + REMOVE + MqConstant.SEPARATOR + MqConstant.QUEUE;
 
+    /** 改变分区 KEY */
     public static final String KEY_PARTITION_CHANGE =
          BASE + PARTITION + CHANGE + MqConstant.SEPARATOR + MqConstant.KEY;
+    /** 移除标签 KEY */
+    public static final String KEY_TAG_REMOVE = BASE + TAG + REMOVE + MqConstant.SEPARATOR + MqConstant.KEY;
+
 }
