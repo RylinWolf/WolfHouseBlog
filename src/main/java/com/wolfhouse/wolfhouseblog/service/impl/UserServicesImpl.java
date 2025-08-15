@@ -193,7 +193,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         // 关注用户为自己
         if (dto.getToUser()
                .equals(dto.getFromUser())) {
-            return true;
+            throw new ServiceException(UserConstant.SUBSCRIBE_CANNOT_BE_SELF);
         }
 
         return subscribeMapper.selectCountByQuery(QueryWrapper.create()
@@ -220,6 +220,22 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                )
                   .doVerify();
         authService.disableAuth(userId);
+    }
 
+    @Override
+    public Boolean unsubscribe(UserSubDto dto) throws Exception {
+        Long login = authService.loginUserOrE();
+        dto.setFromUser(login);
+
+        if (!isSubscribed(dto)) {
+            throw new ServiceException(UserConstant.NOT_SUBSCRIBED);
+        }
+        int count = subscribeMapper.deleteByQuery(QueryWrapper.create()
+                                                              .eq(Subscribe::getFromUser, login)
+                                                              .eq(Subscribe::getToUser, dto.getToUser()));
+        if (count != 1) {
+            throw new ServiceException(UserConstant.UNSUBSCRIBE_FAILED);
+        }
+        return true;
     }
 }

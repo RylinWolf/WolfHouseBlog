@@ -115,4 +115,6 @@ public interface UserService extends IService<User> {
     Boolean deleteAccount(Long userId) throws Exception;
 
     void disableAccount(Long userId) throws Exception;
+
+    Boolean unsubscribe(@Valid UserSubDto dto) throws Exception;
 }

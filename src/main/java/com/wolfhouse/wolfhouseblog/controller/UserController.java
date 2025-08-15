@@ -125,6 +125,15 @@ public class UserController {
              userService.subsribe(dto));
     }
 
+    @Operation(summary = "取消关注")
+    @DeleteMapping("/subscribe")
+    public HttpResult<?> unSubscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             UserConstant.UNSUBSCRIBE_FAILED,
+             userService.unsubscribe(dto));
+    }
+
     @Operation(summary = "获取关注列表")
     @PostMapping("/subscribe")
     public HttpResult<PageResult<UserBriefVo>> getSubscribe(@RequestBody UserSubDto dto) throws Exception {
