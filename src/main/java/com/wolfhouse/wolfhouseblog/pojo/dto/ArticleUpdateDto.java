@@ -5,7 +5,7 @@ import lombok.Data;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author linexsong
@@ -19,6 +19,6 @@ public class ArticleUpdateDto {
     private JsonNullable<String> content = JsonNullable.undefined();
     private JsonNullable<VisibilityEnum> visibility = JsonNullable.undefined();
     private JsonNullable<Long> partitionId = JsonNullable.undefined();
-    private JsonNullable<List<String>> tags = JsonNullable.undefined();
-    private JsonNullable<List<Long>> comUseTags = JsonNullable.undefined();
+    private JsonNullable<Set<String>> tags = JsonNullable.undefined();
+    private JsonNullable<Set<Long>> comUseTags = JsonNullable.undefined();
 }

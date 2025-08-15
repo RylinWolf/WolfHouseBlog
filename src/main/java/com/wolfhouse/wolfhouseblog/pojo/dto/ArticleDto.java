@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author linexsong
@@ -17,7 +18,7 @@ public class ArticleDto {
     @NotNull
     @Size(min = 1, max = 20)
     private String title;
-    
+
     @Size(max = 200)
     private String primary;
 
@@ -26,5 +27,5 @@ public class ArticleDto {
     private String content;
     private VisibilityEnum visibility;
     private List<String> tags;
-    private List<Long> comUseTags;
+    private Set<Long> comUseTags;
 }
