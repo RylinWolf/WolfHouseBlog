@@ -145,14 +145,14 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         Long id = dto.getId();
 
         VerifyTool.of(
-                       TagVerifyNode.NAME.target(dto.getName()),
                        TagVerifyNode.id(this)
                                     .userId(login)
-                                    .target(id))
+                                    .target(id),
+                       TagVerifyNode.NAME.target(dto.getName()))
                   .doVerify();
 
-        if (!mapper.getTagIdByName(dto.getName())
-                   .equals(id)) {
+        Long nameTagId = mapper.getTagIdByName(dto.getName());
+        if (nameTagId != null && !nameTagId.equals(id)) {
             throw new ServiceException(TagConstant.ALREADY_EXIST);
         }
 
