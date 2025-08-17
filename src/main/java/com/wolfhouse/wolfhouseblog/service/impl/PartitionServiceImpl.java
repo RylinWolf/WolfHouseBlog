@@ -298,9 +298,28 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     public Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception {
         authService.loginUserOrE();
 
+        if (BeanUtil.isAnyBlank(userId, partitionId)) {
+            return false;
+        }
+
         return mapper.selectCountByQuery(QueryWrapper.create()
                                                      .eq(Partition::getUserId, userId)
                                                      .eq(Partition::getId, partitionId)) > 0;
+    }
+
+    @Override
+    public Boolean isUserPartitionReachable(Long userId, Long partitionId) throws Exception {
+        // 分区为当前登录用户的分区
+        var login = ServiceUtil.loginUser();
+        if (isUserPartitionExist(login, partitionId)) {
+            return true;
+        }
+        // 分区权限为公开
+        long count = mapper.selectCountByQuery(QueryWrapper.create()
+                                                           .where(PARTITION.ID.eq(partitionId))
+                                                           .and(PARTITION.VISIBILITY.eq(VisibilityEnum.PUBLIC)));
+
+        return count != 1;
     }
 
     @Override
