@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 /**
  * @author linexsong
@@ -95,5 +96,13 @@ public class GlobalExceptionHandler {
         }
 
         return HttpResult.failed(status, code, msg);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<?> handlerException(HandlerMethodValidationException e) {
+        return HttpResult.failed(
+             HttpStatus.FORBIDDEN.value(),
+             HttpCodeConstant.ARG_NOT_VALID,
+             VerifyConstant.VERIFY_FAILED);
     }
 }
