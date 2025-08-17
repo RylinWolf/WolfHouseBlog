@@ -11,6 +11,8 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 /**
  * 用户服务接口
  *
@@ -117,4 +119,7 @@ public interface UserService extends IService<User> {
     void disableAccount(Long userId) throws Exception;
 
     Boolean unsubscribe(@Valid UserSubDto dto) throws Exception;
+
+
+    List<UserVo> getUserVosByName(String name) throws Exception;
 }

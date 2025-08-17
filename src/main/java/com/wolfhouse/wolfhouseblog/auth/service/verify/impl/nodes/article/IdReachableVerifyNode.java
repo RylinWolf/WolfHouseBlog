@@ -5,13 +5,12 @@ import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.util.List;
-
-import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
 
 /**
  * @author linexsong
@@ -37,8 +36,17 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
         var dto = new ArticleQueryPageDto();
         dto.setId(JsonNullable.of(t));
 
-        List<Article> records = service.queryBy(dto, ARTICLE.ID, ARTICLE.VISIBILITY, ARTICLE.AUTHOR_ID)
-                                       .getRecords();
+        List<Article> records = null;
+        try {
+            records = service.queryBy(
+                                  dto,
+                                  ArticleTableDef.ARTICLE.ID,
+                                  ArticleTableDef.ARTICLE.VISIBILITY,
+                                  ArticleTableDef.ARTICLE.AUTHOR_ID)
+                             .getRecords();
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage(), e);
+        }
 
         // 无该 ID 记录
         if (records.isEmpty()) {

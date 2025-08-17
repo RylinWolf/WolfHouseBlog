@@ -27,6 +27,7 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -129,6 +130,20 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                   .doVerify();
 
         return BeanUtil.copyProperties(mapper.selectOneById(id), UserVo.class);
+    }
+
+    @Override
+    public List<UserVo> getUserVosByName(String name) throws Exception {
+        // 验证登录信息与用户名
+        VerifyTool.ofLoginExist(
+                       authService,
+                       UserVerifyNode.USERNAME.target(name))
+                  .doVerify();
+
+        return BeanUtil.copyList(
+             mapper.selectListByQuery(
+                  QueryWrapper.create()
+                              .where(USER.USERNAME.like(name))), UserVo.class);
     }
 
     @Override
