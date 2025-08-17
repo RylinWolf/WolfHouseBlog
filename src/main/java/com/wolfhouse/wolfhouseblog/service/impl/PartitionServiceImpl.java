@@ -319,7 +319,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
                                                            .where(PARTITION.ID.eq(partitionId))
                                                            .and(PARTITION.VISIBILITY.eq(VisibilityEnum.PUBLIC)));
 
-        return count != 1;
+        return count == 1;
     }
 
     @Override
