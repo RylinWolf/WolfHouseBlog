@@ -58,14 +58,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
 
     @Override
-    public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) {
+    public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
+        // TODO 通过 Nullable 实现可查空
+        var userId = ServiceUtil.loginUser();
+
         var wrapper = QueryWrapper.create();
         // 构建查询列
         wrapper.select(columns);
         // 查询当前用户的私人日记和全部公开日记
         wrapper.and(q -> {
             q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
-            var userId = ServiceUtil.loginUser();
             if (userId != null) {
                 q.or(q2 -> {
                     q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
@@ -88,6 +90,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                     Article::getAuthorId,
                     dto.getAuthorId()
                        .orElse(null));
+        // 分区条件
+        Long partitionId = dto.getPartitionId()
+                              .orElse(null);
+        // 分区可达
+        if (partitionService.isUserPartitionReachable(userId, partitionId)) {
+            wrapper.eq(Article::getPartitionId, partitionId);
+        }
 
         // 日期范围查询
         LocalDateTime start = dto.getPostStart()
@@ -104,12 +113,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) {
+    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
     @Override
-    public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) {
+    public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
     }
 

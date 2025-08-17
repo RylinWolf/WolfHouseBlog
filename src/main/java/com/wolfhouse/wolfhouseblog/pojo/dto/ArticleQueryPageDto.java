@@ -20,4 +20,5 @@ public class ArticleQueryPageDto extends PageDto {
     private JsonNullable<Long> authorId = JsonNullable.undefined();
     private JsonNullable<LocalDateTime> postStart = JsonNullable.undefined();
     private JsonNullable<LocalDateTime> postEnd = JsonNullable.undefined();
+    private JsonNullable<Long> partitionId = JsonNullable.undefined();
 }

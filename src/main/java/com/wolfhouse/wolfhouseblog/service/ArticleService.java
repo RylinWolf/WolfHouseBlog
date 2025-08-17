@@ -24,7 +24,7 @@ public interface ArticleService extends IService<Article> {
      * @param columns 查询的列
      * @return 分页查询结果
      */
-    Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns);
+    Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception;
 
     /**
      * 获取文章简要信息的分页查询
@@ -32,7 +32,7 @@ public interface ArticleService extends IService<Article> {
      * @param dto 查询条件
      * @return 文章简要信息的分页结果
      */
-    PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto);
+    PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception;
 
     /**
      * 获取文章详细信息的分页查询
@@ -41,7 +41,7 @@ public interface ArticleService extends IService<Article> {
      * @param columns 查询的列
      * @return 文章详细信息的分页结果
      */
-    PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns);
+    PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception;
 
     /**
      * 通过ID获取文章详情
