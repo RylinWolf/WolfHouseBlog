@@ -12,6 +12,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAll
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.BlogPermissionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -100,7 +101,15 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public List<Authority> getAuthorities(Long userId) throws Exception {
         var authIds = getAuthoritiesIds(userId);
-        return authIds.isEmpty() ? List.of() : authorityMapper.selectListByIds(authIds);
+        if (authIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        var res = authorityMapper.selectListByIds(authIds);
+        res.add(Authority.builder()
+                         .permissionCode(BlogPermissionConstant.ADMIN)
+                         .permissionName(BlogPermissionConstant.ADMIN_NAME)
+                         .build());
+        return res;
     }
 
     @Override
