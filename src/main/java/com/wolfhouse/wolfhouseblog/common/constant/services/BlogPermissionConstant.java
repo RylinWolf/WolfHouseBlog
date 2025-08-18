@@ -1,0 +1,19 @@
+package com.wolfhouse.wolfhouseblog.common.constant.services;
+
+/**
+ * @author linexsong
+ */
+public class BlogPermissionConstant {
+    public static final String ADMIN = "ROLE_BLOG_ADMIN";
+    public static final String ADMIN_NAME = "博客管理员";
+
+    public static final String USER_CREATE = "blog:user:create";
+    public static final String USER_DELETE = "blog:user:delete";
+    public static final String USER_UPDATE = "blog:user:update";
+    public static final String USER_DISABLE = "blog:user:disable";
+
+    public static final String USER_CREATE_NAME = "添加用户";
+    public static final String USER_DELETE_NAME = "删除用户";
+    public static final String USER_UPDATE_NAME = "修改用户";
+
+}
