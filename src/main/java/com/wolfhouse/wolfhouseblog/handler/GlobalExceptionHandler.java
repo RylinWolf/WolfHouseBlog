@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -104,5 +105,13 @@ public class GlobalExceptionHandler {
              HttpStatus.FORBIDDEN.value(),
              HttpCodeConstant.ARG_NOT_VALID,
              VerifyConstant.VERIFY_FAILED);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handlerException(AuthorizationDeniedException e) {
+        return HttpResult.failed(
+             HttpStatus.FORBIDDEN.value(),
+             HttpCodeConstant.NO_PERMISSION,
+             AuthExceptionConstant.NO_PERMISSION);
     }
 }
