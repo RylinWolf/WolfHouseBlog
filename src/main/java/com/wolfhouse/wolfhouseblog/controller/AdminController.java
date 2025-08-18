@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.controller;
 
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.BlogPermissionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
@@ -17,6 +18,7 @@ import com.wolfhouse.wolfhouseblog.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,6 +83,7 @@ public class AdminController {
 
     @DeleteMapping("/user/disable")
     @Operation(summary = "禁用用户")
+    @PreAuthorize("@ss.hasPerm('" + BlogPermissionConstant.USER_DISABLE + "')")
     public HttpResult<?> disableUser(@RequestBody AdminUserControlDto dto) throws Exception {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
