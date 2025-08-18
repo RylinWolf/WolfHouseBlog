@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.auth.provider;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
@@ -10,6 +11,7 @@ import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +26,7 @@ import java.util.Optional;
 /**
  * @author linexsong
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class UserAccountEmailAuthProvider implements AuthenticationProvider {
@@ -64,10 +67,16 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         if (adminService.isUserAdmin(userId)) {
             try {
                 authorities = adminService.getAuthorities(userId);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                log.error("{}, 【{}】", ServiceExceptionConstant.SERVER_ERROR, "加载权限失败");
+            }
         }
 
-        return new UsernamePasswordAuthenticationToken(userId, password, authorities);
+
+        return new UsernamePasswordAuthenticationToken(
+             userId,
+             password,
+             authorities);
     }
 
     @Override
