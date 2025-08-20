@@ -106,7 +106,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
         var res = authorityMapper.selectListByIds(authIds);
         res.add(Authority.builder()
-                         .permissionCode(BlogPermissionConstant.ADMIN)
+                         .permissionCode(BlogPermissionConstant.ROLE_ADMIN)
                          .permissionName(BlogPermissionConstant.ADMIN_NAME)
                          .build());
         return res;

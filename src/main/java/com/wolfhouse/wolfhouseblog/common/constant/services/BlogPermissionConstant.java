@@ -4,8 +4,12 @@ package com.wolfhouse.wolfhouseblog.common.constant.services;
  * @author linexsong
  */
 public class BlogPermissionConstant {
-    public static final String ADMIN = "ROLE_BLOG_ADMIN";
+    public static final String ADMIN = "BLOG_ADMIN";
+    public static final String SUPER_ADMIN = "SUPER_ADMIN";
+    public static final String ROLE_ADMIN = "ROLE_BLOG_ADMIN";
+    public static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
     public static final String ADMIN_NAME = "博客管理员";
+    public static final String SUPER_ADMIN_NAME = "超级管理员";
 
     public static final String USER_CREATE = "blog:user:create";
     public static final String USER_DELETE = "blog:user:delete";
