@@ -14,7 +14,7 @@ BEGIN
     START TRANSACTION;
 
     INSERT INTO wolfBlog.authority(id, permission_code, permission_name)
-    VALUES (1, 'SUPER_ADMIN', '超级管理员身份'),
+    VALUES (1, 'ROLE_SUPER_ADMIN', '超级管理员身份'),
            (2, 'admin:create', '创建管理员'),
            (3, 'admin:edit', '修改管理员'),
            (4, 'admin:delete', '删除管理员'),
