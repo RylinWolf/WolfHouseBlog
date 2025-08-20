@@ -4,9 +4,15 @@ import com.mybatisflex.annotation.EnumValue;
 import com.wolfhouse.wolfhouseblog.common.constant.services.BlogPermissionConstant;
 
 /**
+ * 权限枚举类
+ *
  * @author linexsong
  */
 public enum BlogPermissionEnum {
+    /** 管理员 */
+    ADMIN(
+         BlogPermissionConstant.ROLE_ADMIN,
+         BlogPermissionConstant.ADMIN_NAME),
     /** 超级管理员 */
     SUPER_ADMIN(
          BlogPermissionConstant.ROLE_SUPER_ADMIN,
@@ -30,8 +36,8 @@ public enum BlogPermissionEnum {
     );
 
     @EnumValue
-    final String code;
-    final String name;
+    public final String code;
+    public final String name;
 
     BlogPermissionEnum(String code, String name) {
         this.code = code;
