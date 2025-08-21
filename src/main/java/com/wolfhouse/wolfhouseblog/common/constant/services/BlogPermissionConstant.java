@@ -23,6 +23,7 @@ public class BlogPermissionConstant {
     public static final String USER_DISABLE_NAME = "启/停用用户";
 
     public static final String AUTHORITY_CREATE = "admin:authority:create";
+    public static final String AUTHORITY_DELETE = "admin:authority:delete";
 
     public static final String AUTHORITY_CREATE_NAME = "添加管理员权限";
 }
