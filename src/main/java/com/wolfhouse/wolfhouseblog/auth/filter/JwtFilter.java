@@ -1,12 +1,11 @@
 package com.wolfhouse.wolfhouseblog.auth.filter;
 
-import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
-import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
-import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.micrometer.common.lang.NonNullApi;
@@ -23,7 +22,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author linexsong
@@ -35,20 +33,22 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final AdminService adminService;
+    private final UserAuthService authService;
 
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws IOException, ServletException {
+         throws IOException, ServletException {
         String token = request.getHeader(HttpConstant.AUTH_HEADER);
 
         try {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
-            // 获取用户
-            Optional<User> userO = Optional.ofNullable(userService.findByUserId(userId));
-            userO.orElseThrow(() -> new ServiceException(AuthExceptionConstant.AUTHENTIC_FAILED));
+            // 验证用户是否可达
+            VerifyTool.ofLoginExist(authService)
+                      .doVerify();
 
             log.info("JWT 信息: {}, 过期时间: {}", userId, claims.getExpiration());
+
 
             // 获取用户权限
             List<Authority> authorities = adminService.getAuthorities(userId);
