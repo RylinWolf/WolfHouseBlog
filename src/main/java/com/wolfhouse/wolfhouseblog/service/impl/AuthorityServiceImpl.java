@@ -20,12 +20,17 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority> implements AuthorityService {
+    private final AdminAuthMapper adminAuthMapper;
 
     @Override
     public Boolean addAuthorityByIds(AuthorityByIdDto dto) {
         Set<Long> ids = dto.getIds();
         if (mapper.selectCountByQuery(QueryWrapper.create()
                                                   .where(AuthorityTableDef.AUTHORITY.ID.in(ids))) != ids.size()) {
+            throw new ServiceException(AuthorityConstant.NOT_EXIST);
+        }
+        Long login = ServiceUtil.loginUser();
+        if (adminAuthMapper.addByIds(login, ids) != ids.size()) {
             throw new ServiceException(AuthorityConstant.NOT_EXIST);
         }
         return true;
