@@ -4,11 +4,14 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.AuthorityConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.BlogPermissionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AuthorityByIdDto;
 import com.wolfhouse.wolfhouseblog.service.AuthorityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 权限相关接口
@@ -33,7 +36,7 @@ public class AuthorityController {
     }
 
     @DeleteMapping
-    @PreAuthorize("@ss.hasPerm('" + BlogPermissionConstant.AUTHORITY_DELETE + "')")
+    @PreAuthorize("@ss.hasPerm('admin:authority:delete', 'admin:authority:update')")
     public HttpResult<?> deleteAuthority(@RequestBody AuthorityByIdDto dto) {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
@@ -41,9 +44,13 @@ public class AuthorityController {
              service.deleteAuthorityByIds(dto));
     }
 
-    // TODO 根据 ID 删除
 
-    // TODO 根据名称删除
-
-
+    @PutMapping
+    @PreAuthorize("@ss.hasPerm('admin:authority:update')")
+    public HttpResult<List<Authority>> updateAuthority(@RequestBody AuthorityByIdDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+             HttpCodeConstant.UPDATE_FAILED,
+             AuthorityConstant.UPDATE_FAILED,
+             service.updateAuthority(dto));
+    }
 }
