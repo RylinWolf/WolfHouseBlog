@@ -67,8 +67,8 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         if (adminService.isUserAdmin(userId)) {
             try {
                 authorities = adminService.getAuthorities(userId);
-            } catch (Exception ignored) {
-                log.error("{}, 【{}】", ServiceExceptionConstant.SERVER_ERROR, "加载权限失败");
+            } catch (Exception e) {
+                log.error("{}, 【{}】", ServiceExceptionConstant.SERVER_ERROR, "加载权限失败" + e.getMessage());
             }
         }
 
