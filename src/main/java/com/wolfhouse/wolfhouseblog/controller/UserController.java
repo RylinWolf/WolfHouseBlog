@@ -104,6 +104,15 @@ public class UserController {
              userService.getUserVoById(id));
     }
 
+    @Operation(summary = "获取当前登录账号信息")
+    @GetMapping
+    public HttpResult<UserVo> getSelf() throws Exception {
+        return HttpResult.failedIfBlank(HttpCodeConstant.FAILED,
+                UserConstant.USER_UNACCESSIBLE,
+                userService.getUserVoById(ServiceUtil.loginUserOrE()));
+
+    }
+
     @Operation(summary = "根据用户名查找用户")
     @GetMapping("/n/{name}")
     public HttpResult<List<UserVo>> getInfoByName(@PathVariable @Size(min = 1, max = 20) String name) throws Exception {
