@@ -3,10 +3,10 @@
 <mapper namespace="com.wolfhouse.wolfhouseblog.mapper.AdminAuthMapper">
     <insert id="addByIds">
         insert into admin_authority(admin_id, authority_id)
-        values (
+        values
         <foreach collection="ids" item="aid" separator=",">
-            #{adminId}, #{aid}
+            (#{adminId}, #{aid})
         </foreach>
-        );
+        ;
     </insert>
 </mapper>
