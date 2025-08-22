@@ -75,7 +75,8 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
 
     @Override
     public Boolean isAdminExist(Long adminId) {
-        return adminService.exists(QueryWrapper.create(ADMIN.ID.eq(adminId)));
+        return adminService.exists(QueryWrapper.create()
+                                               .where(ADMIN.ID.eq(adminId)));
     }
 
     @Override
