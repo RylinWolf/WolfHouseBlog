@@ -31,6 +31,7 @@ public interface AuthorityMapper extends BaseMapper<Authority> {
     @Select("select authority_id from admin_authority where admin_id = #{adminId}")
     Long[] getIdsByAdminId(Long adminId);
 
+
     /**
      * 移除指定管理员的权限。
      *
@@ -46,5 +47,5 @@ public interface AuthorityMapper extends BaseMapper<Authority> {
      * @param adminId 管理员的 ID
      */
     @Delete("delete from admin_authority where admin_id = #{adminId}")
-    void removeAllByAdmin(Long adminId);
+    Integer removeAllByAdmin(Long adminId);
 }

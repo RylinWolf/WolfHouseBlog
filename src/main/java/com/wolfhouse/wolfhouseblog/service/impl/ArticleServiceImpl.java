@@ -135,7 +135,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleVo post(ArticleDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
 
-        // TODO 常用标签验证
         VerifyTool.of(
                        ArticleVerifyNode.TITLE.target(dto.getTitle())
                                               .exception(ARTICLE.TITLE.getName()),
@@ -158,7 +157,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
-        // TODO 常用标签验证
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
