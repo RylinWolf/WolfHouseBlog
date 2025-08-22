@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user;
 
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 
@@ -20,9 +21,9 @@ public class UserVerifyNode {
         return EMAIL;
     }
 
-    public static UserIdVerifyNode id(UserAuthService service) {
+    public static UserIdVerifyNode id(ServiceAuthMediator mediator) {
         if (USER_ID == null) {
-            USER_ID = new UserIdVerifyNode(service);
+            USER_ID = new UserIdVerifyNode(mediator);
         }
         return USER_ID;
     }
