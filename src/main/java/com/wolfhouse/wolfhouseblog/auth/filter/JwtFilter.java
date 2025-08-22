@@ -1,13 +1,12 @@
 package com.wolfhouse.wolfhouseblog.auth.filter;
 
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import io.jsonwebtoken.Claims;
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
@@ -34,7 +33,6 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final ServiceAuthMediator mediator;
     private final AdminService adminService;
-    private final UserAuthService authService;
 
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
