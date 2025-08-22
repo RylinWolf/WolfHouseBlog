@@ -2,9 +2,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotEqualsVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -12,6 +10,9 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotEqualsVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Subscribe;
@@ -24,6 +25,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,8 +44,14 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
 @RequiredArgsConstructor
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
     private final SubscribeMapper subscribeMapper;
+    private final ServiceAuthMediator mediator;
     private final UserAuthService authService;
     private final JwtUtil jwtUtil;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerUser(this);
+    }
 
     @Override
     public User findByAccountOrEmail(String s) {
@@ -89,13 +97,13 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public UserVo updateAuthedUser(UserUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
-        VerifyTool.ofAllMsg(
-                       UserConstant.USER_UPDATE_FAILED,
-                       UserVerifyNode.id(authService)
+        VerifyTool.of(
+                       UserVerifyNode.id(mediator)
                                      .target(login),
                        UserVerifyNode.BIRTH.target(dto.getBirth()),
                        UserVerifyNode.email(this)
-                                     .target(dto.getEmail()))
+                                     .target(dto.getEmail())
+                                     .allowNull(false))
                   .doVerify();
 
         User user = BeanUtil.copyProperties(dto, User.class);
@@ -125,7 +133,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public UserVo getUserVoById(Long id) throws Exception {
         // 检查 ID 是否可达
-        VerifyTool.of(UserVerifyNode.id(authService)
+        VerifyTool.of(UserVerifyNode.id(mediator)
                                     .target(id))
                   .doVerify();
 
@@ -136,7 +144,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public List<UserVo> getUserVosByName(String name) throws Exception {
         // 验证登录信息与用户名
         VerifyTool.ofLoginExist(
-                       authService,
+                       mediator,
                        UserVerifyNode.USERNAME.target(name))
                   .doVerify();
 
@@ -160,11 +168,11 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Long login = ServiceUtil.loginUserOrE();
         Long toUser = dto.getToUser();
         VerifyTool.ofLoginExist(
-                       authService,
+                       mediator,
                        new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
                   .doVerify();
 
-        if (authService.isUserUnaccessible(toUser)) {
+        if (mediator.isUserUnaccessible(toUser)) {
             throw new ServiceException(UserConstant.USER_UNACCESSIBLE);
         }
 
@@ -180,8 +188,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception {
         Long userId = dto.getFromUser();
         VerifyTool.ofLoginExist(
-                       authService,
-                       UserVerifyNode.id(authService)
+                       mediator,
+                       UserVerifyNode.id(mediator)
                                      .target(userId))
                   .doVerify();
 
@@ -219,8 +227,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public Boolean deleteAccount(Long userId) throws Exception {
         VerifyTool.ofLoginExist(
-                       authService,
-                       UserVerifyNode.id(authService)
+                       mediator,
+                       UserVerifyNode.id(mediator)
                                      .target(userId))
                   .doVerify();
         return authService.deleteAuth(userId);
@@ -229,8 +237,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public void disableAccount(Long userId) throws Exception {
         VerifyTool.ofLoginExist(
-                       authService,
-                       UserVerifyNode.id(authService)
+                       mediator,
+                       UserVerifyNode.id(mediator)
                                      .target(userId)
                                )
                   .doVerify();

@@ -116,10 +116,29 @@ public interface UserService extends IService<User> {
      */
     Boolean deleteAccount(Long userId) throws Exception;
 
+    /**
+     * 禁用指定用户的账号
+     *
+     * @param userId 要禁用的用户ID
+     * @throws Exception 禁用过程中可能发生的异常
+     */
     void disableAccount(Long userId) throws Exception;
 
+    /**
+     * 取消订阅其他用户
+     *
+     * @param dto 用户订阅数据传输对象
+     * @return 取消订阅是否成功
+     * @throws Exception 取消订阅过程中可能发生的异常
+     */
     Boolean unsubscribe(@Valid UserSubDto dto) throws Exception;
 
-
+    /**
+     * 根据用户名称查询用户列表
+     *
+     * @param name 用户名称
+     * @return 匹配的用户详细信息列表
+     * @throws Exception 查询过程中可能发生的异常
+     */
     List<UserVo> getUserVosByName(String name) throws Exception;
 }

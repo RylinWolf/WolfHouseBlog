@@ -2,7 +2,9 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AuthorityConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -30,6 +32,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminAuthTableDef.AD
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
 public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority> implements AuthorityService {
+    private final ServiceAuthMediator mediator;
     private final AdminAuthMapper adminAuthMapper;
 
     @Override
@@ -37,8 +40,11 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
         Long adminId = dto.getAdminId();
         adminId = adminId == null ? ServiceUtil.loginUser() : adminId;
 
-        // TODO 管理员验证
-        // TODO 通过中介者模式，提取出验证类的相关方法，统一放在一个中介类中 mediator
+        // 验证管理员是否存在
+        if (!mediator.isAdminExist(adminId)) {
+            throw new ServiceException(AdminConstant.ADMIN_NOT_EXIST);
+        }
+
         Set<Long> ids = dto.getIds();
         // 权限 ids 为空
         if (BeanUtil.isBlank(ids)) {

@@ -1,6 +1,5 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -45,8 +44,8 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class UserController {
-    private final UserAuthService authService;
     private final AuthenticationManager authManager;
+    private final UserAuthService authService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
@@ -99,10 +98,6 @@ public class UserController {
     @Operation(summary = "获取用户信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
-        // 需要登陆
-        VerifyTool.ofLoginExist(authService)
-                  .doVerify();
-
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              UserConstant.USER_UNACCESSIBLE,

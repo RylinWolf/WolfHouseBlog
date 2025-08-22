@@ -1,14 +1,14 @@
 package com.wolfhouse.wolfhouseblog.auth.provider;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class UserAccountEmailAuthProvider implements AuthenticationProvider {
-    private final UserAuthService authService;
+    private final ServiceAuthMediator mediator;
     private final UserService userService;
     private final AdminService adminService;
 
@@ -47,7 +47,7 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
                                         .toString();
         var userId = user.getId();
         // 验证用户密码
-        Boolean isVerified = authService.verifyPassword(password, userId);
+        Boolean isVerified = mediator.verifyPassword(userId, password);
 
         if (!isVerified) {
             throw new AuthenticationCredentialsNotFoundException(AuthExceptionConstant.AUTHENTIC_FAILED);
@@ -55,7 +55,7 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
 
         // 验证用户是否可用
         try {
-            VerifyTool.of(UserVerifyNode.id(authService)
+            VerifyTool.of(UserVerifyNode.id(mediator)
                                         .target(userId))
                       .doVerify();
         } catch (Exception e) {
@@ -67,8 +67,8 @@ public class UserAccountEmailAuthProvider implements AuthenticationProvider {
         if (adminService.isUserAdmin(userId)) {
             try {
                 authorities = adminService.getAuthorities(userId);
-            } catch (Exception ignored) {
-                log.error("{}, 【{}】", ServiceExceptionConstant.SERVER_ERROR, "加载权限失败");
+            } catch (Exception e) {
+                log.error("{}, 【{}】", ServiceExceptionConstant.SERVER_ERROR, "加载权限失败" + e.getMessage());
             }
         }
 
