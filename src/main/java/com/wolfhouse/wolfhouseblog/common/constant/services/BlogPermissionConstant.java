@@ -24,6 +24,7 @@ public class BlogPermissionConstant {
 
     public static final String AUTHORITY_CREATE = "admin:authority:create";
     public static final String AUTHORITY_DELETE = "admin:authority:delete";
+    public static final String AUTHORITY_UPDATE = "admin:authority:update";
 
     public static final String AUTHORITY_CREATE_NAME = "添加管理员权限";
 }
