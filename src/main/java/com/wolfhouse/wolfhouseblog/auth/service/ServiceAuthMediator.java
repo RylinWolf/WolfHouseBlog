@@ -8,10 +8,25 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
  * @author linexsong
  */
 public interface ServiceAuthMediator {
+    /**
+     * 注册管理员服务实现
+     *
+     * @param adminService 要注册的管理员服务
+     */
     void registerAdmin(AdminService adminService);
 
+    /**
+     * 注册用户服务实现
+     *
+     * @param userService 要注册的用户服务
+     */
     void registerUser(UserService userService);
 
+    /**
+     * 注册用户认证服务实现
+     *
+     * @param userAuthService 要注册的用户认证服务
+     */
     void registerUserAuth(UserAuthService userAuthService);
 
     /**
@@ -63,6 +78,12 @@ public interface ServiceAuthMediator {
      */
     Boolean isUserAdmin(Long userId);
 
+    /**
+     * 检查管理员是否存在
+     *
+     * @param adminId 管理员ID
+     * @return 如果管理员存在返回true，否则返回false
+     */
     Boolean isAdminExist(Long adminId);
 
     /**
@@ -81,5 +102,10 @@ public interface ServiceAuthMediator {
      */
     Boolean hasAccountOrEmail(String s);
 
-    Long loginUserOrE();
+    /**
+     * 获取当前登录用户ID，如果未登录则抛出异常
+     *
+     * @return 当前登录用户ID
+     */
+    Long loginUserOrE() throws Exception;
 }
