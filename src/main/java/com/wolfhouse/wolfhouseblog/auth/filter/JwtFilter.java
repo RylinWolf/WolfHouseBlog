@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.auth.filter;
 
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
@@ -31,6 +32,7 @@ import java.util.List;
 @NonNullApi
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final ServiceAuthMediator mediator;
     private final AdminService adminService;
     private final UserAuthService authService;
 
@@ -43,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
             // 验证用户是否可达
-            VerifyTool.of(UserVerifyNode.id(authService)
+            VerifyTool.of(UserVerifyNode.id(mediator)
                                         .target(userId))
                       .doVerify();
 
