@@ -1,10 +1,13 @@
 package com.wolfhouse.wolfhouseblog.auth.service.impl;
 
+import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import org.springframework.stereotype.Component;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
 /**
  * @author linexsong
@@ -32,51 +35,51 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
 
     @Override
     public Boolean isAuthExist(Long userId) {
-        return null;
+        return authService.isAuthExist(userId);
     }
 
     @Override
     public Boolean isUserDeleted(Long userId) {
-        return null;
+        return authService.isUserDeleted(userId);
     }
 
     @Override
     public Boolean isUserEnabled(Long userId) {
-        return null;
+        return authService.isUserEnabled(userId);
     }
 
     @Override
     public Boolean isUserUnaccessible(Long userId) {
-        return null;
+        return authService.isUserUnaccessible(userId);
     }
 
     @Override
     public Boolean verifyPassword(Long userId, String password) {
-        return null;
+        return authService.verifyPassword(password, userId);
     }
 
     @Override
     public Boolean isUserAdmin(Long userId) {
-        return null;
+        return adminService.isUserAdmin(userId);
     }
 
     @Override
     public Boolean isAuthoritiesExist(Long... authorityIds) {
-        return null;
+        return adminService.isAuthoritiesExist(authorityIds);
     }
 
     @Override
     public Boolean hasAccountOrEmail(String s) {
-        return null;
+        return userService.hasAccountOrEmail(s);
     }
 
     @Override
     public Boolean isAdminExist(Long adminId) {
-        return null;
+        return adminService.exists(QueryWrapper.create(ADMIN.ID.eq(adminId)));
     }
 
     @Override
-    public Long loginUserOrE() {
-        return 0L;
+    public Long loginUserOrE() throws Exception {
+        return authService.loginUserOrE();
     }
 }
