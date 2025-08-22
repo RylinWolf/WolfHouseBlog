@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -18,7 +19,6 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.TagUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqArticleTagRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.TagVo;
 import com.wolfhouse.wolfhouseblog.service.TagService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +35,9 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTagTableDef.USER
 @Service
 @RequiredArgsConstructor
 public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagService {
-    private final UserAuthService authService;
     private final UserTagMapper userTagMapper;
     private final MqArticleService mqArticleService;
+    private final ServiceAuthMediator mediator;
 
     @Override
     public List<TagVo> getTagVos() throws Exception {
@@ -46,13 +46,13 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     public List<Tag> getTags() throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         return mapper.getTagsByUserId(login);
     }
 
     @Override
     public TagVo getTagVoById(Long id) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         // 验证是否可达
         VerifyTool.of(TagVerifyNode.id(this)
                                    .target(id)
@@ -76,7 +76,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<TagVo> addTag(TagDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         String name = dto.getName();
 
         // 验证标签名称格式
@@ -110,7 +110,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteTags(TagDeleteDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         Set<Long> ids = dto.getIds();
 
         // 用户常用标签不存在
@@ -141,7 +141,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
     @Override
     public TagVo updateTag(TagUpdateDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         Long id = dto.getId();
 
         VerifyTool.of(

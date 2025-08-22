@@ -4,6 +4,7 @@ import com.mybatisflex.core.logicdelete.LogicDeleteManager;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
@@ -27,6 +28,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserAuthTableDef.USE
 @RequiredArgsConstructor
 public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> implements UserAuthService {
     private final PasswordEncoder encoder;
+    private final ServiceAuthMediator mediator;
 
     @Override
     public Boolean isAuthExist(Long userId) {
@@ -41,7 +43,7 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     @Override
     public Long loginUserOrE() throws Exception {
         Long login = ServiceUtil.loginUserOrE();
-        VerifyNode<Long> node = new UserIdVerifyNode(this).target(login);
+        VerifyNode<Long> node = new UserIdVerifyNode(mediator).target(login);
         if (node.verify()) {
             return login;
         }

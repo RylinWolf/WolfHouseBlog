@@ -6,6 +6,7 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -31,7 +32,6 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper jsonNullableObjectMapper;
     private final PartitionService partitionService;
-    private final UserAuthService authService;
+    private final ServiceAuthMediator mediator;
     /** 常用标签验证节点 */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
 
@@ -133,7 +133,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
 
         // TODO 常用标签验证
         VerifyTool.of(
@@ -166,7 +166,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Set<Long> comUseTags = JsonNullableUtil.getObjOrNull(dto.getComUseTags());
 
         VerifyTool.ofLoginExist(
-                       authService,
+                       mediator,
                        // 文章 ID
                        ArticleVerifyNode.id(this)
                                         .target(dto.getId()),

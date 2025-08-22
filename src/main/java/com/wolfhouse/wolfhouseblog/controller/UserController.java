@@ -8,7 +8,6 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
@@ -45,8 +44,8 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class UserController {
-    private final UserAuthService authService;
     private final AuthenticationManager authManager;
+    private final UserAuthService authService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
@@ -99,10 +98,6 @@ public class UserController {
     @Operation(summary = "获取用户信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
-        // 需要登陆
-        VerifyTool.ofLoginExist(authService)
-                  .doVerify();
-
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              UserConstant.USER_UNACCESSIBLE,

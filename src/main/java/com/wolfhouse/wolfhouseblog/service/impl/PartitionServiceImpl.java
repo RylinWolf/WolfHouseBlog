@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -21,7 +22,6 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.lang.NonNull;
@@ -39,7 +39,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PA
 @Service
 @RequiredArgsConstructor
 public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition> implements PartitionService {
-    private final UserAuthService authService;
+    private final ServiceAuthMediator mediator;
     private final MqArticleService mqArticleService;
 
     @Override
@@ -49,7 +49,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos(Long partitionId) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         return getPartitionVoStructure(login, partitionId);
     }
 
@@ -78,8 +78,8 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         List<Partition> partitions;
         if (partitionId == null) {
             // 获取用户的全部分区
-            new UserIdVerifyNode(authService).target(userId)
-                                             .verifyWithCustomE();
+            new UserIdVerifyNode(mediator).target(userId)
+                                          .verifyWithCustomE();
             partitions = getAllPartitions(userId);
         } else {
             // 获取有关的分区
@@ -253,7 +253,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public PartitionVo getPartitionVoByName(String name) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
 
         Partition p = mapper.selectOneByQuery(QueryWrapper.create()
                                                           .eq(Partition::getUserId, login)
@@ -268,7 +268,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> addPartition(PartitionDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         // 验证字段
         // 暂未使用分区可见性验证，因为自动映射会处理
         VerifyTool.of(
@@ -296,7 +296,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception {
-        authService.loginUserOrE();
+        mediator.loginUserOrE();
 
         if (BeanUtil.isAnyBlank(userId, partitionId)) {
             return false;
@@ -324,7 +324,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
     @Override
     public SortedSet<PartitionVo> updatePatch(PartitionUpdateDto dto) throws Exception {
-        authService.loginUserOrE();
+        mediator.loginUserOrE();
 
         JsonNullable<Long> parentId = dto.getParentId();
         Long parentLong = JsonNullableUtil.getObjOrNull(parentId);
@@ -410,7 +410,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteOne(Long partitionId) throws Exception {
         // 验证 ID 是否存在
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         if (!isUserPartitionExist(login, partitionId)) {
             throw new ServiceException(PartitionConstant.NOT_EXIST);
         }
@@ -437,7 +437,7 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @Transactional(rollbackFor = Exception.class)
     public SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception {
         // 验证 ID 是否存在
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         if (!isUserPartitionExist(login, partitionId)) {
             throw new ServiceException(PartitionConstant.NOT_EXIST);
         }
