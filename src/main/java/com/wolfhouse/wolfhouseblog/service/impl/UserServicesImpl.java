@@ -97,13 +97,13 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public UserVo updateAuthedUser(UserUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
-        VerifyTool.ofAllMsg(
-                       UserConstant.USER_UPDATE_FAILED,
+        VerifyTool.of(
                        UserVerifyNode.id(mediator)
                                      .target(login),
                        UserVerifyNode.BIRTH.target(dto.getBirth()),
                        UserVerifyNode.email(this)
-                                     .target(dto.getEmail()))
+                                     .target(dto.getEmail())
+                                     .allowNull(false))
                   .doVerify();
 
         User user = BeanUtil.copyProperties(dto, User.class);
