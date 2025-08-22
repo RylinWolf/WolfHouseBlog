@@ -9,5 +9,6 @@ import java.util.Set;
  */
 @Data
 public class AuthorityByIdDto {
+    private Long adminId;
     private Set<Long> ids;
 }
