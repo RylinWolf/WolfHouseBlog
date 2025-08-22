@@ -63,6 +63,8 @@ public interface ServiceAuthMediator {
      */
     Boolean isUserAdmin(Long userId);
 
+    Boolean isAdminExist(Long adminId);
+
     /**
      * 检查权限ID是否存在
      *
@@ -79,5 +81,5 @@ public interface ServiceAuthMediator {
      */
     Boolean hasAccountOrEmail(String s);
 
-
+    Long loginUserOrE();
 }
