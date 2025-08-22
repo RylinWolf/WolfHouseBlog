@@ -13,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserIdVer
 import com.wolfhouse.wolfhouseblog.mapper.UserAuthMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserAuth;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,11 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserAuthTableDef.USE
 public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> implements UserAuthService {
     private final PasswordEncoder encoder;
     private final ServiceAuthMediator mediator;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerUserAuth(this);
+    }
 
     @Override
     public Boolean isAuthExist(Long userId) {

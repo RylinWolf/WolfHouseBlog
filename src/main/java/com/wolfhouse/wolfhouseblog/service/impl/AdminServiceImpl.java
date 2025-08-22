@@ -30,6 +30,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -50,6 +51,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private final AuthorityMapper authorityMapper;
     private final MqUserService mqUserService;
     private final ServiceAuthMediator mediator;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerAdmin(this);
+    }
 
 
     @Override
