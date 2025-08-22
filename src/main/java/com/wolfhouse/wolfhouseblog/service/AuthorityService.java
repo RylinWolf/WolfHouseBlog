@@ -10,4 +10,6 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.AuthorityByIdDto;
 public interface AuthorityService extends IService<Authority> {
 
     Boolean addAuthorityByIds(AuthorityByIdDto dto);
+
+    Boolean deleteAuthorityByIds(AuthorityByIdDto dto);
 }

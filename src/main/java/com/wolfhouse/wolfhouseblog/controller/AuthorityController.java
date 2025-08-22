@@ -8,9 +8,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.AuthorityByIdDto;
 import com.wolfhouse.wolfhouseblog.service.AuthorityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 权限相关接口
@@ -20,21 +18,28 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/a/auth")
-@PreAuthorize("@ss.hasRole('" + BlogPermissionConstant.SUPER_ADMIN + "')")
 @RequiredArgsConstructor
+@PreAuthorize("@ss.hasRole('" + BlogPermissionConstant.SUPER_ADMIN + "')")
 public class AuthorityController {
     private final AuthorityService service;
 
     @PostMapping
-    @PreAuthorize("@ss.hasPerm('" + BlogPermissionConstant.AUTHORITY_CREATE + "')")
-    public HttpResult<?> addAuthority(AuthorityByIdDto dto) {
+    @PreAuthorize("@ss.hasAnyPerm('admin:authority:create', 'admin:authority:update')")
+    public HttpResult<?> addAuthority(@RequestBody AuthorityByIdDto dto) {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
              AuthorityConstant.ADD_FAILED,
              service.addAuthorityByIds(dto));
     }
 
-    // TODO 根据名称添加
+    @DeleteMapping
+    @PreAuthorize("@ss.hasPerm('" + BlogPermissionConstant.AUTHORITY_DELETE + "')")
+    public HttpResult<?> deleteAuthority(@RequestBody AuthorityByIdDto dto) {
+        return HttpResult.onCondition(
+             HttpCodeConstant.FAILED,
+             AuthorityConstant.DELETE_FAILED,
+             service.deleteAuthorityByIds(dto));
+    }
 
     // TODO 根据 ID 删除
 
