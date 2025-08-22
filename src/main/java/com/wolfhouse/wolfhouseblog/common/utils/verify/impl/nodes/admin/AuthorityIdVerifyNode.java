@@ -17,7 +17,11 @@ public class AuthorityIdVerifyNode extends BaseVerifyNode<Long[]> {
 
     @Override
     public boolean verify() {
-        if (t == null || t.length == 0) {
+        if (t == null) {
+            return allowNull;
+        }
+
+        if (t.length == 0) {
             return true;
         }
 
