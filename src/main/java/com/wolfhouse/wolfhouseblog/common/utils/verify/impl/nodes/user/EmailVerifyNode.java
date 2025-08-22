@@ -1,6 +1,8 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user;
 
+import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmailVerifyNode extends BaseVerifyNode<String> {
     private final UserService service;
+
+    {
+        this.allowNull = true;
+        this.customException = new VerifyException(UserConstant.USER_ALREADY_EXIST);
+    }
 
     @Override
     public boolean verify() {
