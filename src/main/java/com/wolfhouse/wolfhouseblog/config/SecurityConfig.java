@@ -4,7 +4,7 @@ import com.wolfhouse.wolfhouseblog.auth.filter.JwtFilter;
 import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserService;
+import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
     @Bean
-    public JwtFilter jwtFilter(JwtUtil jwtUtil, UserService userService, AdminService adminService) {
-        return new JwtFilter(jwtUtil, userService, adminService);
+    public JwtFilter jwtFilter(JwtUtil jwtUtil, AdminService adminService,
+                               UserAuthService authService) {
+        return new JwtFilter(jwtUtil, adminService, authService);
     }
 
 
