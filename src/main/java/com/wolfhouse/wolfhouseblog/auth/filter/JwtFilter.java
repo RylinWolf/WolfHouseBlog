@@ -1,12 +1,12 @@
 package com.wolfhouse.wolfhouseblog.auth.filter;
 
 import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
-import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.micrometer.common.lang.NonNullApi;
 import jakarta.servlet.FilterChain;
@@ -31,7 +31,6 @@ import java.util.List;
 @NonNullApi
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
-    private final UserService userService;
     private final AdminService adminService;
     private final UserAuthService authService;
 
@@ -44,7 +43,8 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
             // 验证用户是否可达
-            VerifyTool.ofLoginExist(authService)
+            VerifyTool.of(UserVerifyNode.id(authService)
+                                        .target(userId))
                       .doVerify();
 
             log.info("JWT 信息: {}, 过期时间: {}", userId, claims.getExpiration());
