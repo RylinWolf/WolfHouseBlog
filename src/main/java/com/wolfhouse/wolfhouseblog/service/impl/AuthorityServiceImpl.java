@@ -41,7 +41,7 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
         adminId = adminId == null ? ServiceUtil.loginUser() : adminId;
 
         // 验证管理员是否存在
-        if (mediator.isAdminExist(adminId)) {
+        if (!mediator.isAdminExist(adminId)) {
             throw new ServiceException(AdminConstant.ADMIN_NOT_EXIST);
         }
 
