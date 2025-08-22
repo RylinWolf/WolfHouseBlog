@@ -1,6 +1,5 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -9,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;

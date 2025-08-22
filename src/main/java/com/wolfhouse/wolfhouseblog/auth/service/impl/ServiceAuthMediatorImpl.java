@@ -69,4 +69,14 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     public Boolean hasAccountOrEmail(String s) {
         return null;
     }
+
+    @Override
+    public Boolean isAdminExist(Long adminId) {
+        return null;
+    }
+
+    @Override
+    public Long loginUserOrE() {
+        return 0L;
+    }
 }

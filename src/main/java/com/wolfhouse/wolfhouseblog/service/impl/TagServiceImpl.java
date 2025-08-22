@@ -2,11 +2,11 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.tag.TagVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.tag.TagVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.TagMapper;
 import com.wolfhouse.wolfhouseblog.mapper.UserTagMapper;
 import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;

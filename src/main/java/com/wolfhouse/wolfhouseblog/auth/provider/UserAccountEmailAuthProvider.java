@@ -1,10 +1,10 @@
 package com.wolfhouse.wolfhouseblog.auth.provider;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.service.AdminService;

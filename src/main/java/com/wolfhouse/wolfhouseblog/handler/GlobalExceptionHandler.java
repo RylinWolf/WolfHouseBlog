@@ -1,7 +1,5 @@
 package com.wolfhouse.wolfhouseblog.handler;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
@@ -11,6 +9,8 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyException;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
