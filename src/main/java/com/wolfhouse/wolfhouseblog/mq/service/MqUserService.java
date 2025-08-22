@@ -25,6 +25,11 @@ public class MqUserService {
 
     public void disableUser(MqUserAuthDto dto) {
         template.convertAndSend(MqUserConstant.DISABLE_EXCHANGE, MqUserConstant.DISABLE_KEY, dto);
-        
+
+    }
+
+    public Boolean enableUser(Long userId) {
+        // TODO 启用用户
+        return null;
     }
 }
