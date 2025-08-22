@@ -6,15 +6,7 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyStrategy;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyChain;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ArticleVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.ComUseTagVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.article.IdReachableVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.partition.PartitionVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -22,6 +14,15 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyStrategy;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyChain;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ComUseTagVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdReachableVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAllBlankVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
@@ -31,7 +32,6 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,20 +52,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Resource(name = "jsonNullableObjectMapper")
     private ObjectMapper jsonNullableObjectMapper;
     private final PartitionService partitionService;
-    private final UserAuthService authService;
+    private final ServiceAuthMediator mediator;
     /** 常用标签验证节点 */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
 
 
     @Override
-    public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) {
+    public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
+        // TODO 通过 Nullable 实现可查空
+        var userId = ServiceUtil.loginUser();
+
         var wrapper = QueryWrapper.create();
         // 构建查询列
         wrapper.select(columns);
         // 查询当前用户的私人日记和全部公开日记
         wrapper.and(q -> {
             q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
-            var userId = ServiceUtil.loginUser();
             if (userId != null) {
                 q.or(q2 -> {
                     q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
@@ -88,6 +90,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                     Article::getAuthorId,
                     dto.getAuthorId()
                        .orElse(null));
+        // 分区条件
+        Long partitionId = dto.getPartitionId()
+                              .orElse(null);
+        // 分区可达
+        if (partitionService.isUserPartitionReachable(userId, partitionId)) {
+            wrapper.eq(Article::getPartitionId, partitionId);
+        }
 
         // 日期范围查询
         LocalDateTime start = dto.getPostStart()
@@ -104,12 +113,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) {
+    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
     @Override
-    public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) {
+    public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
     }
 
@@ -124,9 +133,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo post(ArticleDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
 
-        // TODO 常用标签验证
         VerifyTool.of(
                        ArticleVerifyNode.TITLE.target(dto.getTitle())
                                               .exception(ARTICLE.TITLE.getName()),
@@ -149,7 +157,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo update(ArticleUpdateDto dto) throws Exception {
-        // TODO 常用标签验证
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
@@ -157,7 +164,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Set<Long> comUseTags = JsonNullableUtil.getObjOrNull(dto.getComUseTags());
 
         VerifyTool.ofLoginExist(
-                       authService,
+                       mediator,
                        // 文章 ID
                        ArticleVerifyNode.id(this)
                                         .target(dto.getId()),

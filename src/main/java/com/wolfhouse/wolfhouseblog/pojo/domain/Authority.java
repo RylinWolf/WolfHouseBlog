@@ -2,7 +2,10 @@ package com.wolfhouse.wolfhouseblog.pojo.domain;
 
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -10,6 +13,9 @@ import org.springframework.security.core.GrantedAuthority;
  */
 @Data
 @Table("authority")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Authority implements GrantedAuthority {
     @Id
     private Long id;

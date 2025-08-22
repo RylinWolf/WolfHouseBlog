@@ -1,13 +1,14 @@
 package com.wolfhouse.wolfhouseblog.config;
 
 import com.wolfhouse.wolfhouseblog.auth.filter.JwtFilter;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,10 +22,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
     @Bean
-    public JwtFilter jwtFilter(JwtUtil jwtUtil, UserService userService, AdminService adminService) {
-        return new JwtFilter(jwtUtil, userService, adminService);
+    public JwtFilter jwtFilter(JwtUtil jwtUtil, ServiceAuthMediator mediator, AdminService adminService) {
+        return new JwtFilter(jwtUtil, mediator, adminService);
     }
 
 
@@ -33,7 +35,7 @@ public class SecurityConfig {
                                                    AuthenticationEntryPoint authenticationEntryPoint,
                                                    AccessDeniedHandler deniedHandler,
                                                    JwtFilter jwtFilter)
-            throws Exception {
+         throws Exception {
         http.formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)

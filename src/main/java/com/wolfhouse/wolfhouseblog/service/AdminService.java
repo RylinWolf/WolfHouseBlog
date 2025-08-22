@@ -114,15 +114,6 @@ public interface AdminService extends IService<Admin> {
      */
     List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception;
 
-    /**
-     * 更新管理员的权限列表
-     *
-     * @param adminId     管理员ID
-     * @param authorities 新的权限ID数组
-     * @return 更新影响的记录数
-     * @throws Exception 更新过程中可能发生的异常
-     */
-    Integer changeAuthorities(Long adminId, Long[] authorities) throws Exception;
 
     /**
      * 删除指定管理员
@@ -144,7 +135,25 @@ public interface AdminService extends IService<Admin> {
      */
     Boolean deleteUser(AdminUserControlDto dto) throws Exception;
 
+    /**
+     * 禁用指定用户。此方法会验证管理员密码，并通过消息队列异步禁用用户。
+     * 禁用操作会暂时限制用户的访问权限，但保留用户数据。
+     * 用户可以通过enableUser方法重新启用。
+     *
+     * @param dto 封装了要禁用的用户以及管理员密码的 DTO，用于身份验证和确认操作
+     * @return 是否禁用成功，true表示禁用请求已成功发送到消息队列
+     * @throws Exception 当管理员密码验证失败、用户不存在或系统错误时抛出异常
+     */
     Boolean disableUser(AdminUserControlDto dto) throws Exception;
 
+    /**
+     * 启用指定用户。此方法会验证管理员密码，并通过消息队列异步启用被禁用的用户。
+     * 启用操作会恢复用户的正常访问权限。
+     * 只能启用之前被禁用的用户。
+     *
+     * @param dto 封装了要启用的用户以及管理员密码的 DTO，用于身份验证和确认操作
+     * @return 是否启用成功，true表示启用请求已成功发送到消息队列
+     * @throws Exception 当管理员密码验证失败、用户不存在或系统错误时抛出异常
+     */
     Boolean enableUser(AdminUserControlDto dto) throws Exception;
 }

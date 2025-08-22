@@ -1,6 +1,5 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
@@ -22,6 +21,7 @@ import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,6 +33,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author linexsong
  */
@@ -42,8 +44,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 public class UserController {
-    private final UserAuthService authService;
     private final AuthenticationManager authManager;
+    private final UserAuthService authService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
@@ -93,17 +95,19 @@ public class UserController {
              userService.createUser(dto));
     }
 
-    @Operation(summary = "获取信息")
+    @Operation(summary = "获取用户信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
-        // 需要登陆
-        VerifyTool.ofLoginExist(authService)
-                  .doVerify();
-
         return HttpResult.failedIfBlank(
              HttpCodeConstant.FAILED,
              UserConstant.USER_UNACCESSIBLE,
              userService.getUserVoById(id));
+    }
+
+    @Operation(summary = "根据用户名查找用户")
+    @GetMapping("/n/{name}")
+    public HttpResult<List<UserVo>> getInfoByName(@PathVariable @Size(min = 1, max = 20) String name) throws Exception {
+        return HttpResult.success(userService.getUserVosByName(name));
     }
 
     @Operation(summary = "修改")

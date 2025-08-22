@@ -1,43 +1,47 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.BaseVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.admin.AdminVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.commons.NotAllBlankVerifyNode;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.impl.nodes.user.UserVerifyNode;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.BlogPermissionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.admin.AdminVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAllBlankVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.AdminMapper;
-import com.wolfhouse.wolfhouseblog.mapper.AuthorityMapper;
 import com.wolfhouse.wolfhouseblog.mq.service.MqUserService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Admin;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminPostDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AdminUserControlDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.AuthorityByIdDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqUserAuthDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AdminVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.AuthorityVo;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
-import jakarta.annotation.Resource;
+import com.wolfhouse.wolfhouseblog.service.AuthorityService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
@@ -48,12 +52,14 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
-    private final AdminMapper mapper;
-    private final AuthorityMapper authorityMapper;
-    private final UserAuthService authService;
+    private final AuthorityService authService;
     private final MqUserService mqUserService;
-    @Resource(name = "jsonNullableObjectMapper")
-    private ObjectMapper objectMapper;
+    private final ServiceAuthMediator mediator;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerAdmin(this);
+    }
 
 
     @Override
@@ -100,7 +106,16 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public List<Authority> getAuthorities(Long userId) throws Exception {
         var authIds = getAuthoritiesIds(userId);
-        return authIds.isEmpty() ? List.of() : authorityMapper.selectListByIds(authIds);
+        if (authIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        var res = authService.getMapper()
+                             .selectListByIds(authIds);
+        res.add(Authority.builder()
+                         .permissionCode(BlogPermissionConstant.ROLE_ADMIN)
+                         .permissionName(BlogPermissionConstant.ADMIN_NAME)
+                         .build());
+        return res;
     }
 
     @Override
@@ -114,10 +129,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 验证创建管理员的用户 ID 是否存在，是否已经是管理员
         VerifyTool.ofLoginExist(
-                       authService,
-                       UserVerifyNode.id(authService)
+                       mediator,
+                       UserVerifyNode.id(mediator)
                                      .target(dto.getUserId()),
-                       AdminVerifyNode.createId(this, authService)
+                       AdminVerifyNode.createId(mediator)
                                       .target(dto.getUserId()))
                   .doVerify();
 
@@ -141,24 +156,24 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
-                       authService,
-                       UserVerifyNode.id(authService)
+                       mediator,
+                       UserVerifyNode.id(mediator)
                                      .target(login),
                        // 登陆用户是否为管理员
-                       AdminVerifyNode.userId(this)
+                       AdminVerifyNode.userId(mediator)
                                       .target(login)
                                       .exception(AuthExceptionConstant.ACCESS_DENIED),
                        // 至少有一个数据更新
                        new NotAllBlankVerifyNode(name, authorities)
                             .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
                        // 更新目标需要是有效的管理员
-                       AdminVerifyNode.id(this)
+                       AdminVerifyNode.id(mediator)
                                       .target(adminId),
                        // 管理员名称验证
                        AdminVerifyNode.NAME.target(name)
                                            .allowNull(true),
                        // 权限验证
-                       AdminVerifyNode.authorityId(this)
+                       AdminVerifyNode.authorityId(mediator)
                                       .target(authorities)
                                       .allowNull(true))
                   .doVerify();
@@ -166,7 +181,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 修改权限
         authoritiesNullable.ifPresent(a -> {
             try {
-                changeAuthorities(adminId, a.toArray(Long[]::new));
+                Integer i = authService.changeAuthorities(new AuthorityByIdDto(adminId, new HashSet<>(a)));
+                if (i == 0) {
+                    log.warn("管理员[{}]没有任何权限修改", adminId);
+                }
             } catch (Exception e) {
                 throw new ServiceException(e.getMessage(), e);
             }
@@ -189,95 +207,31 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public Boolean isAuthoritiesExist(Long... authorityIds) {
-
-        long count = authorityMapper.selectCountByQuery(new QueryWrapper().in(Authority::getId, List.of(authorityIds)));
+        long count = authService.getMapper()
+                                .selectCountByQuery(new QueryWrapper().in(Authority::getId, List.of(authorityIds)));
 
         return count == authorityIds.length;
     }
 
     @Override
     public List<Long> getAuthoritiesIdsByAdmin(Long adminId) throws Exception {
-        VerifyTool.of(AdminVerifyNode.id(this)
+        VerifyTool.of(AdminVerifyNode.id(mediator)
                                      .target(adminId))
                   .doVerify();
 
-        return List.of(authorityMapper.getIdsByAdminId(adminId));
+        return authService.getAuthoritiesIds(adminId)
+                          .stream()
+                          .toList();
     }
 
     @Override
     public List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception {
         List<Long> ids = getAuthoritiesIdsByAdmin(adminId);
-        return ids.isEmpty() ? List.of() : BeanUtil.copyList(authorityMapper.selectListByIds(ids), AuthorityVo.class);
+        return ids.isEmpty() ? List.of() : BeanUtil.copyList(
+             authService.getMapper()
+                        .selectListByIds(ids), AuthorityVo.class);
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Integer changeAuthorities(Long adminId, Long[] newAuthIds) throws Exception {
-        // 0. 验证
-        Long login = ServiceUtil.loginUserOrE();
-        VerifyTool.of(
-                       // 0.1 登录用户是否存在
-                       UserVerifyNode.id(authService)
-                                     .target(login),
-                       // 0.2 登陆用户是否为管理员
-                       AdminVerifyNode.id(this)
-                                      .target(login),
-                       // 0.3 修改的管理员是否存在
-                       AdminVerifyNode.id(this)
-                                      .target(adminId),
-                       // 0.4 权限列表是否存在
-                       AdminVerifyNode.authorityId(this)
-                                      .target(newAuthIds))
-                  .doVerify();
-
-        // 1.得到新增和重复权限
-        List<Long> authIds = new ArrayList<>(getAuthoritiesIdsByAdmin(adminId));
-        // 1.0 原权限列表为空
-        if (authIds.isEmpty()) {
-            if (newAuthIds == null || newAuthIds.length == 0) {
-                return 0;
-            }
-            return authorityMapper.addAuthorities(adminId, newAuthIds);
-        }
-        // 1.1 对比列表
-        Set<Long> newAuthIdsSet = new HashSet<>(List.of(newAuthIds));
-        List<Long> repeatIds = new ArrayList<>();
-
-        newAuthIdsSet.forEach(a -> {
-            if (authIds.contains(a)) {
-                repeatIds.add(a);
-            }
-        });
-
-        // 1.2 得到重复项，从列表中去除
-        repeatIds.forEach(a -> {
-            authIds.remove(a);
-            newAuthIdsSet.remove(a);
-        });
-
-        // 2. 删除权限
-        Integer removeCount = 0;
-        // 去除列表即为去重后的原权限列表
-        if (!authIds.isEmpty()) {
-            removeCount = authorityMapper.removeAuthByAdmin(adminId, authIds);
-        }
-
-        // 3. 新增权限
-        // 新增列表即位去重后的新权限列表
-        Integer addCount = 0;
-        if (!newAuthIdsSet.isEmpty()) {
-            addCount = authorityMapper.addAuthorities(adminId, newAuthIdsSet.toArray(new Long[0]));
-        }
-
-        if (!(removeCount.equals(authIds.size()) && addCount.equals(newAuthIdsSet.size()))) {
-            log.error(
-                 "removeCount: {}, addCount: {}" +
-                 "repeatedIds: {}, newAuthIdsSet: {} ",
-                 removeCount, addCount, repeatIds, newAuthIdsSet);
-            throw new ServiceException(AdminConstant.AUTHORITIES_CHANGE_FAILED);
-        }
-        return removeCount + addCount;
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -288,29 +242,33 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
 
         VerifyTool.of(
-                       UserVerifyNode.id(authService)
+                       UserVerifyNode.id(mediator)
                                      .target(login),
-                       AdminVerifyNode.id(this)
+                       AdminVerifyNode.id(mediator)
                                       .target(adminId))
                   .doVerify();
 
         if (mapper.deleteById(adminId) != 1) {
             throw new ServiceException(AdminConstant.DELETE_FAILED);
         }
-        authorityMapper.removeAllByAdmin(adminId);
+
+        Integer i = authService.deleteAllAuthorities(adminId);
+        if (i == 0) {
+            log.warn("没有删除管理[{}]的任何权限", adminId);
+        }
         return true;
     }
 
     @Override
     public Boolean deleteUser(AdminUserControlDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         VerifyTool.of(
-                       AdminVerifyNode.userId(this)
+                       AdminVerifyNode.userId(mediator)
                                       .target(login),
-                       UserVerifyNode.id(authService)
+                       UserVerifyNode.id(mediator)
                                      .target(dto.getUserId())
                                      .exception(UserConstant.USER_NOT_EXIST),
-                       UserVerifyNode.pwd(authService)
+                       UserVerifyNode.pwd(mediator)
                                      .userId(login)
                                      .target(dto.getPassword()))
                   .doVerify();
@@ -324,19 +282,18 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public Boolean disableUser(AdminUserControlDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         VerifyTool.of(
                        // 验证管理员是否存在
-                       AdminVerifyNode.userId(this)
+                       AdminVerifyNode.userId(mediator)
                                       .target(login),
                        // 验证用户是否存在
-                       UserVerifyNode.id(authService)
+                       UserVerifyNode.id(mediator)
                                      .target(dto.getUserId()),
                        // 验证密码是否正确
-                       UserVerifyNode.pwd(authService)
+                       UserVerifyNode.pwd(mediator)
                                      .userId(login)
-                                     .target(dto.getPassword())
-                     )
+                                     .target(dto.getPassword()))
                   .doVerify();
 
         mqUserService.disableUser(new MqUserAuthDto(dto.getUserId()));
@@ -345,27 +302,26 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public Boolean enableUser(AdminUserControlDto dto) throws Exception {
-        Long login = authService.loginUserOrE();
+        Long login = mediator.loginUserOrE();
         Long userId = dto.getUserId();
 
         VerifyTool.of(
-                       UserVerifyNode.pwd(authService)
+                       UserVerifyNode.pwd(mediator)
                                      .userId(login)
                                      .target(dto.getPassword()),
-                       AdminVerifyNode.userId(this)
+                       AdminVerifyNode.userId(mediator)
                                       .target(login),
                        // 用户不存在
                        new BaseVerifyNode<Long>() {}
-                            .predicate(authService::isAuthExist)
+                            .predicate(mediator::isAuthExist)
                             .target(userId)
                             .exception(new ServiceException(UserConstant.USER_NOT_EXIST)),
                        // 账号已启用
                        new BaseVerifyNode<Long>() {}
-                            .predicate(u -> !authService.isUserEnabled(u))
+                            .predicate(u -> !mediator.isUserEnabled(u))
                             .target(userId)
                             .exception(new ServiceException(UserConstant.USER_HAS_ENABLED)))
                   .doVerify();
-
-        return authService.enableAuth(userId);
+        return mqUserService.enableUser(userId);
     }
 }

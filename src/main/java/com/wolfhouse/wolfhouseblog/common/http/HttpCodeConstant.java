@@ -23,4 +23,5 @@ public class HttpCodeConstant {
     public static final String UPDATE_FAILED = "UPDATE_FAILED";
     public static final String BANNED = "BANNED";
     public static final String USER_NOT_EXIST = "USER_NOT_EXIST";
+    public static final String NO_PERMISSION = "NO_PERMISSION";
 }

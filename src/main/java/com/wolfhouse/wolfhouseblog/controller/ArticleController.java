@@ -29,7 +29,7 @@ public class ArticleController {
 
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
-    public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) {
+    public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
         return HttpResult.success(articleService.getBriefQuery(dto));
     }
 

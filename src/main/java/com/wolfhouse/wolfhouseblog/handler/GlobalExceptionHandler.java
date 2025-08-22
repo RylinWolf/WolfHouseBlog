@@ -1,7 +1,5 @@
 package com.wolfhouse.wolfhouseblog.handler;
 
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyConstant;
-import com.wolfhouse.wolfhouseblog.auth.service.verify.VerifyException;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
@@ -11,12 +9,16 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyException;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 /**
  * @author linexsong
@@ -40,7 +42,7 @@ public class GlobalExceptionHandler {
         return HttpResult.failed(
              HttpStatus.FORBIDDEN.value(),
              HttpCodeConstant.VERIFY_FAILED,
-             VerifyConstant.VERIFY_FAILED);
+             VerifyConstant.VERIFY_FAILED + "【" + e.getMessage() + "】");
     }
 
     @ExceptionHandler
@@ -95,5 +97,21 @@ public class GlobalExceptionHandler {
         }
 
         return HttpResult.failed(status, code, msg);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<?> handlerException(HandlerMethodValidationException e) {
+        return HttpResult.failed(
+             HttpStatus.FORBIDDEN.value(),
+             HttpCodeConstant.ARG_NOT_VALID,
+             VerifyConstant.VERIFY_FAILED);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handlerException(AuthorizationDeniedException e) {
+        return HttpResult.failed(
+             HttpStatus.FORBIDDEN.value(),
+             HttpCodeConstant.NO_PERMISSION,
+             AuthExceptionConstant.NO_PERMISSION);
     }
 }

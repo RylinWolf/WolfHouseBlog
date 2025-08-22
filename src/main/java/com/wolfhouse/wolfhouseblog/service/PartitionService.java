@@ -62,6 +62,8 @@ public interface PartitionService extends IService<Partition> {
      */
     Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception;
 
+    Boolean isUserPartitionReachable(Long userId, Long partitionId) throws Exception;
+
     /**
      * 检查当前登录用户是否拥有指定分区。此方法是{@link #isUserPartitionExist(Long, Long)}的简化版本，
      * 使用当前登录用户的ID进行验证。
@@ -99,4 +101,5 @@ public interface PartitionService extends IService<Partition> {
      * @throws Exception 当删除过程中发生错误，或者用户没有权限删除该分区时抛出异常
      */
     SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception;
+
 }
