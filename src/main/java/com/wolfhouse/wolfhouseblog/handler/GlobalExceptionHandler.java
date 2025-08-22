@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
         return HttpResult.failed(
              HttpStatus.FORBIDDEN.value(),
              HttpCodeConstant.VERIFY_FAILED,
-             VerifyConstant.VERIFY_FAILED);
+             VerifyConstant.VERIFY_FAILED + "【" + e.getMessage() + "】");
     }
 
     @ExceptionHandler
