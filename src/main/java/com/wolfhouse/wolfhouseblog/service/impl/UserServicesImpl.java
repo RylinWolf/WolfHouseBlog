@@ -164,7 +164,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public Boolean subsribe(UserSubDto dto) throws Exception {
+    public Boolean subscribe(UserSubDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         Long toUser = dto.getToUser();
         VerifyTool.ofLoginExist(

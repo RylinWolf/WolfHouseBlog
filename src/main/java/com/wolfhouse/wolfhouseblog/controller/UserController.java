@@ -135,7 +135,7 @@ public class UserController {
         return HttpResult.onCondition(
              HttpCodeConstant.FAILED,
              UserConstant.SUBSCRIBE_FAILED,
-             userService.subsribe(dto));
+             userService.subscribe(dto));
     }
 
     @Operation(summary = "取消关注")
