@@ -114,11 +114,12 @@ CREATE TABLE IF NOT EXISTS user_tag
 
 CREATE TABLE IF NOT EXISTS article_comment
 (
-    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文章评论 ID',
-    user_id    BIGINT       NOT NULL COMMENT '用户 ID',
-    article_id BIGINT       NOT NULL COMMENT '文章 ID',
-    reply_id   BIGINT COMMENT '父评论 ID',
-    content    VARCHAR(255) NOT NULL COMMENT '内容'
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文章评论 ID',
+    user_id      BIGINT       NOT NULL COMMENT '用户 ID',
+    article_id   BIGINT       NOT NULL COMMENT '文章 ID',
+    reply_id     BIGINT COMMENT '父评论 ID',
+    content      VARCHAR(255) NOT NULL COMMENT '内容',
+    comment_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评论时间'
 ) AUTO_INCREMENT 10000000 COMMENT '文章评论表';
 
 
