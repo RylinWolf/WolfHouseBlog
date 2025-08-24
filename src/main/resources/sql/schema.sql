@@ -112,5 +112,30 @@ CREATE TABLE IF NOT EXISTS user_tag
 ) AUTO_INCREMENT 10000000 COMMENT '用户-常用标签表';
 
 
+CREATE TABLE IF NOT EXISTS article_comment
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文章评论 ID',
+    user_id    BIGINT       NOT NULL COMMENT '用户 ID',
+    article_id BIGINT       NOT NULL COMMENT '文章 ID',
+    reply_id   BIGINT COMMENT '父评论 ID',
+    content    VARCHAR(255) NOT NULL COMMENT '内容'
+) AUTO_INCREMENT 10000000 COMMENT '文章评论表';
 
+
+CREATE TABLE IF NOT EXISTS article_like
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '点赞 ID',
+    user_id    BIGINT NOT NULL COMMENT '用户 ID',
+    article_id BIGINT NOT NULL COMMENT '文章 ID',
+    like_date  DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '点赞时间'
+) AUTO_INCREMENT 10000000 COMMENT '文章点赞表';
+
+
+CREATE TABLE IF NOT EXISTS article_favorite
+(
+    id            BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏 ID',
+    user_id       BIGINT NOT NULL COMMENT '用户 ID',
+    article_id    BIGINT NOT NULL COMMENT '文章 ID',
+    favorite_date DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '收藏时间'
+) AUTO_INCREMENT 10000000 COMMENT '文章收藏表';
 
