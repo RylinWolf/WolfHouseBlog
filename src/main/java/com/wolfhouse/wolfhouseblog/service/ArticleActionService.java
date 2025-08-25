@@ -5,8 +5,11 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 
-import java.util.List;
-
+/**
+ * 文章交互服务接口
+ *
+ * @author rylinwolf
+ */
 public interface ArticleActionService {
     /**
      * 获取指定文章的评论列表
@@ -32,15 +35,51 @@ public interface ArticleActionService {
      */
     PageResult<ArticleCommentVo> deleteComment(Long commentId);
 
+    /**
+     * 检查当前登录用户是否已对指定文章点赞
+     *
+     * @param articleId 目标文章ID
+     * @return true表示已点赞，false表示未点赞
+     */
     Boolean isLiked(Long articleId);
 
+    /**
+     * 当前登录用户对指定文章进行点赞
+     *
+     * @param articleId 目标文章ID
+     * @return true表示点赞成功，false表示点赞失败
+     */
     Boolean like(Long articleId);
 
+    /**
+     * 当前登录用户取消对指定文章的点赞
+     *
+     * @param articleId 目标文章ID
+     * @return true表示取消成功，false表示取消失败
+     */
     Boolean dislike(Long articleId);
 
+    /**
+     * 检查当前登录用户是否已收藏指定文章
+     *
+     * @param articleId 目标文章ID
+     * @return true表示已收藏，false表示未收藏
+     */
     Boolean isFavorite(Long articleId);
 
+    /**
+     * 当前登录用户收藏指定文章
+     *
+     * @param articleId 目标文章ID
+     * @return true表示收藏成功，false表示收藏失败
+     */
     Boolean favorite(Long articleId);
 
+    /**
+     * 当前登录用户取消收藏指定文章
+     *
+     * @param articleId 目标文章ID
+     * @return true表示取消成功，false表示取消失败
+     */
     Boolean removeFavorite(Long articleId);
 }
