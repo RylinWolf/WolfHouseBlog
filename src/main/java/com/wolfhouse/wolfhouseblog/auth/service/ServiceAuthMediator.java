@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.auth.service;
 
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 
@@ -28,6 +29,8 @@ public interface ServiceAuthMediator {
      * @param userAuthService 要注册的用户认证服务
      */
     void registerUserAuth(UserAuthService userAuthService);
+
+    void registerArticle(ArticleService articleService);
 
     /**
      * 检查用户认证信息是否存在
@@ -108,4 +111,6 @@ public interface ServiceAuthMediator {
      * @return 当前登录用户ID
      */
     Long loginUserOrE() throws Exception;
+
+    Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
 }

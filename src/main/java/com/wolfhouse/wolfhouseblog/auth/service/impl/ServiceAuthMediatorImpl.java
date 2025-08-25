@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.auth.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     private UserAuthService authService;
     private AdminService adminService;
     private UserService userService;
+    private ArticleService articleService;
 
     @Override
     public void registerAdmin(AdminService adminService) {
@@ -31,6 +33,11 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public void registerUserAuth(UserAuthService userAuthService) {
         this.authService = userAuthService;
+    }
+
+    @Override
+    public void registerArticle(ArticleService articleService) {
+        this.articleService = articleService;
     }
 
     @Override
@@ -82,5 +89,10 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public Long loginUserOrE() throws Exception {
         return authService.loginUserOrE();
+    }
+
+    @Override
+    public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
+        return articleService.isArticleReachable(userId, articleId);
     }
 }
