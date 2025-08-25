@@ -2,6 +2,9 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
@@ -9,7 +12,7 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleLikeMapper;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import lombok.RequiredArgsConstructor;
@@ -43,12 +46,27 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         VerifyTool.ofLoginExist(mediator,
             ArticleVerifyNode.id(mediator)
                              .target(articleId));
+
+        // 查询条件构建
+        QueryWrapper wrapper = QueryWrapper.create()
+                                           .where(ARTICLE_COMMENT.ARTICLE_ID.eq(articleId));
+        // 父评论 ID
+        dto.getReplyId()
+           .ifPresent(rid -> {
+               if (BeanUtil.isBlank(rid)) {
+                   return;
+               }
+               if (!isArticleCommentExist(articleId, rid)) {
+                   throw new ServiceException(ArticleConstant.COMMENT_NOT_EXIST);
+               }
+               wrapper.and(ARTICLE_COMMENT.REPLY_ID.eq(rid));
+           });
+        
         // 分页查询
         return PageResult.of(commentMapper.paginateAs(
             dto.getPageNumber(),
             dto.getPageSize(),
-            QueryWrapper.create()
-                        .where(ARTICLE_COMMENT.ARTICLE_ID.eq(articleId)),
+            wrapper,
             ArticleCommentVo.class));
     }
 

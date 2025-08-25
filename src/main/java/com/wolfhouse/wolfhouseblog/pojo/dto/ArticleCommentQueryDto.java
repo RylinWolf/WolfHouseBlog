@@ -3,15 +3,15 @@ package com.wolfhouse.wolfhouseblog.pojo.dto;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 /**
  * @author linexsong
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ArticleCommentPageDto extends PageDto {
+public class ArticleCommentQueryDto extends PageDto {
     private Long articleId;
-    private Long userId;
-    private Long replyId;
-    private String content;
+    private JsonNullable<Long> userId;
+    private JsonNullable<Long> replyId;
 }

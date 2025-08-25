@@ -5,7 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -73,8 +73,8 @@ public class ArticleController {
     }
 
     @Operation(summary = "获取评论")
-    @PostMapping("/comment")
-    public PageResult<ArticleCommentVo> getComments(@RequestBody ArticleCommentPageDto dto) {
+    @PostMapping(value = "/comment", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
+    public PageResult<ArticleCommentVo> getComments(@RequestBody ArticleCommentQueryDto dto) {
         return actionService.getArticleCommentVos(dto);
     }
 }
