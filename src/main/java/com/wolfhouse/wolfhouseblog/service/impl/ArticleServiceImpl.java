@@ -124,8 +124,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public ArticleVo getVoById(Long id) throws Exception {
-        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(this).target(id)
-                                                                             .setStrategy(VerifyStrategy.NORMAL));
+        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(mediator).target(id)
+                                                                                 .setStrategy(VerifyStrategy.NORMAL));
 
         return chain.doVerify() ? BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class) : null;
     }
@@ -136,16 +136,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long login = mediator.loginUserOrE();
 
         VerifyTool.of(
-                       ArticleVerifyNode.TITLE.target(dto.getTitle())
-                                              .exception(ARTICLE.TITLE.getName()),
-                       ArticleVerifyNode.CONTENT.target(dto.getContent())
-                                                .exception(ARTICLE.CONTENT.getName()),
-                       ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
-                                                .allowNull(true)
-                                                .exception(ARTICLE.PRIMARY.getName()),
-                       comUseTagVerifyNode.userId(login)
-                                          .target(dto.getComUseTags())
-                                          .allowNull(true))
+                      ArticleVerifyNode.TITLE.target(dto.getTitle())
+                                             .exception(ARTICLE.TITLE.getName()),
+                      ArticleVerifyNode.CONTENT.target(dto.getContent())
+                                               .exception(ARTICLE.CONTENT.getName()),
+                      ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
+                                               .allowNull(true)
+                                               .exception(ARTICLE.PRIMARY.getName()),
+                      comUseTagVerifyNode.userId(login)
+                                         .target(dto.getComUseTags())
+                                         .allowNull(true))
                   .doVerify();
 
         Article article = BeanUtil.copyProperties(dto, Article.class);
@@ -164,26 +164,26 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Set<Long> comUseTags = JsonNullableUtil.getObjOrNull(dto.getComUseTags());
 
         VerifyTool.ofLoginExist(
-                       mediator,
-                       // 文章 ID
-                       ArticleVerifyNode.id(this)
-                                        .target(dto.getId()),
-                       // 标题
-                       ArticleVerifyNode.title(title, true)
-                                        .exception(ARTICLE.TITLE.getName()),
-                       // 内容
-                       ArticleVerifyNode.content(content, true)
-                                        .exception(ARTICLE.CONTENT.getName()),
-                       // 摘要
-                       ArticleVerifyNode.primary(primary, true)
-                                        .exception(ARTICLE.PRIMARY.getName()),
-                       // 分区 ID
-                       PartitionVerifyNode.id(partitionService)
-                                          .target(partitionId)
-                                          .allowNull(true),
-                       // 常用标签
-                       comUseTagVerifyNode.target(comUseTags)
-                                          .allowNull(true),
+                      mediator,
+                      // 文章 ID
+                      ArticleVerifyNode.id(mediator)
+                                       .target(dto.getId()),
+                      // 标题
+                      ArticleVerifyNode.title(title, true)
+                                       .exception(ARTICLE.TITLE.getName()),
+                      // 内容
+                      ArticleVerifyNode.content(content, true)
+                                       .exception(ARTICLE.CONTENT.getName()),
+                      // 摘要
+                      ArticleVerifyNode.primary(primary, true)
+                                       .exception(ARTICLE.PRIMARY.getName()),
+                      // 分区 ID
+                      PartitionVerifyNode.id(partitionService)
+                                         .target(partitionId)
+                                         .allowNull(true),
+                      // 常用标签
+                      comUseTagVerifyNode.target(comUseTags)
+                                         .allowNull(true),
 
                        // 不得全为空
                        new NotAllBlankVerifyNode(
@@ -227,7 +227,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean deleteById(Long id) throws Exception {
-        VerifyTool.ofLogin(ArticleVerifyNode.id(this)
+        VerifyTool.ofLogin(ArticleVerifyNode.id(mediator)
                                             .target(id))
                   .doVerify();
 

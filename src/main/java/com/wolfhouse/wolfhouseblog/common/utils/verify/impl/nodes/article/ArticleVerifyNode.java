@@ -1,6 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article;
 
-import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 
 /**
  * @author linexsong
@@ -11,9 +11,9 @@ public class ArticleVerifyNode {
     public static final TitleVerifyNode TITLE = new TitleVerifyNode();
     private static IdReachableVerifyNode ID;
 
-    public static IdReachableVerifyNode id(ArticleService service) {
+    public static IdReachableVerifyNode id(ServiceAuthMediator mediator) {
         if (ID == null) {
-            ID = new IdReachableVerifyNode(service);
+            ID = new IdReachableVerifyNode(mediator);
         }
         return ID;
     }
