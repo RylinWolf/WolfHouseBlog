@@ -233,4 +233,24 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         return mapper.deleteById(id) == 1;
     }
+
+    @Override
+    public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
+        VerifyTool.of(new NotAnyBlankVerifyNode(userId, articleId))
+                  .doVerify();
+
+        long count = mapper.selectCountByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE.ID.eq(articleId))
+                        .and(ARTICLE.VISIBILITY.eq(VisibilityEnum.PUBLIC)
+                                               .or(ARTICLE.AUTHOR_ID.eq(userId))));
+        if (count == 0) {
+            return false;
+        }
+        if (count == 1) {
+            return true;
+        }
+        log.error("检查文章是否可达时出现问题：{}, {}", userId, articleId);
+        throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+    }
 }

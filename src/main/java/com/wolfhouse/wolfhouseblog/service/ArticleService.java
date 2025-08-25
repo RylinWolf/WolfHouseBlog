@@ -78,4 +78,6 @@ public interface ArticleService extends IService<Article> {
      * @throws Exception 删除失败时抛出异常
      */
     Boolean deleteById(Long id) throws Exception;
+
+    Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
 }
