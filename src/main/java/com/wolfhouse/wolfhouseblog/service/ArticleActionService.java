@@ -2,7 +2,7 @@ package com.wolfhouse.wolfhouseblog.service;
 
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 
 /**
@@ -12,12 +12,21 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
  */
 public interface ArticleActionService {
     /**
+     * 检查指定文章的评论是否存在
+     *
+     * @param articleId 文章ID
+     * @param commentId 评论ID
+     * @return true表示评论存在，false表示评论不存在
+     */
+    Boolean isArticleCommentExist(Long articleId, Long commentId);
+
+    /**
      * 获取指定文章的评论列表
      *
      * @param dto 文章评论分页查询参数
      * @return 分页评论列表数据
      */
-    PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentPageDto dto);
+    PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto);
 
     /**
      * 发表新评论

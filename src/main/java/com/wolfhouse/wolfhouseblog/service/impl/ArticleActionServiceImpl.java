@@ -29,7 +29,15 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     private final ArticleLikeMapper likeMapper;
 
     @Override
-    public PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentPageDto dto) {
+    public Boolean isArticleCommentExist(Long articleId, Long commentId) {
+        return commentMapper.selectCountByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_COMMENT.ARTICLE_ID.eq(articleId))
+                        .and(ARTICLE_COMMENT.ID.eq(commentId))) > 0;
+    }
+
+    @Override
+    public PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto) {
         var articleId = dto.getArticleId();
         // 文章是否可达
         VerifyTool.ofLoginExist(mediator,
