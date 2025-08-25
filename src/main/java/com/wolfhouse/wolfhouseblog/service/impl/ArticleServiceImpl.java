@@ -7,6 +7,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -22,6 +23,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.Articl
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ComUseTagVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAllBlankVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAnyBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition.PartitionVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
@@ -32,8 +34,10 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +49,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 /**
  * @author linexsong
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
@@ -53,8 +58,15 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private ObjectMapper jsonNullableObjectMapper;
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
-    /** 常用标签验证节点 */
+    /**
+     * 常用标签验证节点
+     */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerArticle(this);
+    }
 
 
     @Override
@@ -77,19 +89,19 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         });
         // 构建查询条件
         wrapper.eq(
-                    Article::getId,
-                    dto.getId()
-                       .orElse(null))
+                   Article::getId,
+                   dto.getId()
+                      .orElse(null))
                // 按标题查询
                .like(
-                    Article::getTitle,
-                    dto.getTitle()
-                       .orElse(null))
+                   Article::getTitle,
+                   dto.getTitle()
+                      .orElse(null))
                // 按作者查询
                .eq(
-                    Article::getAuthorId,
-                    dto.getAuthorId()
-                       .orElse(null));
+                   Article::getAuthorId,
+                   dto.getAuthorId()
+                      .orElse(null));
         // 分区条件
         Long partitionId = dto.getPartitionId()
                               .orElse(null);
@@ -185,16 +197,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                       comUseTagVerifyNode.target(comUseTags)
                                          .allowNull(true),
 
-                       // 不得全为空
-                       new NotAllBlankVerifyNode(
-                            title,
-                            content,
-                            primary,
-                            comUseTags,
-                            dto.getVisibility(),
-                            dto.getPartitionId(),
-                            dto.getTags())
-                            .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
+                      // 不得全为空
+                      new NotAllBlankVerifyNode(
+                          title,
+                          content,
+                          primary,
+                          comUseTags,
+                          dto.getVisibility(),
+                          dto.getPartitionId(),
+                          dto.getTags())
+                          .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)))
                   .doVerify();
 
         // 设置标题、内容
