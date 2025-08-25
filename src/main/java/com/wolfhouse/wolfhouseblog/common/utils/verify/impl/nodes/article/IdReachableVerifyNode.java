@@ -24,6 +24,9 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
 
     @Override
     public boolean verify() {
+        if (t == null) {
+            return false;
+        }
         try {
             Long login = mediator.loginUserOrE();
             return mediator.isArticleReachable(login, t);
