@@ -6,4 +6,5 @@ package com.wolfhouse.wolfhouseblog.common.utils.verify;
 public class VerifyConstant {
     public static final String VERIFY_FAILED = "字段验证未通过";
     public static final String NOT_ALL_BLANK = "字段不得全为空";
+    public static final String NOT_ANY_BLANK = "字段不得为空";
 }
