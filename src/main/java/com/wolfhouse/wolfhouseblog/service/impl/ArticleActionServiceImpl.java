@@ -29,9 +29,19 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     private final ArticleLikeMapper likeMapper;
 
     @Override
-    public List<ArticleCommentVo> getArticleCommentVos(Long articleId) {
-        return List.of();
     public PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentPageDto dto) {
+        var articleId = dto.getArticleId();
+        // 文章是否可达
+        VerifyTool.ofLoginExist(mediator,
+            ArticleVerifyNode.id(mediator)
+                             .target(articleId));
+        // 分页查询
+        return PageResult.of(commentMapper.paginateAs(
+            dto.getPageNumber(),
+            dto.getPageSize(),
+            QueryWrapper.create()
+                        .where(ARTICLE_COMMENT.ARTICLE_ID.eq(articleId)),
+            ArticleCommentVo.class));
     }
 
     @Override
