@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
+/**
+ * @author linexsong
+ */
 @Table("article_comment")
 @Data
 @NoArgsConstructor
@@ -17,4 +22,5 @@ public class ArticleComment {
     private Long articleId;
     private Long replyId;
     private String content;
+    private LocalDateTime commentTime;
 }
