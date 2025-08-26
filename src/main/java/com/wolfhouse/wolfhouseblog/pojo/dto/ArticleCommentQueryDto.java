@@ -12,6 +12,6 @@ import org.openapitools.jackson.nullable.JsonNullable;
 @EqualsAndHashCode(callSuper = false)
 public class ArticleCommentQueryDto extends PageDto {
     private Long articleId;
-    private JsonNullable<Long> userId;
-    private JsonNullable<Long> replyId;
+    private JsonNullable<Long> userId = JsonNullable.undefined();
+    private JsonNullable<Long> replyId = JsonNullable.undefined();
 }
