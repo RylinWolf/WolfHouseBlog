@@ -11,4 +11,5 @@ public class AuthExceptionConstant {
     public static final String ACCESS_DENIED = "访问不被允许";
     public static final String BAD_REQUEST = "请求体验证未通过";
     public static final String NO_PERMISSION = "没有操作权限";
+    public static final String BAD_TOKEN = "无效登录凭证";
 }

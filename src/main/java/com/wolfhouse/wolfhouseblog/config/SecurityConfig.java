@@ -36,7 +36,7 @@ public class SecurityConfig {
                                                    AuthenticationEntryPoint authenticationEntryPoint,
                                                    AccessDeniedHandler deniedHandler,
                                                    JwtFilter jwtFilter)
-         throws Exception {
+        throws Exception {
         http.formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)

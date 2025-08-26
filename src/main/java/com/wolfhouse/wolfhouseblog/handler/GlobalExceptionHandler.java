@@ -98,6 +98,11 @@ public class GlobalExceptionHandler {
                 code = HttpCodeConstant.FAILED;
                 status = HttpStatus.FORBIDDEN.value();
             }
+            case AuthExceptionConstant.BAD_TOKEN -> {
+                code = HttpCodeConstant.BAD_TOKEN;
+                status = HttpStatus.UNAUTHORIZED.value();
+
+            }
             default -> {
                 code = HttpCodeConstant.SERVICE_ERROR;
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value();

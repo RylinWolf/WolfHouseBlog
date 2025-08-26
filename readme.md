@@ -19,7 +19,7 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
 - 数据库：MySQL 8+
 - 缓存：Spring Data Redis
 - 消息队列：RabbitMQ
-- 检索：ElasticSearch Java Client
+- 检索：ElasticSearch Java Client 8.18
 - 工具库：Hutool
 - 接口文档：Knife4j OpenAPI 3
 - 构建工具：Maven
@@ -39,7 +39,7 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
 - 运维能力
     - Redis 缓存
     - RabbitMQ 异步消息
-    - ElasticSearch（可选，按需接入）
+    - ElasticSearch
     - Knife4j 在线文档
 
 ## 开发阶段
@@ -101,7 +101,7 @@ WolfHouseBlog/
    │     ├─ mapper             # SQL映射文件
    │     ├─ static            # 静态资源
    │     ├─ templates         # 模板文件
-   │     └─ sql/schema.sql    # 数据库初始化脚本
+   │     └─ sql              # 数据库初始化脚本
    └─ test
       └─ java                 # 单元测试
 
