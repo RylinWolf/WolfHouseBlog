@@ -25,4 +25,5 @@ public class HttpCodeConstant {
     public static final String USER_NOT_EXIST = "USER_NOT_EXIST";
     public static final String NO_PERMISSION = "NO_PERMISSION";
     public static final String UNSUPPORTED_MEDIA_TYPE = "MEDIA_TYPE_NOT_SUPPORT";
+    public static final String BAD_TOKEN = "BAD_TOKEN";
 }
