@@ -31,6 +31,11 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     private final ArticleFavoriteMapper favoriteMapper;
     private final ArticleLikeMapper likeMapper;
 
+    @PostConstruct
+    private void init() {
+        mediator.registerAction(this);
+    }
+
     @Override
     public Boolean isArticleCommentExist(Long articleId, Long commentId) {
         return commentMapper.selectCountByQuery(

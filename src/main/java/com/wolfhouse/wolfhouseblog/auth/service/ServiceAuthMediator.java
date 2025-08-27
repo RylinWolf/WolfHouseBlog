@@ -1,9 +1,6 @@
 package com.wolfhouse.wolfhouseblog.auth.service;
 
-import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.ArticleService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
-import com.wolfhouse.wolfhouseblog.service.UserService;
+import com.wolfhouse.wolfhouseblog.service.*;
 
 /**
  * @author linexsong
@@ -31,6 +28,8 @@ public interface ServiceAuthMediator {
     void registerUserAuth(UserAuthService userAuthService);
 
     void registerArticle(ArticleService articleService);
+
+    void registerAction(ArticleActionService articleActionService);
 
     /**
      * 检查用户认证信息是否存在
@@ -113,4 +112,6 @@ public interface ServiceAuthMediator {
     Long loginUserOrE() throws Exception;
 
     Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
+
+    Boolean isArticleCommentExist(Long articleId, Long commentId);
 }
