@@ -48,6 +48,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     private final UserAuthService authService;
     private final JwtUtil jwtUtil;
 
+
     @PostConstruct
     private void init() {
         this.mediator.registerUser(this);
@@ -74,15 +75,16 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public UserRegisterVo createUser(UserRegisterDto dto) throws Exception {
         int insert = mapper.insert(
-             User.builder()
-                 .id(dto.getUserId())
-                 .email(dto.getEmail())
-                 .username(dto.getUsername())
-                 // 随机生成账号
-                 .account(generateAccount(
-                      dto.getUsername(),
-                      UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
-                 .build(), true);
+            User.builder()
+                .id(dto.getUserId())
+                .email(dto.getEmail()
+                          .toLowerCase())
+                .username(dto.getUsername())
+                // 随机生成账号
+                .account(generateAccount(
+                    dto.getUsername(),
+                    UserConstant.DEFAULT_ACCOUNT_CODE_LEN))
+                .build(), true);
         // 插入不成功
         if (insert <= 0) {
             return null;
@@ -98,12 +100,12 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
         VerifyTool.of(
-                       UserVerifyNode.id(mediator)
-                                     .target(login),
-                       UserVerifyNode.BIRTH.target(dto.getBirth()),
-                       UserVerifyNode.email(this)
-                                     .target(dto.getEmail())
-                                     .allowNull(false))
+                      UserVerifyNode.id(mediator)
+                                    .target(login),
+                      UserVerifyNode.BIRTH.target(dto.getBirth()),
+                      UserVerifyNode.email(this)
+                                    .target(dto.getEmail())
+                                    .allowNull(false))
                   .doVerify();
 
         User user = BeanUtil.copyProperties(dto, User.class);
@@ -144,21 +146,21 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public List<UserVo> getUserVosByName(String name) throws Exception {
         // 验证登录信息与用户名
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.USERNAME.target(name))
+                      mediator,
+                      UserVerifyNode.USERNAME.target(name))
                   .doVerify();
 
         return BeanUtil.copyList(
-             mapper.selectListByQuery(
-                  QueryWrapper.create()
-                              .where(USER.USERNAME.like(name))), UserVo.class);
+            mapper.selectListByQuery(
+                QueryWrapper.create()
+                            .where(USER.USERNAME.like(name))), UserVo.class);
     }
 
     @Override
     public Boolean hasAccountOrEmail(String s) {
         long count = mapper.selectCountByQuery(
-             new QueryWrapper().eq(User::getAccount, s)
-                               .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
+            new QueryWrapper().eq(User::getAccount, s)
+                              .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
         return count > 0;
 
     }
@@ -168,8 +170,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Long login = ServiceUtil.loginUserOrE();
         Long toUser = dto.getToUser();
         VerifyTool.ofLoginExist(
-                       mediator,
-                       new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
+                      mediator,
+                      new NotEqualsVerifyNode<>(login, toUser).exception(new ServiceException(UserConstant.SUBSCRIBE_FAILED)))
                   .doVerify();
 
         if (mediator.isUserUnaccessible(toUser)) {
@@ -188,9 +190,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     public PageResult<UserBriefVo> getSubscribedUsers(UserSubDto dto) throws Exception {
         Long userId = dto.getFromUser();
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.id(mediator)
-                                     .target(userId))
+                      mediator,
+                      UserVerifyNode.id(mediator)
+                                    .target(userId))
                   .doVerify();
 
         // select * from user where user.id in (select to_user from sub where from_user = #{})
@@ -203,8 +205,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                                    .from(USER)
                                                    .where(USER.ID.in(subsWrapper));
         return PageResult.of(
-             mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
-             UserBriefVo.class);
+            mapper.paginate(dto.getPageNumber(), dto.getPageSize(), getBriefWrapper),
+            UserBriefVo.class);
     }
 
     @Override
@@ -227,9 +229,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public Boolean deleteAccount(Long userId) throws Exception {
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.id(mediator)
-                                     .target(userId))
+                      mediator,
+                      UserVerifyNode.id(mediator)
+                                    .target(userId))
                   .doVerify();
         return authService.deleteAuth(userId);
     }
@@ -237,9 +239,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     @Override
     public void disableAccount(Long userId) throws Exception {
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.id(mediator)
-                                     .target(userId)
+                      mediator,
+                      UserVerifyNode.id(mediator)
+                                    .target(userId)
                                )
                   .doVerify();
         authService.disableAuth(userId);
