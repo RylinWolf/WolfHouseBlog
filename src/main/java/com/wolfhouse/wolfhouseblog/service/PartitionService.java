@@ -62,6 +62,16 @@ public interface PartitionService extends IService<Partition> {
      */
     Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception;
 
+    /**
+     * 检查指定用户是否可以访问指定分区。此方法将验证给定用户ID是否可以访问指定的分区，
+     * 包括直接拥有的分区以及通过继承关系可以访问的父分区。
+     *
+     * @param userId      用户ID，要检查权限的用户标识
+     * @param partitionId 分区ID，要检查的分区标识
+     * @return true表示用户可以访问该分区，false表示用户不能访问该分区
+     * @throws Exception 当验证过程中发生错误（如数据库访问失败）、
+     *                   用户ID无效或分区ID不存在时抛出异常
+     */
     Boolean isUserPartitionReachable(Long userId, Long partitionId) throws Exception;
 
     /**
