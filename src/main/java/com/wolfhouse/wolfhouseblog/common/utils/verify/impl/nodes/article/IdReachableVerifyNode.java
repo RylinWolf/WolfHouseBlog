@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article;
 
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 
@@ -13,7 +14,7 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
     public IdReachableVerifyNode(ServiceAuthMediator mediator) {
         super();
         this.mediator = mediator;
-        this.customException = ServiceException.notAllowed();
+        this.customException = new ServiceException(ArticleConstant.ACCESS_DENIED);
     }
 
     @Override
