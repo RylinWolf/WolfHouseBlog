@@ -2,10 +2,7 @@ package com.wolfhouse.wolfhouseblog.handler;
 
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.*;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
@@ -78,7 +75,8 @@ public class GlobalExceptionHandler {
                  TagConstant.NOT_EXIST,
                  TagConstant.ADD_FAILED,
                  UserConstant.NOT_SUBSCRIBED,
-                 UserConstant.USER_ALREADY_SUBSCRIBED -> {
+                 UserConstant.USER_ALREADY_SUBSCRIBED,
+                 ArticleConstant.ACCESS_DENIED -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }
