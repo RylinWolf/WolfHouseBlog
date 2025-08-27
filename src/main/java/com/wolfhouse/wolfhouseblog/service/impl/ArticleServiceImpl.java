@@ -45,7 +45,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
-
+ 
 /**
  * @author linexsong
  */
@@ -54,14 +54,14 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 @RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
 
-    @Resource(name = "jsonNullableObjectMapper")
-    private ObjectMapper jsonNullableObjectMapper;
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
     /**
      * 常用标签验证节点
      */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper jsonNullableObjectMapper;
 
     @PostConstruct
     private void init() {

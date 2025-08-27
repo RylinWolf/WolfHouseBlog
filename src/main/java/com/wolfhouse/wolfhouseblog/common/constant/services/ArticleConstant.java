@@ -10,6 +10,7 @@ public class ArticleConstant {
     public static final QueryColumn[] BRIEF_COLUMNS = {
         ArticleTableDef.ARTICLE.ID,
         ArticleTableDef.ARTICLE.TITLE,
+        ArticleTableDef.ARTICLE.VISIBILITY,
         ArticleTableDef.ARTICLE.PRIMARY,
         ArticleTableDef.ARTICLE.AUTHOR_ID,
         ArticleTableDef.ARTICLE.POST_TIME};

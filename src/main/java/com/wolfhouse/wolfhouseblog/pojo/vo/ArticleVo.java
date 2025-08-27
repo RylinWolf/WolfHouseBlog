@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.pojo.vo;
 
+import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -19,4 +20,5 @@ public class ArticleVo {
     private Long partitionId;
     private List<String> tags;
     private List<Long> comUseTags;
+    private VisibilityEnum visibility;
 }

@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.pojo.vo;
 
+import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -16,4 +17,5 @@ public class ArticleBriefVo {
     private String primary;
     private Long authorId;
     private LocalDateTime postTime;
+    private VisibilityEnum visibility;
 }
