@@ -26,7 +26,9 @@ public interface ArticleActionService {
      * @param dto 文章评论分页查询参数
      * @return 分页评论列表数据
      */
-    PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto);
+    PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto) throws Exception;
+
+    PageResult<ArticleCommentVo> getArticleCommentVosByArticle(Long articleId) throws Exception;
 
     /**
      * 发表新评论
@@ -34,7 +36,7 @@ public interface ArticleActionService {
      * @param dto 评论内容数据传输对象
      * @return 更新后的评论分页列表
      */
-    PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto);
+    PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) throws Exception;
 
     /**
      * 删除指定评论

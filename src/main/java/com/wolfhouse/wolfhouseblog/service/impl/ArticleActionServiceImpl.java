@@ -2,21 +2,26 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
-import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
-import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
-import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleLikeMapper;
+import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleComment;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleCommentTableDef.ARTICLE_COMMENT;
 
@@ -45,28 +50,42 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto) {
+    public PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto) throws Exception {
         var articleId = dto.getArticleId();
-        // 文章是否可达
-        VerifyTool.ofLoginExist(mediator,
-            ArticleVerifyNode.id(mediator)
-                             .target(articleId));
-
+        List<VerifyNode<?>> nodes = new ArrayList<>();
         // 查询条件构建
         QueryWrapper wrapper = QueryWrapper.create()
                                            .where(ARTICLE_COMMENT.ARTICLE_ID.eq(articleId));
+
+
+        // 文章是否可达
+        nodes.add(ArticleVerifyNode.id(mediator)
+                                   .target(articleId));
+
+        // 用户是否存在
+        dto.getUserId()
+           .ifPresent(id -> {
+               nodes.add(UserVerifyNode.id(mediator)
+                                       .target(id)
+                                       .allowNull(true));
+               // 若验证成功，则会进入 wrapper
+               wrapper.and(ARTICLE_COMMENT.USER_ID.eq(id, id != null));
+           });
+
+
         // 父评论 ID
         dto.getReplyId()
            .ifPresent(rid -> {
-               if (BeanUtil.isBlank(rid)) {
-                   return;
-               }
-               if (!isArticleCommentExist(articleId, rid)) {
-                   throw new ServiceException(ArticleConstant.COMMENT_NOT_EXIST);
-               }
-               wrapper.and(ARTICLE_COMMENT.REPLY_ID.eq(rid));
+               nodes.add(ArticleVerifyNode.commentId(mediator)
+                                          .articleId(articleId)
+                                          .target(rid)
+                                          .allowNull(true));
+               wrapper.and(ARTICLE_COMMENT.REPLY_ID.eq(rid, rid != null));
            });
-        
+
+        // 执行验证
+        VerifyTool.ofLoginExist(mediator, nodes.toArray(new VerifyNode<?>[0]))
+                  .doVerify();
         // 分页查询
         return PageResult.of(commentMapper.paginateAs(
             dto.getPageNumber(),
@@ -76,8 +95,13 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) {
-        return null;
+    public PageResult<ArticleCommentVo> getArticleCommentVosByArticle(Long articleId) throws Exception {
+        ArticleCommentQueryDto dto = new ArticleCommentQueryDto();
+        dto.setArticleId(articleId);
+        return getArticleCommentVos(dto);
+    }
+
+    @Override
     public PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
         Long articleId = dto.getArticleId();
