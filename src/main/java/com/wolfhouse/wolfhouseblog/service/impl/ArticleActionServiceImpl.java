@@ -78,6 +78,31 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     @Override
     public PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) {
         return null;
+    public PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) throws Exception {
+        Long login = mediator.loginUserOrE();
+        Long articleId = dto.getArticleId();
+        String content = dto.getContent();
+        VerifyTool.of(
+                      // 文章 ID 验证
+                      ArticleVerifyNode.id(mediator)
+                                       .target(dto.getArticleId()),
+                      // 父评论 ID 验证
+                      ArticleVerifyNode.commentId(mediator)
+                                       .articleId(articleId)
+                                       .target(dto.getReplyId())
+                                       .allowNull(true),
+                      // 评论信息验证
+                      new StringVerifyNode(1L, 2000L, false).target(content))
+                  .doVerify();
+
+        commentMapper.insert(ArticleComment.builder()
+                                           .userId(login)
+                                           .articleId(articleId)
+                                           .content(content)
+                                           .replyId(dto.getReplyId())
+                                           .build(), true);
+
+        return getArticleCommentVosByArticle(articleId);
     }
 
     @Override

@@ -5,10 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
@@ -74,7 +71,13 @@ public class ArticleController {
 
     @Operation(summary = "获取评论")
     @PostMapping(value = "/comment", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
-    public PageResult<ArticleCommentVo> getComments(@RequestBody ArticleCommentQueryDto dto) {
+    public PageResult<ArticleCommentVo> getComments(@RequestBody ArticleCommentQueryDto dto) throws Exception {
         return actionService.getArticleCommentVos(dto);
+    }
+
+    @Operation(summary = "发布评论")
+    @PostMapping(value = "/comment/post")
+    public PageResult<ArticleCommentVo> postComment(@RequestBody ArticleCommentDto dto) throws Exception {
+        return actionService.postComment(dto);
     }
 }
