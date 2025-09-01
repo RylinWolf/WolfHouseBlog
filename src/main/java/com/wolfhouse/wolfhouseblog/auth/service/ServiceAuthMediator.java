@@ -121,5 +121,5 @@ public interface ServiceAuthMediator {
 
     Boolean isFavoritesTitleExist(String title) throws Exception;
 
-    Boolean isFavoritesIdOwn(Long id);
+    Boolean isFavoritesIdOwn(Long id) throws Exception;
 }

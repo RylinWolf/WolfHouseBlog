@@ -21,6 +21,10 @@ public class FavoritesIdVerifyNode extends BaseVerifyNode<Long> {
         if (t == null) {
             return allowNull;
         }
-        return mediator.isFavoritesIdOwn(t);
+        try {
+            return mediator.isFavoritesIdOwn(t);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

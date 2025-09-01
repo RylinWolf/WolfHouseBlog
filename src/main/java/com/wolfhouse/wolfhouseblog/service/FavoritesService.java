@@ -46,5 +46,5 @@ public interface FavoritesService extends IService<Favorites> {
      */
     Boolean isFavoritesTitleExist(String title) throws Exception;
 
-    Boolean isFavoritesIdOwn(Long favoritesId);
+    Boolean isFavoritesIdOwn(Long favoritesId) throws Exception;
 }

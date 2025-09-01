@@ -93,12 +93,15 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     public Boolean isFavoritesTitleExist(String title) throws Exception {
         Long login = mediator.loginUserOrE();
         return exists(QueryWrapper.create()
-                                  .where(FAVORITES.TITLE.eq(title))
-                                  .and(FAVORITES.USER_ID.eq(login)));
+                                  .where(FAVORITES.USER_ID.eq(login))
+                                  .and(FAVORITES.TITLE.eq(title)));
     }
 
     @Override
-    public Boolean isFavoritesIdOwn(Long favoritesId) {
-        return null;
+    public Boolean isFavoritesIdOwn(Long favoritesId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        return exists(QueryWrapper.create()
+                                  .where(FAVORITES.USER_ID.eq(login))
+                                  .and(FAVORITES.ID.eq(favoritesId)));
     }
 }

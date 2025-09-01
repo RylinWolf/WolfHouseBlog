@@ -121,7 +121,7 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
-    public Boolean isFavoritesIdOwn(Long id) {
+    public Boolean isFavoritesIdOwn(Long id) throws Exception {
         return favoritesService.isFavoritesIdOwn(id);
     }
 }
