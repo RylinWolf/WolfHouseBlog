@@ -74,8 +74,19 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public List<FavoritesVo> deleteFavorites(Long articleId) {
-        return List.of();
+    public List<FavoritesVo> deleteFavorites(Long favoritesId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        // 验证是否拥有指定收藏夹
+        VerifyTool.of(
+                      FavoritesVerifyNode.id(mediator)
+                                         .target(favoritesId))
+                  .doVerify();
+        int i = mapper.deleteById(favoritesId);
+        if (i == 1) {
+            return getFavoritesList(login);
+        }
+        log.error("删除收藏夹失败: {}, {}", login, favoritesId);
+        throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
     }
 
     @Override

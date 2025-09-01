@@ -36,7 +36,7 @@ public interface FavoritesService extends IService<Favorites> {
      * @param favoritesId 要删除的收藏夹 ID
      * @return 更新后的收藏夹列表
      */
-    List<FavoritesVo> deleteFavorites(Long favoritesId);
+    List<FavoritesVo> deleteFavorites(Long favoritesId) throws Exception;
 
     /**
      * 检查指定标题的收藏夹是否已存在
