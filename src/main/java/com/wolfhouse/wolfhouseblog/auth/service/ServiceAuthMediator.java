@@ -114,4 +114,6 @@ public interface ServiceAuthMediator {
     Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
 
     Boolean isArticleCommentExist(Long articleId, Long commentId);
+
+    Boolean isArticleOwner(Long articleId, Long login);
 }

@@ -52,6 +52,15 @@ public class ArticleController {
             articleService.post(dto));
     }
 
+    @Operation(summary = "暂存")
+    @PostMapping("/draft")
+    public HttpResult<ArticleVo> draft(@RequestBody ArticleDraftDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.DRAFT_FAILED,
+            articleService.draft(dto));
+    }
+
     @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {

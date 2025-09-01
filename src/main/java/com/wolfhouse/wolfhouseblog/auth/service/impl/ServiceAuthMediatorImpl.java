@@ -104,4 +104,8 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
         return actionService.isArticleCommentExist(articleId, commentId);
     }
 
+    @Override
+    public Boolean isArticleOwner(Long articleId, Long login) {
+        return articleService.isArticleOwner(articleId, login);
+    }
 }

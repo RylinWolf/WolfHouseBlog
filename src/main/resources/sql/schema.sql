@@ -81,6 +81,15 @@ CREATE TABLE IF NOT EXISTS article
     com_use_tags JSON COMMENT '常用文章标签，以 :\\ 分隔'
 ) AUTO_INCREMENT 100000000 COMMENT '文章表';
 
+CREATE TABLE IF NOT EXISTS `article_draft`
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '暂存 ID',
+    article_id BIGINT NOT NULL COMMENT '文章 ID',
+    author_id  BIGINT NOT NULL COMMENT '用户 ID',
+    UNIQUE (author_id, article_id) COMMENT '用户-文章 唯一键'
+) AUTO_INCREMENT 100000000 COMMENT '暂存文章表';
+
+
 DROP TABLE IF EXISTS `partition`;
 
 CREATE TABLE IF NOT EXISTS `partition`

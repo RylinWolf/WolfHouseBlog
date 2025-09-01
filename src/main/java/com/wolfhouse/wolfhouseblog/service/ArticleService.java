@@ -5,6 +5,7 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -72,6 +73,35 @@ public interface ArticleService extends IService<Article> {
     ArticleVo post(@Valid ArticleDto dto) throws Exception;
 
     /**
+     * 保存文章草稿
+     * 将当前编辑的文章内容保存为草稿状态
+     *
+     * @param dto 文章草稿数据传输对象
+     * @return 保存后的文章草稿视图对象
+     * @throws Exception 当保存草稿操作失败时抛出异常
+     */
+    ArticleVo draft(ArticleDraftDto dto) throws Exception;
+
+    /**
+     * 获取当前用户的文章草稿
+     * 读取用户最近保存的文章草稿内容
+     *
+     * @return 文章草稿视图对象
+     * @throws Exception 当获取草稿失败时抛出异常
+     */
+    ArticleVo getDraft() throws Exception;
+
+    /**
+     * 删除当前用户的文章草稿
+     * 清除用户最近保存的文章草稿
+     *
+     * @return 删除操作的执行结果，true表示成功，false表示失败
+     * @throws Exception 当删除草稿操作失败时抛出异常
+     */
+    Boolean unDraft() throws Exception;
+
+
+    /**
      * 更新文章信息
      * 修改现有文章的内容或元数据
      *
@@ -101,4 +131,14 @@ public interface ArticleService extends IService<Article> {
      * @throws Exception 当检查过程发生错误时抛出异常
      */
     Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
+
+    /**
+     * 检查用户是否是文章的所有者
+     * 验证指定用户是否拥有文章的所有权
+     *
+     * @param articleId 文章ID
+     * @param login     用户登录ID
+     * @return 是否为文章所有者，true表示是，false表示否
+     */
+    Boolean isArticleOwner(Long articleId, Long login);
 }

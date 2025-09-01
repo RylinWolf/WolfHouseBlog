@@ -21,12 +21,16 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ComUseTagVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdOwnVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAnyBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition.PartitionVerifyNode;
+import com.wolfhouse.wolfhouseblog.mapper.ArticleDraftMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleDraft;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -42,10 +46,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef.ARTICLE_DRAFT;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
- 
+
 /**
  * @author linexsong
  */
@@ -53,15 +59,17 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 @Service
 @RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
+    private final ArticleDraftMapper draftMapper;
 
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
+
     /**
      * 常用标签验证节点
      */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
     @Resource(name = "jsonNullableObjectMapper")
-    private ObjectMapper jsonNullableObjectMapper;
+    private final ObjectMapper objectMapper;
 
     @PostConstruct
     private void init() {
@@ -164,7 +172,75 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         article.setAuthorId(login);
 
         mapper.insertWithPkBack(article);
+        // 取消暂存
+        unDraft();
+
         return getVoById(article.getId());
+    }
+
+    @Override
+    public ArticleVo getDraft() throws Exception {
+        Long login = mediator.loginUserOrE();
+
+        // 暂存文章
+        ArticleDraft articleDraft = draftMapper.selectOneByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_DRAFT
+                            .AUTHOR_ID
+                            .eq(login)));
+        if (BeanUtil.isBlank(articleDraft)) {
+            return null;
+        }
+        Long articleId = articleDraft.getArticleId();
+        return getVoById(articleId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ArticleVo draft(ArticleDraftDto article) throws Exception {
+        // 0. 是否已有暂存
+        ArticleVo draft = getDraft();
+
+        // 如果已暂存且要暂存的文章 ID 匹配，则更新 并结束
+        if (!BeanUtil.isBlank(draft)) {
+            Long draftId = draft.getId();
+            Long id = article.getId();
+            // 已暂存的文章 ID 与要暂存的文章 ID 不匹配
+            if (!Objects.equals(draftId, id)) {
+                throw new ServiceException(ArticleConstant.DRAFT_EXIST);
+            }
+            // 冗余验证，登录用户为文章作者，则更新
+            if (!new IdOwnVerifyNode(mediator).target(article.getId())
+                                              .verify()) {
+                return update(objectMapper.convertValue(article, ArticleUpdateDto.class));
+            }
+            // 非作者
+            log.error("暂存文章 ID 匹配，但作者验证未通过。已有暂存：{}, 更新暂存： {}", draft, article);
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+        }
+
+        // 1. 发布文章，设置可见性为 私密
+        article.setVisibility(VisibilityEnum.PRIVATE);
+        ArticleVo vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
+
+        // 2. 将文章 ID 存储到文章暂存中
+        int i = draftMapper.insert(new ArticleDraft(null, vo.getAuthorId(), vo.getId()));
+        if (i != 1) {
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+        }
+        return vo;
+    }
+
+    @Override
+    public Boolean unDraft() throws Exception {
+        ArticleVo draft = getDraft();
+        if (BeanUtil.isBlank(draft)) {
+            return false;
+        }
+
+        Long articleId = draft.getId();
+        return draftMapper.deleteByQuery(QueryWrapper.create()
+                                                     .where(ARTICLE_DRAFT.ARTICLE_ID.eq(articleId))) > 0;
     }
 
     @Override
@@ -178,7 +254,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         VerifyTool.ofLoginExist(
                       mediator,
                       // 文章 ID
-                      ArticleVerifyNode.id(mediator)
+                      ArticleVerifyNode.idOwn(mediator)
                                        .target(dto.getId()),
                       // 标题
                       ArticleVerifyNode.title(title, true)
@@ -239,11 +315,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean deleteById(Long id) throws Exception {
-        VerifyTool.ofLogin(ArticleVerifyNode.id(mediator)
+        VerifyTool.ofLogin(ArticleVerifyNode.idReachable(mediator)
                                             .target(id))
                   .doVerify();
-
-        return mapper.deleteById(id) == 1;
+        // 取消暂存
+        int i = mapper.deleteById(id);
+        if (i != 1) {
+            return false;
+        }
+        unDraft();
+        return true;
     }
 
     @Override
@@ -264,5 +345,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         }
         log.error("检查文章是否可达时出现问题：{}, {}", userId, articleId);
         throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+    }
+
+    @Override
+    public Boolean isArticleOwner(Long articleId, Long login) {
+        return mapper.selectOneById(articleId)
+                     .getAuthorId()
+                     .equals(login);
     }
 }
