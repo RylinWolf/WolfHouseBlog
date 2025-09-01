@@ -74,7 +74,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public List<FavoritesVo> deleteFavorites(FavoritesDto dto) {
+    public List<FavoritesVo> deleteFavorites(Long articleId) {
         return List.of();
     }
 

@@ -33,10 +33,10 @@ public interface FavoritesService extends IService<Favorites> {
     /**
      * 删除指定的收藏夹
      *
-     * @param dto 收藏夹数据传输对象，包含要删除的收藏夹信息
+     * @param favoritesId 要删除的收藏夹 ID
      * @return 更新后的收藏夹列表
      */
-    List<FavoritesVo> deleteFavorites(FavoritesDto dto);
+    List<FavoritesVo> deleteFavorites(Long favoritesId);
 
     /**
      * 检查指定标题的收藏夹是否已存在
