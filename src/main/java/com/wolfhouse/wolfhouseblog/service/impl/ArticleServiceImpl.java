@@ -318,8 +318,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         VerifyTool.ofLogin(ArticleVerifyNode.idReachable(mediator)
                                             .target(id))
                   .doVerify();
-
-        return mapper.deleteById(id) > 0;
+        // 取消暂存
+        int i = mapper.deleteById(id);
+        if (i != 1) {
+            return false;
+        }
+        unDraft();
+        return true;
     }
 
     @Override
