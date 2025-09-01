@@ -38,4 +38,12 @@ public interface FavoritesService extends IService<Favorites> {
      */
     List<FavoritesVo> deleteFavorites(FavoritesDto dto);
 
+    /**
+     * 检查指定标题的收藏夹是否已存在
+     *
+     * @param title 收藏夹标题
+     * @return true表示已存在，false表示不存在
+     */
+    Boolean isFavoritesExist(String title);
+
 }

@@ -4,6 +4,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
 import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesDto;
@@ -48,5 +49,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     @Override
     public List<FavoritesVo> deleteFavorites(FavoritesDto dto) {
         return List.of();
+    }
+
+    @Override
+    public Boolean isFavoritesExist(String title) {
+        return null;
     }
 }
