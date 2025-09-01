@@ -106,6 +106,16 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
+    public FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception {
+        return null;
+    }
+
+    @Override
+    public FavoritesVo updateFavorites(FavoritesDto dto) throws Exception {
+        return null;
+    }
+
+    @Override
     public Boolean isFavoritesTitleExist(String title) throws Exception {
         Long login = mediator.loginUserOrE();
         return exists(QueryWrapper.create()

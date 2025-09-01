@@ -44,6 +44,10 @@ public interface FavoritesService extends IService<Favorites> {
      */
     List<FavoritesVo> deleteFavorites(Long favoritesId) throws Exception;
 
+    FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception;
+
+    FavoritesVo updateFavorites(FavoritesDto dto) throws Exception;
+
     /**
      * 检查当前登录用户是否已存在指定标题的收藏夹。
      * 用于创建收藏夹时的标题重复检查。
