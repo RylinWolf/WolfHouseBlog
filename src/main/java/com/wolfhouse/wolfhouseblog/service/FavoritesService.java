@@ -28,7 +28,7 @@ public interface FavoritesService extends IService<Favorites> {
      * @param dto 收藏夹数据传输对象，包含用户ID和收藏夹标题
      * @return 更新后的收藏夹列表
      */
-    List<FavoritesVo> addFavorites(FavoritesDto dto);
+    List<FavoritesVo> addFavorites(FavoritesDto dto) throws Exception;
 
     /**
      * 删除指定的收藏夹
@@ -44,6 +44,6 @@ public interface FavoritesService extends IService<Favorites> {
      * @param title 收藏夹标题
      * @return true表示已存在，false表示不存在
      */
-    Boolean isFavoritesExist(String title);
+    Boolean isFavoritesTitleExist(String title);
 
 }
