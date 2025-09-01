@@ -140,11 +140,12 @@ CREATE TABLE IF NOT EXISTS article_like
     like_date  DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '点赞时间'
 ) AUTO_INCREMENT 10000000 COMMENT '文章点赞表';
 
+DROP TABLE IF EXISTS article_favorite;
 
 CREATE TABLE IF NOT EXISTS article_favorite
 (
     id            BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏 ID',
-    user_id       BIGINT NOT NULL COMMENT '用户 ID',
+    favorite_id   BIGINT NOT NULL COMMENT '收藏夹 ID',
     article_id    BIGINT NOT NULL COMMENT '文章 ID',
     favorite_date DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '收藏时间'
 ) AUTO_INCREMENT 10000000 COMMENT '文章收藏表';
