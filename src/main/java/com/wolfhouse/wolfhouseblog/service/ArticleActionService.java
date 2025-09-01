@@ -14,27 +14,36 @@ public interface ArticleActionService {
     /**
      * 检查指定文章的评论是否存在
      *
-     * @param articleId 文章ID
-     * @param commentId 评论ID
+     * @param articleId 目标文章ID
+     * @param commentId 目标评论ID
      * @return true表示评论存在，false表示评论不存在
      */
     Boolean isArticleCommentExist(Long articleId, Long commentId);
 
     /**
-     * 获取指定文章的评论列表
+     * 获取指定文章的评论列表，支持分页查询
      *
-     * @param dto 文章评论分页查询参数
-     * @return 分页评论列表数据
+     * @param dto 文章评论分页查询参数对象
+     * @return 评论列表分页数据
+     * @throws Exception 获取评论失败时抛出异常
      */
     PageResult<ArticleCommentVo> getArticleCommentVos(ArticleCommentQueryDto dto) throws Exception;
 
+    /**
+     * 获取指定文章的所有评论列表
+     *
+     * @param articleId 文章ID
+     * @return 评论列表分页数据
+     * @throws Exception 获取评论失败时抛出异常
+     */
     PageResult<ArticleCommentVo> getArticleCommentVosByArticle(Long articleId) throws Exception;
 
     /**
-     * 发表新评论
+     * 发表新评论到指定文章
      *
      * @param dto 评论内容数据传输对象
      * @return 更新后的评论分页列表
+     * @throws Exception 发表评论失败时抛出异常
      */
     PageResult<ArticleCommentVo> postComment(ArticleCommentDto dto) throws Exception;
 

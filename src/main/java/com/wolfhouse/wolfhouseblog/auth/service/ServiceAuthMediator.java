@@ -27,10 +27,25 @@ public interface ServiceAuthMediator {
      */
     void registerUserAuth(UserAuthService userAuthService);
 
+    /**
+     * 注册文章服务实现
+     *
+     * @param articleService 要注册的文章服务
+     */
     void registerArticle(ArticleService articleService);
 
+    /**
+     * 注册文章操作服务实现
+     *
+     * @param articleActionService 要注册的文章操作服务
+     */
     void registerAction(ArticleActionService articleActionService);
 
+    /**
+     * 注册收藏夹服务实现
+     *
+     * @param favoritesService 要注册的收藏夹服务
+     */
     void registerFavorite(FavoritesService favoritesService);
 
     /**
@@ -110,16 +125,53 @@ public interface ServiceAuthMediator {
      * 获取当前登录用户ID，如果未登录则抛出异常
      *
      * @return 当前登录用户ID
+     * @throws Exception 未登录或登录用户不可达
      */
     Long loginUserOrE() throws Exception;
 
+    /**
+     * 检查指定用户是否可以访问文章
+     *
+     * @param userId    用户ID
+     * @param articleId 文章ID
+     * @return 如果可以访问返回true，否则返回false
+     * @throws Exception 未登录异常
+     */
     Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
 
+    /**
+     * 检查文章评论是否存在
+     *
+     * @param articleId 文章ID
+     * @param commentId 评论ID
+     * @return 如果评论存在返回true，否则返回false
+     */
     Boolean isArticleCommentExist(Long articleId, Long commentId);
 
+    /**
+     * 检查用户是否为文章作者
+     *
+     * @param articleId 文章ID
+     * @param login     用户ID
+     * @return 如果是作者返回true，否则返回false
+     */
     Boolean isArticleOwner(Long articleId, Long login);
 
+    /**
+     * 检查收藏夹标题是否已存在
+     *
+     * @param title 收藏夹标题
+     * @return 如果已存在返回true，否则返回false
+     * @throws Exception 未登录异常
+     */
     Boolean isFavoritesTitleExist(String title) throws Exception;
 
+    /**
+     * 检查当前登录用户是否拥有指定收藏夹
+     *
+     * @param id 收藏夹ID
+     * @return 如果拥有返回true，否则返回false
+     * @throws Exception 未登录异常
+     */
     Boolean isFavoritesIdOwn(Long id) throws Exception;
 }
