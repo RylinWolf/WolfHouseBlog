@@ -18,6 +18,10 @@ public class FavoritesTitleVerifyNode extends BaseVerifyNode<String> {
         if (t == null) {
             return allowNull;
         }
-        return mediator.isFavoritesTitleExist(t);
+        try {
+            return mediator.isFavoritesTitleExist(t);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

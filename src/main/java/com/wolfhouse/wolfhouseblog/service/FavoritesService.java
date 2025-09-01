@@ -44,7 +44,7 @@ public interface FavoritesService extends IService<Favorites> {
      * @param title 收藏夹标题
      * @return true表示已存在，false表示不存在
      */
-    Boolean isFavoritesTitleExist(String title);
+    Boolean isFavoritesTitleExist(String title) throws Exception;
 
     Boolean isFavoritesIdOwn(Long favoritesId);
 }

@@ -119,7 +119,7 @@ public interface ServiceAuthMediator {
 
     Boolean isArticleOwner(Long articleId, Long login);
 
-    Boolean isFavoritesTitleExist(String title);
+    Boolean isFavoritesTitleExist(String title) throws Exception;
 
     Boolean isFavoritesIdOwn(Long id);
 }

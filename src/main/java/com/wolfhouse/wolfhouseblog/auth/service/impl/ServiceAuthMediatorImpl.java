@@ -116,7 +116,7 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
-    public Boolean isFavoritesTitleExist(String title) {
+    public Boolean isFavoritesTitleExist(String title) throws Exception {
         return favoritesService.isFavoritesTitleExist(title);
     }
 
