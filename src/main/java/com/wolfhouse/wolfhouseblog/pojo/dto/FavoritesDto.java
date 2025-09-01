@@ -8,7 +8,6 @@ import lombok.Data;
  */
 @Data
 public class FavoritesDto {
-    private Long userId;
     private String title;
     private VisibilityEnum visibility;
 }
