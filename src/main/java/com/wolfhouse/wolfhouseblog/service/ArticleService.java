@@ -71,6 +71,10 @@ public interface ArticleService extends IService<Article> {
      */
     ArticleVo post(@Valid ArticleDto dto) throws Exception;
 
+    ArticleVo draft(Article dto) throws Exception;
+
+    Boolean unDraft(Long articleId) throws Exception;
+
     /**
      * 更新文章信息
      * 修改现有文章的内容或元数据

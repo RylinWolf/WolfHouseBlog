@@ -21,12 +21,16 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyChain;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ComUseTagVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdOwnVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.IdReachableVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAllBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAnyBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition.PartitionVerifyNode;
+import com.wolfhouse.wolfhouseblog.mapper.ArticleDraftMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleDraft;
+import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -44,8 +48,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef.ARTICLE_DRAFT;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
- 
+
 /**
  * @author linexsong
  */
@@ -53,15 +58,17 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 @Service
 @RequiredArgsConstructor
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
+    private final ArticleDraftMapper draftMapper;
 
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
+
     /**
      * 常用标签验证节点
      */
     private final ComUseTagVerifyNode comUseTagVerifyNode;
     @Resource(name = "jsonNullableObjectMapper")
-    private ObjectMapper jsonNullableObjectMapper;
+    private final ObjectMapper objectMapper;
 
     @PostConstruct
     private void init() {
@@ -164,7 +171,72 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         article.setAuthorId(login);
 
         mapper.insertWithPkBack(article);
+        // 取消暂存
+        unDraft(article.getId());
+
         return getVoById(article.getId());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ArticleVo draft(Article article) throws Exception {
+        // 0. 检查是否已暂存，如果已暂存，则更新 并结束
+        if (!BeanUtil.isBlank(article.getId())) {
+            long i;
+            if ((i = (draftMapper.selectCountByQuery(QueryWrapper.create()
+                                                                 .where(ArticleDraftTableDef.ARTICLE_DRAFT.ARTICLE_ID.eq(
+                                                                     article.getId()))))) != 1) {
+                if (i == 0) {
+                    // 传了 ID 但该 ID 未暂存
+                    throw new ServiceException(ArticleConstant.NOT_DRAFTED);
+                }
+                if (i > 0) {
+                    // 多个相同文章的暂存
+                    log.error("查询暂存：{} 有多个匹配对象？{}", article, i);
+                    throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+                }
+                log.error("查询暂存{}, 结果为负数？{}", article, i);
+                throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+
+            }
+            // 0.1 有 ID 且 ID 可达，则更新
+            if (!new IdOwnVerifyNode(mediator).target(article.getId())
+                                              .verify()) {
+                return update(objectMapper.convertValue(article, ArticleUpdateDto.class));
+            }
+            // ID 不可达
+            article.setId(null);
+        }
+
+        // 1. 发布文章，设置可见性为 私密
+        article.setVisibility(VisibilityEnum.PRIVATE);
+        ArticleVo vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
+
+        // 2. 将文章 ID 存储到文章暂存中
+        int i = draftMapper.insert(new ArticleDraft(null, vo.getAuthorId(), vo.getId()));
+        if (i != 1) {
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+        }
+        return vo;
+    }
+
+    @Override
+    public Boolean unDraft(Long articleId) throws Exception {
+        if (draftMapper.selectCountByQuery(QueryWrapper.create()
+                                                       .where(ArticleDraftTableDef
+                                                           .ARTICLE_DRAFT
+                                                           .ARTICLE_ID
+                                                           .eq(articleId))) == 0) {
+            return false;
+        }
+
+        // 文章 ID 是否可编辑
+        new IdOwnVerifyNode(mediator).target(articleId)
+                                     .verifyWithCustomE();
+
+
+        return draftMapper.deleteByQuery(QueryWrapper.create()
+                                                     .where(ARTICLE_DRAFT.ARTICLE_ID.eq(articleId))) > 0;
     }
 
     @Override
@@ -268,6 +340,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean isArticleOwner(Long articleId, Long login) {
-        return mapper.selectOneById(articleId).getAuthorId().equals(login);
+        return mapper.selectOneById(articleId)
+                     .getAuthorId()
+                     .equals(login);
     }
 }
