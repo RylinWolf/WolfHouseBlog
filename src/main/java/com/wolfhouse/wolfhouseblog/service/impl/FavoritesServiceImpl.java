@@ -82,4 +82,9 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     public Boolean isFavoritesTitleExist(String title) {
         return null;
     }
+
+    @Override
+    public Boolean isFavoritesIdOwn(Long favoritesId) {
+        return null;
+    }
 }
