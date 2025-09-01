@@ -178,7 +178,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         VerifyTool.ofLoginExist(
                       mediator,
                       // 文章 ID
-                      ArticleVerifyNode.id(mediator)
+                      ArticleVerifyNode.idReachable(mediator)
                                        .target(dto.getId()),
                       // 标题
                       ArticleVerifyNode.title(title, true)
@@ -239,7 +239,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean deleteById(Long id) throws Exception {
-        VerifyTool.ofLogin(ArticleVerifyNode.id(mediator)
+        VerifyTool.ofLogin(ArticleVerifyNode.idReachable(mediator)
                                             .target(id))
                   .doVerify();
 

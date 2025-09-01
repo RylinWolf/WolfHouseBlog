@@ -59,7 +59,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
 
 
         // 文章是否可达
-        nodes.add(ArticleVerifyNode.id(mediator)
+        nodes.add(ArticleVerifyNode.idReachable(mediator)
                                    .target(articleId));
 
         // 用户是否存在
@@ -108,7 +108,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         String content = dto.getContent();
         VerifyTool.of(
                       // 文章 ID 验证
-                      ArticleVerifyNode.id(mediator)
+                      ArticleVerifyNode.idReachable(mediator)
                                        .target(dto.getArticleId()),
                       // 父评论 ID 验证
                       ArticleVerifyNode.commentId(mediator)
