@@ -119,4 +119,9 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     public Boolean isFavoritesTitleExist(String title) {
         return favoritesService.isFavoritesTitleExist(title);
     }
+
+    @Override
+    public Boolean isFavoritesIdOwn(Long id) {
+        return favoritesService.isFavoritesIdOwn(id);
+    }
 }

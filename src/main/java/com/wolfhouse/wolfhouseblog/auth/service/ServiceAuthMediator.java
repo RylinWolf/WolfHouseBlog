@@ -120,4 +120,6 @@ public interface ServiceAuthMediator {
     Boolean isArticleOwner(Long articleId, Long login);
 
     Boolean isFavoritesTitleExist(String title);
+
+    Boolean isFavoritesIdOwn(Long id);
 }
