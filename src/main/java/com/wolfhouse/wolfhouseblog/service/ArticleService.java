@@ -5,6 +5,7 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -71,7 +72,9 @@ public interface ArticleService extends IService<Article> {
      */
     ArticleVo post(@Valid ArticleDto dto) throws Exception;
 
-    ArticleVo draft(Article dto) throws Exception;
+    ArticleVo draft(ArticleDraftDto dto) throws Exception;
+
+    ArticleVo getDraft() throws Exception;
 
     Boolean unDraft(Long articleId) throws Exception;
 

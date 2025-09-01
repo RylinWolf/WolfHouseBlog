@@ -178,6 +178,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    public ArticleVo getDraft() throws Exception {
+        Long login = mediator.loginUserOrE();
+
+        // 暂存文章
+        ArticleDraft articleDraft = draftMapper.selectOneByQuery(QueryWrapper.create()
+                                                                             .where(ARTICLE_DRAFT
+                                                                                 .AUTHOR_ID
+                                                                                 .eq(login)));
+        if (BeanUtil.isBlank(articleDraft)) {
+            return null;
+        }
+        Long articleId = articleDraft.getArticleId();
+        return getVoById(articleId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public ArticleVo draft(Article article) throws Exception {
         // 0. 检查是否已暂存，如果已暂存，则更新 并结束
