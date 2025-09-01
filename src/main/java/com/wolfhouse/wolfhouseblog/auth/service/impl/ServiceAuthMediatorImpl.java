@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
 /**
- * @author linexsong
+ * @author rylinwolf
  */
 @Component("authMediator")
 public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
@@ -113,5 +113,10 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public Boolean isArticleOwner(Long articleId, Long login) {
         return articleService.isArticleOwner(articleId, login);
+    }
+
+    @Override
+    public Boolean isFavoritesTitleExist(String title) {
+        return favoritesService.isFavoritesTitleExist(title);
     }
 }
