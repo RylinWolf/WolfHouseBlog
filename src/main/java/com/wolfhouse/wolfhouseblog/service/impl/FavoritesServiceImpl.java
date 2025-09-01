@@ -4,10 +4,13 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.FavoritesConstant;
+import com.wolfhouse.wolfhouseblog.common.enums.DefaultEnum;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
@@ -79,10 +82,23 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         // 验证是否拥有指定收藏夹
         VerifyTool.of(
                       FavoritesVerifyNode.id(mediator)
-                                         .target(favoritesId))
+                                         .target(favoritesId),
+                      // 不得删除默认收藏夹
+                      new BaseVerifyNode<Long>() {
+                          {
+                              customException = new ServiceException(FavoritesConstant.IS_DEFAULT);
+                          }
+
+                          @Override
+                          public boolean verify() {
+                              return getById(favoritesId).getIsDefault()
+                                                         .equals(DefaultEnum.NOT_DEFAULT);
+                          }
+                      })
                   .doVerify();
         int i = mapper.deleteById(favoritesId);
         if (i == 1) {
+            // TODO 通知文章交互服务，转移内容到默认收藏夹
             return getFavoritesList(login);
         }
         log.error("删除收藏夹失败: {}, {}", login, favoritesId);
