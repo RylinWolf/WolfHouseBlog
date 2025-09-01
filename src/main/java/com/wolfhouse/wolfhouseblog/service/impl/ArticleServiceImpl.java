@@ -31,6 +31,7 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleDraft;
 import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef.ARTICLE_DRAFT;
@@ -195,33 +197,26 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ArticleVo draft(Article article) throws Exception {
-        // 0. 检查是否已暂存，如果已暂存，则更新 并结束
-        if (!BeanUtil.isBlank(article.getId())) {
-            long i;
-            if ((i = (draftMapper.selectCountByQuery(QueryWrapper.create()
-                                                                 .where(ArticleDraftTableDef.ARTICLE_DRAFT.ARTICLE_ID.eq(
-                                                                     article.getId()))))) != 1) {
-                if (i == 0) {
-                    // 传了 ID 但该 ID 未暂存
-                    throw new ServiceException(ArticleConstant.NOT_DRAFTED);
-                }
-                if (i > 0) {
-                    // 多个相同文章的暂存
-                    log.error("查询暂存：{} 有多个匹配对象？{}", article, i);
-                    throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
-                }
-                log.error("查询暂存{}, 结果为负数？{}", article, i);
-                throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+    public ArticleVo draft(ArticleDraftDto article) throws Exception {
+        // 0. 是否已有暂存
+        ArticleVo draft = getDraft();
 
+        // 如果已暂存且要暂存的文章 ID 匹配，则更新 并结束
+        if (!BeanUtil.isBlank(draft)) {
+            Long draftId = draft.getId();
+            Long id = article.getId();
+            // 已暂存的文章 ID 与要暂存的文章 ID 不匹配
+            if (!Objects.equals(draftId, id)) {
+                throw new ServiceException(ArticleConstant.DRAFT_EXIST);
             }
-            // 0.1 有 ID 且 ID 可达，则更新
+            // 冗余验证，登录用户为文章作者，则更新
             if (!new IdOwnVerifyNode(mediator).target(article.getId())
                                               .verify()) {
                 return update(objectMapper.convertValue(article, ArticleUpdateDto.class));
             }
-            // ID 不可达
-            article.setId(null);
+            // 非作者
+            log.error("暂存文章 ID 匹配，但作者验证未通过。已有暂存：{}, 更新暂存： {}", draft, article);
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
         }
 
         // 1. 发布文章，设置可见性为 私密
@@ -331,7 +326,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                                             .target(id))
                   .doVerify();
 
-        return mapper.deleteById(id) == 1;
+        return mapper.deleteById(id) > 0;
     }
 
     @Override
