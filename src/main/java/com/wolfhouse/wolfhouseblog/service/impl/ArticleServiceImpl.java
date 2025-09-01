@@ -178,7 +178,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         VerifyTool.ofLoginExist(
                       mediator,
                       // 文章 ID
-                      ArticleVerifyNode.idReachable(mediator)
+                      ArticleVerifyNode.idOwn(mediator)
                                        .target(dto.getId()),
                       // 标题
                       ArticleVerifyNode.title(title, true)
