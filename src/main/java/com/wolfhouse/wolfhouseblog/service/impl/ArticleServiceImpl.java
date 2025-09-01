@@ -265,4 +265,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         log.error("检查文章是否可达时出现问题：{}, {}", userId, articleId);
         throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
     }
+
+    @Override
+    public Boolean isArticleOwner(Long articleId, Long login) {
+        return mapper.selectOneById(articleId).getAuthorId().equals(login);
+    }
 }

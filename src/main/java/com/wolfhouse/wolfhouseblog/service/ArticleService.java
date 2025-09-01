@@ -101,4 +101,6 @@ public interface ArticleService extends IService<Article> {
      * @throws Exception 当检查过程发生错误时抛出异常
      */
     Boolean isArticleReachable(Long userId, Long articleId) throws Exception;
+
+    Boolean isArticleOwner(Long articleId, Long login);
 }
