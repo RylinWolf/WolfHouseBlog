@@ -31,6 +31,8 @@ public interface ServiceAuthMediator {
 
     void registerAction(ArticleActionService articleActionService);
 
+    void registerFavorite(FavoritesService favoritesService);
+
     /**
      * 检查用户认证信息是否存在
      *

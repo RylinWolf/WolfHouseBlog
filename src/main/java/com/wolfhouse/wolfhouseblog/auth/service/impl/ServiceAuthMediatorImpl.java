@@ -17,6 +17,12 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     private UserService userService;
     private ArticleService articleService;
     private ArticleActionService actionService;
+    private FavoritesService favoritesService;
+
+    @Override
+    public void registerFavorite(FavoritesService favoritesService) {
+        this.favoritesService = favoritesService;
+    }
 
     @Override
     public void registerAdmin(AdminService adminService) {
