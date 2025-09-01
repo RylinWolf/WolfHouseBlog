@@ -54,8 +54,23 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public List<FavoritesVo> addFavorites(FavoritesDto dto) {
-        return List.of();
+    public List<FavoritesVo> addFavorites(FavoritesDto dto) throws Exception {
+        Long login = mediator.loginUserOrE();
+
+        Favorites favorites = BeanUtil.copyProperties(dto, Favorites.class);
+        VerifyTool.of(
+                      // 名称验证
+                      FavoritesVerifyNode.title(mediator)
+                                         .target(favorites.getTitle()))
+                  .doVerify();
+
+        int i = mapper.insert(favorites);
+        if (i == 1) {
+            return getFavoritesList(login);
+        }
+        // 新增失败
+        log.error("新增收藏夹失败: {}, {}", login, favorites);
+        throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
     }
 
     @Override
