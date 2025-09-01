@@ -158,5 +158,6 @@ CREATE TABLE IF NOT EXISTS `favorites`
     `user_id`    BIGINT       NOT NULL COMMENT '用户 ID',
     `title`      VARCHAR(255) NOT NULL COMMENT '收藏夹名称',
     `visibility` TINYINT      NOT NULL DEFAULT 0 COMMENT '可见性',
+    `is_default` TINYINT      NOT NULL DEFAULT 1 COMMENT '默认收藏夹',
     UNIQUE KEY (user_id, title) COMMENT '用户 - 名称唯一约束'
 ) AUTO_INCREMENT 100000 COMMENT '收藏夹表';
