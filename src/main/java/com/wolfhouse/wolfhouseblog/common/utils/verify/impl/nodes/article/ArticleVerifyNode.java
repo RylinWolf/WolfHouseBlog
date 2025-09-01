@@ -9,14 +9,22 @@ public class ArticleVerifyNode {
     public static final ContentVerifyNode CONTENT = new ContentVerifyNode();
     public static final PrimaryVerifyNode PRIMARY = new PrimaryVerifyNode();
     public static final TitleVerifyNode TITLE = new TitleVerifyNode();
-    private static IdReachableVerifyNode ID;
+    private static IdReachableVerifyNode ID_REACHABLE;
+    private static IdOwnVerifyNode ID_OWNER;
     private static CommentIdVerifyNode COMMENT_ID;
 
-    public static IdReachableVerifyNode id(ServiceAuthMediator mediator) {
-        if (ID == null) {
-            ID = new IdReachableVerifyNode(mediator);
+    public static IdOwnVerifyNode idOwn(ServiceAuthMediator mediator) {
+        if (ID_OWNER == null) {
+            ID_OWNER = new IdOwnVerifyNode(mediator);
         }
-        return ID;
+        return ID_OWNER;
+    }
+
+    public static IdReachableVerifyNode idReachable(ServiceAuthMediator mediator) {
+        if (ID_REACHABLE == null) {
+            ID_REACHABLE = new IdReachableVerifyNode(mediator);
+        }
+        return ID_REACHABLE;
     }
 
     public static CommentIdVerifyNode commentId(ServiceAuthMediator mediator) {
