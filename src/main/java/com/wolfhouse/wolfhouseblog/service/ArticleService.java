@@ -76,7 +76,7 @@ public interface ArticleService extends IService<Article> {
 
     ArticleVo getDraft() throws Exception;
 
-    Boolean unDraft(Long articleId) throws Exception;
+    Boolean unDraft() throws Exception;
 
     /**
      * 更新文章信息

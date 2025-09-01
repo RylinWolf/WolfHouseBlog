@@ -30,7 +30,6 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleDraftMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleDraft;
-import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
@@ -174,7 +173,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         mapper.insertWithPkBack(article);
         // 取消暂存
-        unDraft(article.getId());
+        unDraft();
 
         return getVoById(article.getId());
     }
@@ -184,10 +183,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long login = mediator.loginUserOrE();
 
         // 暂存文章
-        ArticleDraft articleDraft = draftMapper.selectOneByQuery(QueryWrapper.create()
-                                                                             .where(ARTICLE_DRAFT
-                                                                                 .AUTHOR_ID
-                                                                                 .eq(login)));
+        ArticleDraft articleDraft = draftMapper.selectOneByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_DRAFT
+                            .AUTHOR_ID
+                            .eq(login)));
         if (BeanUtil.isBlank(articleDraft)) {
             return null;
         }
@@ -232,20 +232,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public Boolean unDraft(Long articleId) throws Exception {
-        if (draftMapper.selectCountByQuery(QueryWrapper.create()
-                                                       .where(ArticleDraftTableDef
-                                                           .ARTICLE_DRAFT
-                                                           .ARTICLE_ID
-                                                           .eq(articleId))) == 0) {
+    public Boolean unDraft() throws Exception {
+        ArticleVo draft = getDraft();
+        if (BeanUtil.isBlank(draft)) {
             return false;
         }
 
-        // 文章 ID 是否可编辑
-        new IdOwnVerifyNode(mediator).target(articleId)
-                                     .verifyWithCustomE();
-
-
+        Long articleId = draft.getId();
         return draftMapper.deleteByQuery(QueryWrapper.create()
                                                      .where(ARTICLE_DRAFT.ARTICLE_ID.eq(articleId))) > 0;
     }
