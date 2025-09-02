@@ -18,10 +18,11 @@ import java.util.List;
 /**
  * @author rylinwolf
  */
-@RestController("/favorites")
+@RestController
 @Slf4j
 @Tag(name = "收藏夹接口")
 @RequiredArgsConstructor
+@RequestMapping("/favorites")
 public class FavoritesController {
     private final FavoritesService service;
 
