@@ -11,6 +11,5 @@ import java.time.LocalDate;
 public class ArticleFavoriteVo {
     private Long articleId;
     private Long favoriteId;
-    private String favoriteTitle;
     private LocalDate favoriteDate;
 }
