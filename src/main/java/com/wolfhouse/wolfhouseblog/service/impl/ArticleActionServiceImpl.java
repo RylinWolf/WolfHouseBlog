@@ -216,7 +216,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean dislike(Long articleId) throws Exception {
+    public Boolean unlike(Long articleId) throws Exception {
         Long login = mediator.loginUserOrE();
         if (!isLiked(articleId)) {
             throw new ServiceException(ArticleConstant.NOT_LIKED);

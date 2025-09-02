@@ -100,4 +100,28 @@ public class ArticleController {
         @RequestBody ArticleCommentDeleteDto dto) throws Exception {
         return HttpResult.success(actionService.deleteComment(dto));
     }
+
+    @Operation(summary = "查询是否点赞")
+    @GetMapping("/like/{id}")
+    public HttpResult<Boolean> isLiked(@PathVariable Long id) throws Exception {
+        return HttpResult.success(actionService.isLiked(id));
+    }
+
+    @Operation(summary = "点赞")
+    @PostMapping("/like/{id}")
+    public HttpResult<?> like(@PathVariable Long id) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.LIKE_FAILED,
+            actionService.like(id));
+    }
+
+    @Operation(summary = "取消点赞")
+    @DeleteMapping("/unlike/{id}")
+    public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.UNLIKE_FAILED,
+            actionService.unlike(id));
+    }
 }

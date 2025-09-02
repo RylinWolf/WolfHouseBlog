@@ -91,7 +91,7 @@ public interface ArticleActionService {
      * @return true表示取消成功，false表示取消失败（如未点赞）
      * @throws Exception 取消失败时抛出异常，如用户未登录
      */
-    Boolean dislike(Long articleId) throws Exception;
+    Boolean unlike(Long articleId) throws Exception;
 
     /**
      * 获取指定文章的收藏夹列表
