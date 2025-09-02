@@ -104,6 +104,14 @@ public interface ArticleActionService {
     PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception;
 
     /**
+     * 检查指定的文章是否存在于某个收藏夹中。
+     *
+     * @param dto 包含文章ID和收藏夹ID的文章收藏数据传输对象
+     * @return true表示文章已在指定收藏夹中，false表示文章不在指定收藏夹中
+     */
+    Boolean isFavoriteExist(ArticleFavoriteDto dto);
+
+    /**
      * 当前登录用户收藏指定文章
      *
      * @param articleId 目标文章ID

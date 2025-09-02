@@ -242,6 +242,15 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
+    public Boolean isFavoriteExist(ArticleFavoriteDto dto) {
+        long count = favoriteMapper.selectCountByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_FAVORITE.ARTICLE_ID.eq(dto.getArticleId()))
+                        .and(ARTICLE_FAVORITE.FAVORITE_ID.eq(dto.getFavoriteId())));
+        return count > 0;
+    }
+
+    @Override
     public PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception {
         // 指定收藏夹的收藏记录分页结果
         Page<ArticleFavorite> favoritePage = favoriteMapper.paginate(
