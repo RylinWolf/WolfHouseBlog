@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites;
 
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
 
 /**
  * @author linexsong
@@ -19,7 +20,10 @@ public class FavoritesTitleVerifyNode extends BaseVerifyNode<String> {
             return allowNull;
         }
         try {
-            return mediator.isFavoritesTitleExist(t);
+            return new StringVerifyNode(1L, 10L, allowNull)
+                       .target(t)
+                       .verify() &&
+                   mediator.isFavoritesTitleExist(t);
         } catch (Exception e) {
             return false;
         }
