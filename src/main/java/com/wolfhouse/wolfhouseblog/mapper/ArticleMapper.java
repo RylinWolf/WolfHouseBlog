@@ -20,5 +20,13 @@ public interface ArticleMapper extends BaseMapper<Article> {
      */
     Integer insertWithPkBack(Article article);
 
+
+    /**
+     * 移除用户的标签关联
+     *
+     * @param userId 用户ID
+     * @param tagIds 要移除的标签ID集合
+     * @return 影响的行数
+     */
     Integer removeTags(Long userId, Set<Long> tagIds);
 }

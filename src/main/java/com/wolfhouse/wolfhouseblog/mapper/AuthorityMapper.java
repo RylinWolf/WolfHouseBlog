@@ -45,6 +45,7 @@ public interface AuthorityMapper extends BaseMapper<Authority> {
      * 删除指定管理员的所有权限。
      *
      * @param adminId 管理员的 ID
+     * @return 受影响的行数
      */
     @Delete("delete from admin_authority where admin_id = #{adminId}")
     Integer removeAllByAdmin(Long adminId);

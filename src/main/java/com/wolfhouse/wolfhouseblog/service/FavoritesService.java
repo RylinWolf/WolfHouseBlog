@@ -10,7 +10,8 @@ import java.util.List;
 
 /**
  * 收藏夹服务接口
- * 提供用户收藏夹的相关操作，包括查询、添加和删除
+ * 提供用户收藏夹的相关操作，包括查询、添加、修改和删除。
+ * 支持收藏夹的公开和私密设置，以及默认收藏夹的特殊处理。
  *
  * @author rylinwolf
  */
@@ -45,8 +46,24 @@ public interface FavoritesService extends IService<Favorites> {
      */
     List<FavoritesVo> deleteFavorites(Long favoritesId) throws Exception;
 
+    /**
+     * 根据ID获取收藏夹详细信息。
+     * 返回收藏夹的完整视图对象，包含标题、可见性等信息。
+     *
+     * @param favoritesId 收藏夹ID
+     * @return 收藏夹视图对象
+     * @throws Exception 当收藏夹不存在时抛出异常
+     */
     FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception;
 
+    /**
+     * 更新收藏夹信息。
+     * 支持更新收藏夹的标题和可见性设置，会进行相应的权限验证。
+     *
+     * @param dto 收藏夹更新数据传输对象，包含要更新的字段
+     * @return 更新后的收藏夹视图对象
+     * @throws Exception 当用户未登录、无权限或更新失败时抛出异常
+     */
     FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception;
 
     /**
