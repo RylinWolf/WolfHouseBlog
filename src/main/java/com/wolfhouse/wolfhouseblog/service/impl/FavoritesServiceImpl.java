@@ -108,7 +108,8 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception {
-        return null;
+        return mapper.selectOneByQueryAs(QueryWrapper.create()
+                                                     .where(FAVORITES.ID.eq(favoritesId)), FavoritesVo.class);
     }
 
     @Override
