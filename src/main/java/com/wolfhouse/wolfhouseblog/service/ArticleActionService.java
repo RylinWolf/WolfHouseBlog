@@ -1,10 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service;
 
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
+import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 
@@ -93,16 +90,18 @@ public interface ArticleActionService {
      *
      * @param articleId 目标文章ID
      * @return 收藏信息列表
+     * @throws Exception 未登录
      */
     List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) throws Exception;
 
     /**
      * 获取指定收藏夹中的文章简要信息列表。
+     * 支持分页查询指定收藏夹中收藏的所有文章的简要信息。
      *
-     * @param favoritesId 收藏夹ID
-     * @return 文章简要信息列表
+     * @param dto 收藏夹分页查询参数对象，包含收藏夹ID、分页信息等
+     * @return 文章简要信息列表分页数据
      */
-    List<ArticleBriefVo> getFavoritesArticle(Long favoritesId);
+    PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception;
 
     /**
      * 当前登录用户收藏指定文章
