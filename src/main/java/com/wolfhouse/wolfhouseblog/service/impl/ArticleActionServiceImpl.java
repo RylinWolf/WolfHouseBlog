@@ -12,6 +12,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.EmptyVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
@@ -26,7 +27,6 @@ import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.internal.constraintvalidators.bv.notempty.NotEmptyValidatorForArraysOfBoolean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +51,6 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     private final ArticleCommentMapper commentMapper;
     private final ArticleFavoriteMapper favoriteMapper;
     private final ArticleLikeMapper likeMapper;
-    private final NotEmptyValidatorForArraysOfBoolean notEmptyValidatorForArraysOfBoolean;
 
     @PostConstruct
     private void init() {
@@ -273,13 +272,32 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         Page<ArticleBriefVo> res = new Page<>(dto.getPageNumber(), dto.getPageSize(), favoritePage.getTotalRow());
         res.setRecords(brief);
         res.setTotalPage(favoritePage.getTotalPage());
-        
+
         return PageResult.of(res);
     }
 
     @Override
-    public Boolean favorite(Long articleId) {
-        return null;
+    public Boolean favorite(ArticleFavoriteDto dto) throws Exception {
+        Long login = mediator.loginUserOrE();
+        VerifyTool.of(
+                      // 文章 ID 可达
+                      ArticleVerifyNode.idReachable(mediator)
+                                       .target(dto.getArticleId()),
+                      // 收藏夹为本人创建
+                      FavoritesVerifyNode.idOwn(mediator)
+                                         .target(dto.getFavoriteId()))
+                  .doVerify();
+        // 已收藏
+        if (isFavoriteExist(dto)) {
+            throw new ServiceException(ArticleConstant.ALREADY_FAVORITE);
+        }
+
+        return favoriteMapper.insert(
+            new ArticleFavorite(null,
+                                dto.getFavoriteId(),
+                                dto.getArticleId(),
+                                login,
+                                null)) > 0;
     }
 
     @Override
