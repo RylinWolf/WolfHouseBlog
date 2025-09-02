@@ -127,7 +127,7 @@ public interface ArticleActionService {
      *
      * @param dto 收藏信息对象，包含文章ID和目标收藏夹ID
      * @return true表示收藏成功，false表示收藏失败
-     * @throws Exception 未登录
+     * @throws Exception 未登录或收藏夹非本人创建
      */
     Boolean favorite(ArticleFavoriteDto dto) throws Exception;
 
@@ -138,8 +138,9 @@ public interface ArticleActionService {
      *
      * @param dto 取消收藏信息对象，包含文章ID和目标收藏夹ID
      * @return true表示取消成功，false表示取消失败
+     * @throws Exception 未登录或收藏夹非本人创建
      */
-    Boolean removeFavorite(ArticleFavoriteDto dto);
+    Boolean removeFavorite(ArticleFavoriteDto dto) throws Exception;
 
     /**
      * 清空指定收藏夹中的所有文章

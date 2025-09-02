@@ -27,6 +27,7 @@ import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.
 /**
  * @author rylinwolf
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ArticleActionServiceImpl implements ArticleActionService {
@@ -301,8 +303,29 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean removeFavorite(Long articleId) {
-        return null;
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean removeFavorite(ArticleFavoriteDto dto) throws Exception {
+        Long login = mediator.loginUserOrE();
+        // 收藏夹为本人创建
+        VerifyTool.of(
+                      FavoritesVerifyNode.idOwn(mediator)
+                                         .target(dto.getFavoriteId()))
+                  .doVerify();
+        // 文章未收藏
+        if (!isFavoriteExist(dto)) {
+            throw new ServiceException(ArticleConstant.FAVORITE_NOT_EXIST);
+        }
+
+        int i = favoriteMapper.deleteByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_FAVORITE.ARTICLE_ID.eq(dto.getArticleId()))
+                        .and(ARTICLE_FAVORITE.FAVORITE_ID.eq(dto.getFavoriteId()))
+                        .and(ARTICLE_FAVORITE.USER_ID.eq(login)));
+        if (i == 1) {
+            return true;
+        }
+        log.error("移除收藏夹时有多个对象？: {}, {}", login, dto);
+        throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
     }
 
     @Override
