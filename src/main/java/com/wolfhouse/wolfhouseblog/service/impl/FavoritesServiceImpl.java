@@ -121,16 +121,24 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                       FavoritesVerifyNode.idOwn(mediator)
                                          .target(id),
                       FavoritesVerifyNode.title(mediator)
-                                         .target(dto.getTitle()))
+                                         .target(dto.getTitle()
+                                                    .orElse(null))
+                                         .allowNull(true))
                   .doVerify();
 
         // 执行更新
-        boolean update = UpdateChain.of(FAVORITES)
-                                    .where(FAVORITES.ID.eq(id))
-                                    .set(FAVORITES.TITLE, dto.getTitle())
-                                    .set(FAVORITES.VISIBILITY, dto.getVisibility())
-                                    .update();
-        if (!update) {
+        var chain = UpdateChain.of(FAVORITES)
+                               .where(FAVORITES.ID.eq(id));
+
+        // 更新标题
+        dto.getTitle()
+           .ifPresent(t -> chain.set(FAVORITES.TITLE, t, t != null));
+
+        // 更新权限
+        dto.getVisibility()
+           .ifPresent(v -> chain.set(FAVORITES.VISIBILITY, v, v != null));
+
+        if (!chain.update()) {
             throw new ServiceException(FavoritesConstant.UPDATE_FAILED);
         }
         return getFavoritesVoById(id);

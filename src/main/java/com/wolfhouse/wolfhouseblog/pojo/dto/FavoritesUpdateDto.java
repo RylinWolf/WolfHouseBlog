@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.pojo.dto;
 
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import lombok.Data;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 /**
  * @author linexsong
@@ -9,6 +10,6 @@ import lombok.Data;
 @Data
 public class FavoritesUpdateDto {
     private Long id;
-    private String title;
-    private VisibilityEnum visibility;
+    private JsonNullable<String> title = JsonNullable.undefined();
+    private JsonNullable<VisibilityEnum> visibility = JsonNullable.undefined();
 }
