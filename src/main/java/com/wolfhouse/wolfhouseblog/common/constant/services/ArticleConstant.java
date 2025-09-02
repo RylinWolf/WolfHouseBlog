@@ -21,6 +21,7 @@ public class ArticleConstant {
     public static final String DELETE_FAILED = "文章删除失败！";
     public static final String UPDATE_PARTITION_FAILED = "文章分区更新失败！";
     public static final String COMMENT_NOT_EXIST = "评论不存在！";
+    public static final String COMMENT_FAILED = "评论发布失败！";
     public static final String COMMENT_DELETE_FAILED = "评论删除失败！";
     public static final String NOT_DRAFTED = "文章未暂存！";
     public static final String DRAFT_FAILED = "暂存失败！";
