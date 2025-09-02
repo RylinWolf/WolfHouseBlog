@@ -31,6 +31,10 @@ public class MqArticleConstant {
     /** 移除标签队列 */
     public static final String TAG_REMOVE_QUEUE = BASE + TAG + REMOVE + MqConstant.SEPARATOR + MqConstant.QUEUE;
 
+    /** 移除收藏夹队列 */
+    public static final String FAVORITES_REMOVE_QUEUE =
+        BASE + FAVORITES + REMOVE + MqConstant.SEPARATOR + MqConstant.QUEUE;
+
     /** 改变分区 KEY */
     public static final String KEY_PARTITION_CHANGE =
         BASE + PARTITION + CHANGE + MqConstant.SEPARATOR + MqConstant.KEY;
