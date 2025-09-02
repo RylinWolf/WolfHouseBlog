@@ -129,11 +129,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 验证创建管理员的用户 ID 是否存在，是否已经是管理员
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.id(mediator)
-                                     .target(dto.getUserId()),
-                       AdminVerifyNode.createId(mediator)
-                                      .target(dto.getUserId()))
+                      mediator,
+                      UserVerifyNode.id(mediator)
+                                    .target(dto.getUserId()),
+                      AdminVerifyNode.createId(mediator)
+                                     .target(dto.getUserId()))
                   .doVerify();
 
         Admin admin = BeanUtil.copyProperties(dto, Admin.class);
@@ -156,26 +156,26 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         // 获取当前登录用户 验证权限
         VerifyTool.ofLoginExist(
-                       mediator,
-                       UserVerifyNode.id(mediator)
-                                     .target(login),
-                       // 登陆用户是否为管理员
-                       AdminVerifyNode.userId(mediator)
-                                      .target(login)
-                                      .exception(AuthExceptionConstant.ACCESS_DENIED),
-                       // 至少有一个数据更新
-                       new NotAllBlankVerifyNode(name, authorities)
-                            .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
-                       // 更新目标需要是有效的管理员
-                       AdminVerifyNode.id(mediator)
-                                      .target(adminId),
-                       // 管理员名称验证
-                       AdminVerifyNode.NAME.target(name)
-                                           .allowNull(true),
-                       // 权限验证
-                       AdminVerifyNode.authorityId(mediator)
-                                      .target(authorities)
-                                      .allowNull(true))
+                      mediator,
+                      UserVerifyNode.id(mediator)
+                                    .target(login),
+                      // 登陆用户是否为管理员
+                      AdminVerifyNode.userId(mediator)
+                                     .target(login)
+                                     .exception(AuthExceptionConstant.ACCESS_DENIED),
+                      // 至少有一个数据更新
+                      new NotAllBlankVerifyNode(name, authorities)
+                          .exception(new ServiceException(VerifyConstant.NOT_ALL_BLANK)),
+                      // 更新目标需要是有效的管理员
+                      AdminVerifyNode.id(mediator)
+                                     .target(adminId),
+                      // 管理员名称验证
+                      AdminVerifyNode.NAME.target(name)
+                                          .allowNull(true),
+                      // 权限验证
+                      AdminVerifyNode.authorityId(mediator)
+                                     .target(authorities)
+                                     .allowNull(true))
                   .doVerify();
 
         // 修改权限
@@ -228,8 +228,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     public List<AuthorityVo> getAuthoritiesByAdminId(Long adminId) throws Exception {
         List<Long> ids = getAuthoritiesIdsByAdmin(adminId);
         return ids.isEmpty() ? List.of() : BeanUtil.copyList(
-             authService.getMapper()
-                        .selectListByIds(ids), AuthorityVo.class);
+            authService.getMapper()
+                       .selectListByIds(ids), AuthorityVo.class);
     }
 
 
@@ -242,10 +242,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
 
         VerifyTool.of(
-                       UserVerifyNode.id(mediator)
-                                     .target(login),
-                       AdminVerifyNode.id(mediator)
-                                      .target(adminId))
+                      UserVerifyNode.id(mediator)
+                                    .target(login),
+                      AdminVerifyNode.id(mediator)
+                                     .target(adminId))
                   .doVerify();
 
         if (mapper.deleteById(adminId) != 1) {
@@ -263,14 +263,14 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     public Boolean deleteUser(AdminUserControlDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
         VerifyTool.of(
-                       AdminVerifyNode.userId(mediator)
-                                      .target(login),
-                       UserVerifyNode.id(mediator)
-                                     .target(dto.getUserId())
-                                     .exception(UserConstant.USER_NOT_EXIST),
-                       UserVerifyNode.pwd(mediator)
-                                     .userId(login)
-                                     .target(dto.getPassword()))
+                      AdminVerifyNode.userId(mediator)
+                                     .target(login),
+                      UserVerifyNode.id(mediator)
+                                    .target(dto.getUserId())
+                                    .exception(UserConstant.USER_NOT_EXIST),
+                      UserVerifyNode.pwd(mediator)
+                                    .userId(login)
+                                    .target(dto.getPassword()))
                   .doVerify();
 
         MqUserAuthDto authDto = new MqUserAuthDto();
@@ -284,19 +284,21 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     public Boolean disableUser(AdminUserControlDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
         VerifyTool.of(
-                       // 验证管理员是否存在
-                       AdminVerifyNode.userId(mediator)
-                                      .target(login),
-                       // 验证用户是否存在
-                       UserVerifyNode.id(mediator)
-                                     .target(dto.getUserId()),
-                       // 验证密码是否正确
-                       UserVerifyNode.pwd(mediator)
-                                     .userId(login)
-                                     .target(dto.getPassword()))
+                      // 验证管理员是否存在
+                      AdminVerifyNode.userId(mediator)
+                                     .target(login),
+                      // 验证用户是否存在
+                      UserVerifyNode.id(mediator)
+                                    .target(dto.getUserId()),
+                      // 验证密码是否正确
+                      UserVerifyNode.pwd(mediator)
+                                    .userId(login)
+                                    .target(dto.getPassword()))
                   .doVerify();
 
-        mqUserService.disableUser(new MqUserAuthDto(dto.getUserId()));
+        MqUserAuthDto authDto = new MqUserAuthDto(dto.getUserId());
+        authDto.setLoginId(login);
+        mqUserService.disableUser(authDto);
         return true;
     }
 
@@ -306,21 +308,21 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         Long userId = dto.getUserId();
 
         VerifyTool.of(
-                       UserVerifyNode.pwd(mediator)
-                                     .userId(login)
-                                     .target(dto.getPassword()),
-                       AdminVerifyNode.userId(mediator)
-                                      .target(login),
-                       // 用户不存在
-                       new BaseVerifyNode<Long>() {}
-                            .predicate(mediator::isAuthExist)
-                            .target(userId)
-                            .exception(new ServiceException(UserConstant.USER_NOT_EXIST)),
-                       // 账号已启用
-                       new BaseVerifyNode<Long>() {}
-                            .predicate(u -> !mediator.isUserEnabled(u))
-                            .target(userId)
-                            .exception(new ServiceException(UserConstant.USER_HAS_ENABLED)))
+                      UserVerifyNode.pwd(mediator)
+                                    .userId(login)
+                                    .target(dto.getPassword()),
+                      AdminVerifyNode.userId(mediator)
+                                     .target(login),
+                      // 用户不存在
+                      new BaseVerifyNode<Long>() {}
+                          .predicate(mediator::isAuthExist)
+                          .target(userId)
+                          .exception(new ServiceException(UserConstant.USER_NOT_EXIST)),
+                      // 账号已启用
+                      new BaseVerifyNode<Long>() {}
+                          .predicate(u -> !mediator.isUserEnabled(u))
+                          .target(userId)
+                          .exception(new ServiceException(UserConstant.USER_HAS_ENABLED)))
                   .doVerify();
         return mqUserService.enableUser(userId);
     }
