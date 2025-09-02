@@ -15,6 +15,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.Favo
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
 import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.FavoritesVo;
 import com.wolfhouse.wolfhouseblog.service.FavoritesService;
 import jakarta.annotation.PostConstruct;
@@ -112,6 +113,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public FavoritesVo updateFavorites(FavoritesDto dto) throws Exception {
+    public FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception {
         return null;
     }
 

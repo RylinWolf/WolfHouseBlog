@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.service;
 import com.mybatisflex.core.service.IService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
 import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.FavoritesVo;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public interface FavoritesService extends IService<Favorites> {
 
     FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception;
 
-    FavoritesVo updateFavorites(FavoritesDto dto) throws Exception;
+    FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception;
 
     /**
      * 检查当前登录用户是否已存在指定标题的收藏夹。
