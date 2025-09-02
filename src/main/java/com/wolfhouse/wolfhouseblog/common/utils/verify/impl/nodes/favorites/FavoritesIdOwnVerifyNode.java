@@ -8,10 +8,10 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 /**
  * @author linexsong
  */
-public class FavoritesIdVerifyNode extends BaseVerifyNode<Long> {
+public class FavoritesIdOwnVerifyNode extends BaseVerifyNode<Long> {
     private final ServiceAuthMediator mediator;
 
-    public FavoritesIdVerifyNode(ServiceAuthMediator mediator) {
+    public FavoritesIdOwnVerifyNode(ServiceAuthMediator mediator) {
         this.mediator = mediator;
         this.customException = new ServiceException(FavoritesConstant.NOT_EXIST);
     }

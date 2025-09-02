@@ -7,7 +7,7 @@ import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
  */
 public class FavoritesVerifyNode {
     private static FavoritesTitleVerifyNode TITLE;
-    private static FavoritesIdVerifyNode ID;
+    private static FavoritesIdOwnVerifyNode ID;
 
     public static FavoritesTitleVerifyNode title(ServiceAuthMediator mediator) {
         if (TITLE == null) {
@@ -16,9 +16,9 @@ public class FavoritesVerifyNode {
         return TITLE;
     }
 
-    public static FavoritesIdVerifyNode id(ServiceAuthMediator mediator) {
+    public static FavoritesIdOwnVerifyNode idOwn(ServiceAuthMediator mediator) {
         if (ID == null) {
-            ID = new FavoritesIdVerifyNode(mediator);
+            ID = new FavoritesIdOwnVerifyNode(mediator);
         }
         return ID;
     }

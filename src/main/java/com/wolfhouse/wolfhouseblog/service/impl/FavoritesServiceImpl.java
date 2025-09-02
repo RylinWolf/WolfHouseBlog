@@ -81,7 +81,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         Long login = mediator.loginUserOrE();
         // 验证是否拥有指定收藏夹
         VerifyTool.of(
-                      FavoritesVerifyNode.id(mediator)
+                      FavoritesVerifyNode.idOwn(mediator)
                                          .target(favoritesId),
                       // 不得删除默认收藏夹
                       new BaseVerifyNode<Long>() {
