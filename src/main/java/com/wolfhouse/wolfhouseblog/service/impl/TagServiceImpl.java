@@ -135,7 +135,9 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
         // TODO 未解决事务问题
         // 通知文章服务移除标签
-        mqArticleService.articleComUseTagsRemove(new MqArticleTagRemoveDto(login, ids));
+        MqArticleTagRemoveDto mqDto = new MqArticleTagRemoveDto(login, ids);
+        mqDto.setLoginId(login);
+        mqArticleService.articleComUseTagsRemove(mqDto);
         return true;
     }
 
@@ -145,10 +147,10 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         Long id = dto.getId();
 
         VerifyTool.of(
-                       TagVerifyNode.id(this)
-                                    .userId(login)
-                                    .target(id),
-                       TagVerifyNode.NAME.target(dto.getName()))
+                      TagVerifyNode.id(this)
+                                   .userId(login)
+                                   .target(id),
+                      TagVerifyNode.NAME.target(dto.getName()))
                   .doVerify();
 
         Long nameTagId = mapper.getTagIdByName(dto.getName());
