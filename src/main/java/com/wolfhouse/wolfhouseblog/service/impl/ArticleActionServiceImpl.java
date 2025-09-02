@@ -242,8 +242,30 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public List<ArticleBriefVo> getFavoritesArticle(Long userId) {
-        return List.of();
+    public PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception {
+        // 指定收藏夹的收藏记录分页结果
+        Page<ArticleFavorite> favoritePage = favoriteMapper.paginate(
+            dto.getPageNumber(),
+            dto.getPageSize(),
+            QueryWrapper.create()
+                        .select(ARTICLE_FAVORITE.ARTICLE_ID)
+                        .where(ARTICLE_FAVORITE.FAVORITE_ID.eq(
+                            dto.getFavoritesId())));
+        // 根据收藏记录获取文章
+        Set<Long> articleIds = favoritePage.getRecords()
+                                           .stream()
+                                           .map(ArticleFavorite::getArticleId)
+                                           .collect(Collectors.toSet());
+
+
+        // 获取结果
+        List<ArticleBriefVo> brief = articleService.getBriefByIds(articleIds);
+        // 收藏记录分页结果的信息即为最终的分页结果信息
+        Page<ArticleBriefVo> res = new Page<>(dto.getPageNumber(), dto.getPageSize(), favoritePage.getTotalRow());
+        res.setRecords(brief);
+        res.setTotalPage(favoritePage.getTotalPage());
+        
+        return PageResult.of(res);
     }
 
     @Override
