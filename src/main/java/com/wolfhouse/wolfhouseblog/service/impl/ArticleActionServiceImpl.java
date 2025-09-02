@@ -2,6 +2,8 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
@@ -12,6 +14,7 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleLikeMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleComment;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
@@ -19,9 +22,13 @@ import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleCommentTableDef.ARTICLE_COMMENT;
 
@@ -130,8 +137,34 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public PageResult<ArticleCommentVo> deleteComment(Long commentId) {
-        return null;
+    @Transactional(rollbackFor = Exception.class)
+    public PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto) {
+        Set<Long> ids = getReplyIds(dto.getCommentId());
+        int i = commentMapper.deleteBatchByIds(ids);
+        if (i != ids.size()) {
+            throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
+        }
+        try {
+            return getArticleCommentVosByArticle(dto.getArticleId());
+        } catch (Exception e) {
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    private Set<Long> getReplyIds(Long commentId) {
+        List<ArticleComment> comments = commentMapper.selectListByQuery(
+            QueryWrapper.create()
+                        .select(ARTICLE_COMMENT.ARTICLE_ID)
+                        .where(ARTICLE_COMMENT.REPLY_ID.eq(commentId)));
+        Set<Long> ids = comments.stream()
+                                .map(ArticleComment::getId)
+                                .collect(Collectors.toSet());
+        Set<Long> res = new HashSet<>(ids);
+
+        res.addAll(ids);
+        ids.forEach(id -> res.addAll(getReplyIds(id)));
+        return res;
+
     }
 
     @Override
