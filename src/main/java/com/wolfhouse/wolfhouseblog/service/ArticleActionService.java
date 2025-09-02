@@ -6,6 +6,8 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 
+import java.util.Collection;
+
 /**
  * 文章交互服务接口
  *
@@ -104,5 +106,12 @@ public interface ArticleActionService {
      */
     Boolean removeFavorite(Long articleId);
 
+    /**
+     * 批量取消收藏指定文章。
+     *
+     * @param articleIds 待取消收藏的文章ID集合
+     * @return 当所有文章都取消收藏成功时返回true；如果任何一个取消失败则返回false
+     */
+    Boolean removeFavorites(Collection<Long> articleIds);
 
 }
