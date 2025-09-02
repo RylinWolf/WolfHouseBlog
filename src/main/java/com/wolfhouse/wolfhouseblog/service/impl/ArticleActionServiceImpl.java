@@ -329,7 +329,17 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean removeFavorites(Long favoritesId) {
-        return null;
+    public Boolean removeFavorites(Long favoritesId) throws Exception {
+        // 登录且指定收藏夹为本人创建
+        Long login = mediator.loginUserOrE();
+        VerifyTool.of(FavoritesVerifyNode.idOwn(mediator)
+                                         .target(favoritesId))
+                  .doVerify();
+        int i = favoriteMapper.deleteByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_FAVORITE.FAVORITE_ID.eq(favoritesId))
+                        .and(ARTICLE_FAVORITE.USER_ID.eq(login)));
+        log.info("清空收藏夹 {}，共 {} 条结果", favoritesId, i);
+        return true;
     }
 }

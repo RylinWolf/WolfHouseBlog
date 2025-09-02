@@ -148,7 +148,8 @@ public interface ArticleActionService {
      *
      * @param favoritesId 收藏夹ID
      * @return true表示清空成功，false表示清空失败
+     * @throws Exception 未登录或收藏夹非本人创建
      */
-    Boolean removeFavorites(Long favoritesId);
+    Boolean removeFavorites(Long favoritesId) throws Exception;
 
 }
