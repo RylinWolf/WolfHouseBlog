@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
@@ -113,9 +114,26 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public FavoritesVo updateFavorites(FavoritesDto dto) throws Exception {
     public FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception {
-        return null;
+        Long id = dto.getId();
+        VerifyTool.of(
+                      // 校验 ID、收藏夹标题
+                      FavoritesVerifyNode.idOwn(mediator)
+                                         .target(id),
+                      FavoritesVerifyNode.title(mediator)
+                                         .target(dto.getTitle()))
+                  .doVerify();
+
+        // 执行更新
+        boolean update = UpdateChain.of(FAVORITES)
+                                    .where(FAVORITES.ID.eq(id))
+                                    .set(FAVORITES.TITLE, dto.getTitle())
+                                    .set(FAVORITES.VISIBILITY, dto.getVisibility())
+                                    .update();
+        if (!update) {
+            throw new ServiceException(FavoritesConstant.UPDATE_FAILED);
+        }
+        return getFavoritesVoById(id);
     }
 
     @Override
