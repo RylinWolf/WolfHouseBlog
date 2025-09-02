@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
@@ -16,16 +17,16 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleLikeMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleComment;
+import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleFavorite;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleLike;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
-import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
+import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
+import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.internal.constraintvalidators.bv.notempty.NotEmptyValidatorForArraysOfBoolean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,10 +46,12 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.
 @Service
 @RequiredArgsConstructor
 public class ArticleActionServiceImpl implements ArticleActionService {
+    private final ArticleService articleService;
     private final ServiceAuthMediator mediator;
     private final ArticleCommentMapper commentMapper;
     private final ArticleFavoriteMapper favoriteMapper;
     private final ArticleLikeMapper likeMapper;
+    private final NotEmptyValidatorForArraysOfBoolean notEmptyValidatorForArraysOfBoolean;
 
     @PostConstruct
     private void init() {
@@ -200,6 +203,11 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     @Override
     public Boolean like(Long articleId) throws Exception {
         Long login = mediator.loginUserOrE();
+        // 文章可达验证
+        VerifyTool.of(
+                      ArticleVerifyNode.idReachable(mediator)
+                                       .target(articleId))
+                  .doVerify();
         if (isLiked(articleId)) {
             throw new ServiceException(ArticleConstant.ALREADY_LIKED);
         }
