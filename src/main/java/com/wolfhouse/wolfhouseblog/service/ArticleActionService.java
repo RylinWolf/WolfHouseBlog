@@ -4,7 +4,10 @@ import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
+
+import java.util.List;
 
 /**
  * 文章交互服务接口
@@ -86,7 +89,7 @@ public interface ArticleActionService {
      * @param articleId 目标文章ID
      * @return true表示已收藏，false表示未收藏
      */
-    Boolean isFavorite(Long articleId);
+    List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId);
 
     /**
      * 当前登录用户收藏指定文章

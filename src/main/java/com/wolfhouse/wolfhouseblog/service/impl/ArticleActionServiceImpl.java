@@ -17,6 +17,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleComment;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import jakarta.annotation.PostConstruct;
@@ -183,8 +184,8 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean isFavorite(Long articleId) {
-        return null;
+    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) {
+        return List.of();
     }
 
     @Override
@@ -194,6 +195,11 @@ public class ArticleActionServiceImpl implements ArticleActionService {
 
     @Override
     public Boolean removeFavorite(Long articleId) {
+        return null;
+    }
+
+    @Override
+    public Boolean removeFavorites(Long favoritesId) {
         return null;
     }
 }
