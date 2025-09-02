@@ -113,11 +113,12 @@ public interface ArticleActionService {
 
     /**
      * 当前登录用户收藏指定文章
+     * 将文章添加到指定的收藏夹中。如果收藏夹不存在或没有权限，将返回失败。
      *
-     * @param articleId 目标文章ID
+     * @param dto 收藏信息对象，包含文章ID和目标收藏夹ID
      * @return true表示收藏成功，false表示收藏失败
      */
-    Boolean favorite(Long articleId);
+    Boolean favorite(ArticleFavoriteDto dto) throws Exception;
 
     /**
      * 取消收藏指定文章
