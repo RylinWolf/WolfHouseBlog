@@ -27,6 +27,8 @@ public class ArticleConstant {
     public static final String DRAFT_FAILED = "暂存失败！";
     public static final String DRAFT_EXIST = "已有其他文章暂存！";
 
+    public static final String LIKE_FAILED = "点赞失败！";
+    public static final String UNLIKE_FAILED = "取消点赞失败！";
     public static final String ALREADY_LIKED = "文章已点赞！";
     public static final String NOT_LIKED = "文章未点赞！";
     public static final String ALREADY_FAVORITE = "文章已收藏！";
