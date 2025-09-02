@@ -57,6 +57,7 @@ public interface ArticleActionService {
      *
      * @param dto 评论删除数据传输对象
      * @return 更新后的评论分页列表
+     * * @throws Exception 未登录
      */
     PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto) throws Exception;
 
@@ -65,6 +66,7 @@ public interface ArticleActionService {
      *
      * @param articleId 目标文章ID
      * @return true表示已点赞，false表示未点赞
+     * @throws Exception 未登录
      */
     Boolean isLiked(Long articleId) throws Exception;
 
@@ -74,7 +76,7 @@ public interface ArticleActionService {
      * @param articleId 目标文章ID
      * @return true表示点赞成功，false表示点赞失败
      */
-    Boolean like(Long articleId);
+    Boolean like(Long articleId) throws Exception;
 
     /**
      * 当前登录用户取消对指定文章的点赞
@@ -82,7 +84,7 @@ public interface ArticleActionService {
      * @param articleId 目标文章ID
      * @return true表示取消成功，false表示取消失败
      */
-    Boolean dislike(Long articleId);
+    Boolean dislike(Long articleId) throws Exception;
 
     /**
      * 获取指定文章的收藏夹列表

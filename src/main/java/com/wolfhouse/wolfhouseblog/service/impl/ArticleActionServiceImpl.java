@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
@@ -15,10 +16,12 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleCommentMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleFavoriteMapper;
 import com.wolfhouse.wolfhouseblog.mapper.ArticleLikeMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleComment;
+import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleLike;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleCommentTableDef.ARTICLE_COMMENT;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.ARTICLE_LIKE;
 
 /**
  * @author rylinwolf
@@ -185,22 +189,44 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean isLiked(Long articleId) {
-        return null;
+    public Boolean isLiked(Long articleId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        return likeMapper.selectCountByQuery(QueryWrapper.create()
+                                                         .where(ARTICLE_LIKE.ARTICLE_ID.eq(articleId))
+                                                         .and(ARTICLE_LIKE.USER_ID.eq(login))) > 0;
     }
 
     @Override
-    public Boolean like(Long articleId) {
-        return null;
+    public Boolean like(Long articleId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        if (isLiked(articleId)) {
+            throw new ServiceException(ArticleConstant.ALREADY_LIKED);
+        }
+        return likeMapper.insert(new ArticleLike(null, login, articleId, null)) == 1;
     }
 
     @Override
-    public Boolean dislike(Long articleId) {
-        return null;
+    public Boolean dislike(Long articleId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        if (!isLiked(articleId)) {
+            throw new ServiceException(ArticleConstant.NOT_LIKED);
+        }
+        boolean deleted = likeMapper.deleteByQuery(QueryWrapper.create()
+                                                               .where(ARTICLE_LIKE.ARTICLE_ID.eq(articleId))
+                                                               .and(ARTICLE_LIKE.USER_ID.eq(login))) == 1;
+        if (!deleted) {
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+        }
+        return true;
     }
 
     @Override
     public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ArticleBriefVo> getFavoritesArticle(Long userId) {
         return List.of();
     }
 
