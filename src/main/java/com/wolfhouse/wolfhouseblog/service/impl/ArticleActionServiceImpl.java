@@ -7,6 +7,7 @@ import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.EmptyVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.article.ArticleVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
@@ -139,8 +140,23 @@ public class ArticleActionServiceImpl implements ArticleActionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto) {
-        Set<Long> ids = getReplyIds(dto.getCommentId());
+    public PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto) throws Exception {
+        Long commentId = dto.getCommentId();
+        Long login = mediator.loginUserOrE();
+        // 评论是否存在
+        VerifyTool.of(ArticleVerifyNode.commentId(mediator)
+                                       .target(commentId),
+                      // 删除目标评论的作者是否为登录用户
+                      EmptyVerifyNode.of(login)
+                                     .predicate(
+                                         (t) -> {
+                                             ArticleComment comment = commentMapper.selectOneById(commentId);
+                                             return comment.getUserId()
+                                                           .equals(t);
+                                         }))
+                  .doVerify();
+
+        Set<Long> ids = getReplyIds(commentId);
         int i = commentMapper.deleteBatchByIds(ids);
         if (i != ids.size()) {
             throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
