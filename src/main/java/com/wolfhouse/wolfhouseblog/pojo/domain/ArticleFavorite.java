@@ -19,6 +19,6 @@ import java.time.LocalDate;
 public class ArticleFavorite {
     private Long id;
     private Long favoriteId;
-    private Long userId;
+    private Long articleId;
     private LocalDate favoriteDate;
 }
