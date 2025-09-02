@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service;
 
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
@@ -50,10 +51,10 @@ public interface ArticleActionService {
     /**
      * 删除指定评论
      *
-     * @param commentId 需要删除的评论ID
+     * @param dto 评论删除数据传输对象
      * @return 更新后的评论分页列表
      */
-    PageResult<ArticleCommentVo> deleteComment(Long commentId);
+    PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto);
 
     /**
      * 检查当前登录用户是否已对指定文章点赞
@@ -102,4 +103,6 @@ public interface ArticleActionService {
      * @return true表示取消成功，false表示取消失败
      */
     Boolean removeFavorite(Long articleId);
+
+
 }
