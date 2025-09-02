@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDeleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleCommentQueryDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleFavoriteVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 
 import java.util.List;
@@ -57,7 +58,7 @@ public interface ArticleActionService {
      * @param dto 评论删除数据传输对象
      * @return 更新后的评论分页列表
      */
-    PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto);
+    PageResult<ArticleCommentVo> deleteComment(ArticleCommentDeleteDto dto) throws Exception;
 
     /**
      * 检查当前登录用户是否已对指定文章点赞
@@ -65,7 +66,7 @@ public interface ArticleActionService {
      * @param articleId 目标文章ID
      * @return true表示已点赞，false表示未点赞
      */
-    Boolean isLiked(Long articleId);
+    Boolean isLiked(Long articleId) throws Exception;
 
     /**
      * 当前登录用户对指定文章进行点赞
@@ -84,12 +85,20 @@ public interface ArticleActionService {
     Boolean dislike(Long articleId);
 
     /**
-     * 检查当前登录用户是否已收藏指定文章
+     * 获取指定文章的收藏夹列表
      *
      * @param articleId 目标文章ID
-     * @return true表示已收藏，false表示未收藏
+     * @return 收藏信息列表
      */
     List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId);
+
+    /**
+     * 获取指定收藏夹中的文章简要信息列表。
+     *
+     * @param favoritesId 收藏夹ID
+     * @return 文章简要信息列表
+     */
+    List<ArticleBriefVo> getFavoritesArticle(Long favoritesId);
 
     /**
      * 当前登录用户收藏指定文章
