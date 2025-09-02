@@ -29,4 +29,5 @@ public class ArticleConstant {
 
     public static final String ALREADY_LIKED = "文章已点赞！";
     public static final String NOT_LIKED = "文章未点赞！";
+    public static final String ALREADY_FAVORITE = "文章已收藏！";
 }
