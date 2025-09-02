@@ -46,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -150,6 +152,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
+    }
+
+    @Override
+    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception {
+        // 根据登录用户构建查询条件
+        Long login = ServiceUtil.loginUser();
+
+        if (BeanUtil.isBlank(articleIds)) {
+            return null;
+        }
+        // 查询指定 ID 集合的文章简要信息
+        var wrapper = QueryWrapper.create();
+        wrapperVisibilityBuild(wrapper, login);
+        wrapper.in(Article::getId, articleIds);
+
+        return mapper.selectListByQueryAs(wrapper, ArticleBriefVo.class);
     }
 
     @Override

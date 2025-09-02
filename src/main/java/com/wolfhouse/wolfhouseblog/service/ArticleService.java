@@ -13,6 +13,9 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import jakarta.validation.Valid;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * 文章服务接口，提供文章的增删改查等基本操作
  *
@@ -40,6 +43,15 @@ public interface ArticleService extends IService<Article> {
      * @throws Exception 查询过程中可能出现的异常
      */
     PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception;
+
+    /**
+     * 根据指定的文章ID集合，获取对应的文章简要信息结果。
+     *
+     * @param articleIds 文章ID集合，用于查询文章简要信息
+     * @return 包含文章简要信息的结果
+     * @throws Exception 查询过程中可能出现的异常
+     */
+    List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception;
 
     /**
      * 获取文章详细信息的分页查询
