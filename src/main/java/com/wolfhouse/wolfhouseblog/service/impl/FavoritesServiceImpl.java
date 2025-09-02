@@ -14,9 +14,11 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
+import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
 import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.FavoritesUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqFavoritesRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.FavoritesVo;
 import com.wolfhouse.wolfhouseblog.service.FavoritesService;
 import jakarta.annotation.PostConstruct;
@@ -36,6 +38,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.FavoritesTableDef.FA
 @RequiredArgsConstructor
 public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites> implements FavoritesService {
     private final ServiceAuthMediator mediator;
+    private final MqArticleService mqArticleService;
 
     @PostConstruct
     private void init() {
@@ -100,7 +103,11 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                   .doVerify();
         int i = mapper.deleteById(favoritesId);
         if (i == 1) {
-            // TODO 通知文章交互服务，转移内容到默认收藏夹
+            // 通知文章交互服务清空收藏夹
+            var mqDto = new MqFavoritesRemoveDto(favoritesId);
+            mqDto.setLoginId(login);
+
+            mqArticleService.articleFavoritesRemove(mqDto);
             return getFavoritesList(login);
         }
         log.error("删除收藏夹失败: {}, {}", login, favoritesId);
