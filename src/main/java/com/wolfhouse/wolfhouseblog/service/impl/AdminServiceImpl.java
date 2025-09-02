@@ -273,8 +273,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                                     .target(dto.getPassword()))
                   .doVerify();
 
-        MqUserAuthDto authDto = new MqUserAuthDto();
-        authDto.setUserId(dto.getUserId());
+        MqUserAuthDto authDto = new MqUserAuthDto(dto.getUserId());
+        authDto.setLoginId(login);
 
         mqUserService.deleteUser(authDto);
         return true;
