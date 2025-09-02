@@ -21,7 +21,16 @@ public class ArticleConstant {
     public static final String DELETE_FAILED = "文章删除失败！";
     public static final String UPDATE_PARTITION_FAILED = "文章分区更新失败！";
     public static final String COMMENT_NOT_EXIST = "评论不存在！";
+    public static final String COMMENT_FAILED = "评论发布失败！";
+    public static final String COMMENT_DELETE_FAILED = "评论删除失败！";
     public static final String NOT_DRAFTED = "文章未暂存！";
     public static final String DRAFT_FAILED = "暂存失败！";
     public static final String DRAFT_EXIST = "已有其他文章暂存！";
+
+    public static final String LIKE_FAILED = "点赞失败！";
+    public static final String UNLIKE_FAILED = "取消点赞失败！";
+    public static final String ALREADY_LIKED = "文章已点赞！";
+    public static final String NOT_LIKED = "文章未点赞！";
+    public static final String ALREADY_FAVORITE = "文章已收藏！";
+    public static final String FAVORITE_NOT_EXIST = "文章不在该收藏夹中！";
 }

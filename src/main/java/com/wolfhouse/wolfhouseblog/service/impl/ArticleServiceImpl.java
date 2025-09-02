@@ -46,6 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -81,20 +83,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         // TODO 通过 Nullable 实现可查空
         var userId = ServiceUtil.loginUser();
-
         var wrapper = QueryWrapper.create();
         // 构建查询列
         wrapper.select(columns);
         // 查询当前用户的私人日记和全部公开日记
-        wrapper.and(q -> {
-            q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
-            if (userId != null) {
-                q.or(q2 -> {
-                    q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
-                      .eq(Article::getAuthorId, userId);
-                });
-            }
-        });
+        wrapperVisibilityBuild(wrapper, userId);
         // 构建查询条件
         wrapper.eq(
                    Article::getId,
@@ -132,6 +125,25 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
     }
 
+    /**
+     * 根据用户 ID 和可见性构建查询条件的包装器。
+     * 对于公开可见的内容始终添加查询条件，对于私人内容则根据用户 ID 进一步判断。
+     *
+     * @param wrapper 查询包装器对象，用于构建动态查询条件
+     * @param userId  用户ID，用于判断是否可以查看私有内容。若为null，则忽略与用户相关的私有内容条件
+     */
+    private static void wrapperVisibilityBuild(QueryWrapper wrapper, Long userId) {
+        wrapper.and(q -> {
+            q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
+            if (userId != null) {
+                q.or(q2 -> {
+                    q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
+                      .eq(Article::getAuthorId, userId);
+                });
+            }
+        });
+    }
+
     @Override
     public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
@@ -140,6 +152,22 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
+    }
+
+    @Override
+    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception {
+        // 根据登录用户构建查询条件
+        Long login = ServiceUtil.loginUser();
+
+        if (BeanUtil.isBlank(articleIds)) {
+            return null;
+        }
+        // 查询指定 ID 集合的文章简要信息
+        var wrapper = QueryWrapper.create();
+        wrapperVisibilityBuild(wrapper, login);
+        wrapper.in(Article::getId, articleIds);
+
+        return mapper.selectListByQueryAs(wrapper, ArticleBriefVo.class);
     }
 
     @Override

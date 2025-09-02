@@ -8,6 +8,9 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 /**
+ * 标签数据访问层接口
+ * 提供标签相关的数据库操作方法
+ *
  * @author linexsong
  */
 @Mapper
@@ -31,6 +34,12 @@ public interface TagMapper extends BaseMapper<Tag> {
     @Select("select tag_id from user_tag where user_id = #{userId}")
     List<Long> getTagIdsByUserId(Long userId);
 
+    /**
+     * 根据标签名称获取标签ID
+     *
+     * @param name 标签名称
+     * @return 返回对应的标签ID，如果不存在则返回null
+     */
     @Select("select id from tag where `name` = #{name}")
     Long getTagIdByName(String name);
 }

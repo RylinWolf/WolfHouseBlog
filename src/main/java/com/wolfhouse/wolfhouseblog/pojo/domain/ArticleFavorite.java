@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+/**
+ * @author rylinwolf
+ */
 @Table("article_favorite")
 @Data
 @Builder
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ArticleFavorite {
     private Long id;
+    private Long favoriteId;
     private Long articleId;
     private Long userId;
     private LocalDate favoriteDate;

@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+/**
+ * @author rylinwolf
+ */
 @Table("article_like")
 @Builder
 @AllArgsConstructor

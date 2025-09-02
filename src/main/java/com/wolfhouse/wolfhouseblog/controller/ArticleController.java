@@ -80,13 +80,48 @@ public class ArticleController {
 
     @Operation(summary = "获取评论")
     @PostMapping(value = "/comment", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
-    public PageResult<ArticleCommentVo> getComments(@RequestBody ArticleCommentQueryDto dto) throws Exception {
-        return actionService.getArticleCommentVos(dto);
+    public HttpResult<PageResult<ArticleCommentVo>> getComments(
+        @RequestBody ArticleCommentQueryDto dto) throws Exception {
+        return HttpResult.success(actionService.getArticleCommentVos(dto));
     }
 
     @Operation(summary = "发布评论")
     @PostMapping(value = "/comment/post")
-    public PageResult<ArticleCommentVo> postComment(@RequestBody ArticleCommentDto dto) throws Exception {
-        return actionService.postComment(dto);
+    public HttpResult<PageResult<ArticleCommentVo>> postComment(@RequestBody ArticleCommentDto dto) throws Exception {
+        return HttpResult.failedIfBlank(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.COMMENT_FAILED,
+            actionService.postComment(dto));
+    }
+
+    @Operation(summary = "删除评论")
+    @DeleteMapping("/comment")
+    public HttpResult<PageResult<ArticleCommentVo>> deleteComment(
+        @RequestBody ArticleCommentDeleteDto dto) throws Exception {
+        return HttpResult.success(actionService.deleteComment(dto));
+    }
+
+    @Operation(summary = "查询是否点赞")
+    @GetMapping("/like/{id}")
+    public HttpResult<Boolean> isLiked(@PathVariable Long id) throws Exception {
+        return HttpResult.success(actionService.isLiked(id));
+    }
+
+    @Operation(summary = "点赞")
+    @PostMapping("/like/{id}")
+    public HttpResult<?> like(@PathVariable Long id) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.LIKE_FAILED,
+            actionService.like(id));
+    }
+
+    @Operation(summary = "取消点赞")
+    @DeleteMapping("/unlike/{id}")
+    public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.UNLIKE_FAILED,
+            actionService.unlike(id));
     }
 }
