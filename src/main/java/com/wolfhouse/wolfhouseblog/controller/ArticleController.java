@@ -94,7 +94,9 @@ public class ArticleController {
             actionService.postComment(dto));
     }
 
-    public PageResult<ArticleCommentVo> deleteComment(@RequestBody ArticleCommentDeleteDto dto) throws Exception {
-        return null;
+    @Operation(summary = "删除评论")
+    @DeleteMapping("/comment")
+    public HttpResult<PageResult<ArticleCommentVo>> deleteComment(@RequestBody ArticleCommentDeleteDto dto) {
+        return HttpResult.success(actionService.deleteComment(dto));
     }
 }
