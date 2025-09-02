@@ -75,6 +75,7 @@ public interface ArticleActionService {
      *
      * @param articleId 目标文章ID
      * @return true表示点赞成功，false表示点赞失败
+     * @throws Exception 未登录
      */
     Boolean like(Long articleId) throws Exception;
 
@@ -83,6 +84,7 @@ public interface ArticleActionService {
      *
      * @param articleId 目标文章ID
      * @return true表示取消成功，false表示取消失败
+     * @throws Exception 未登录
      */
     Boolean dislike(Long articleId) throws Exception;
 
@@ -92,7 +94,7 @@ public interface ArticleActionService {
      * @param articleId 目标文章ID
      * @return 收藏信息列表
      */
-    List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId);
+    List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) throws Exception;
 
     /**
      * 获取指定收藏夹中的文章简要信息列表。

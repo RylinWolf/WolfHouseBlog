@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleCommentTableDef.ARTICLE_COMMENT;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleFavoriteTableDef.ARTICLE_FAVORITE;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.ARTICLE_LIKE;
 
 /**
@@ -221,8 +222,15 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) {
-        return List.of();
+    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) throws Exception {
+        Long login = mediator.loginUserOrE();
+        return favoriteMapper
+            .selectListByQueryAs(QueryWrapper.create()
+                                             .where(ARTICLE_FAVORITE.USER_ID.eq(
+                                                 login))
+                                             .and(ARTICLE_FAVORITE.ARTICLE_ID.eq(
+                                                 articleId)), ArticleFavoriteVo.class);
+
     }
 
     @Override
