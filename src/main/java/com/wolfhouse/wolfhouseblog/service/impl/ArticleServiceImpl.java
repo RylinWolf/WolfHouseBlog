@@ -81,20 +81,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         // TODO 通过 Nullable 实现可查空
         var userId = ServiceUtil.loginUser();
-
         var wrapper = QueryWrapper.create();
         // 构建查询列
         wrapper.select(columns);
         // 查询当前用户的私人日记和全部公开日记
-        wrapper.and(q -> {
-            q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
-            if (userId != null) {
-                q.or(q2 -> {
-                    q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
-                      .eq(Article::getAuthorId, userId);
-                });
-            }
-        });
+        wrapperVisibilityBuild(wrapper, userId);
         // 构建查询条件
         wrapper.eq(
                    Article::getId,
@@ -130,6 +121,25 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         }
 
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
+    }
+
+    /**
+     * 根据用户 ID 和可见性构建查询条件的包装器。
+     * 对于公开可见的内容始终添加查询条件，对于私人内容则根据用户 ID 进一步判断。
+     *
+     * @param wrapper 查询包装器对象，用于构建动态查询条件
+     * @param userId  用户ID，用于判断是否可以查看私有内容。若为null，则忽略与用户相关的私有内容条件
+     */
+    private static void wrapperVisibilityBuild(QueryWrapper wrapper, Long userId) {
+        wrapper.and(q -> {
+            q.eq(Article::getVisibility, VisibilityEnum.PUBLIC);
+            if (userId != null) {
+                q.or(q2 -> {
+                    q2.eq(Article::getVisibility, VisibilityEnum.PRIVATE)
+                      .eq(Article::getAuthorId, userId);
+                });
+            }
+        });
     }
 
     @Override
