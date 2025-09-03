@@ -6,7 +6,9 @@ import com.wolfhouse.wolfhouseblog.mapper.ArticleMapper;
 import com.wolfhouse.wolfhouseblog.mq.MqTools;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqArticleTagRemoveDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqFavoritesRemoveDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
+import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -28,16 +30,15 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 public class ArticleListener {
     private final MqTools mqTools;
     private final ArticleMapper mapper;
+    private final ArticleActionService actionService;
 
     @RabbitListener(
-         bindings = @QueueBinding(
-              value = @Queue(name = MqArticleConstant.PARTITION_CHANGE_QUEUE),
-              exchange = @Exchange(
-                   name = MqArticleConstant.PARTITION_CHANGE_EXCHANGE,
-                   type = ExchangeTypes.TOPIC
-              ),
-              key = {MqArticleConstant.KEY_PARTITION_CHANGE}
-         ))
+        bindings = @QueueBinding(
+            value = @Queue(name = MqArticleConstant.PARTITION_CHANGE_QUEUE),
+            exchange = @Exchange(
+                name = MqArticleConstant.PARTITION_CHANGE_EXCHANGE,
+                type = ExchangeTypes.TOPIC),
+            key = {MqArticleConstant.KEY_PARTITION_CHANGE}))
     public void partitionChangeListener(MqPartitionChangeDto dto) {
         log.info("监听到文章分区修改: {}", dto);
 
@@ -52,19 +53,32 @@ public class ArticleListener {
     }
 
     @RabbitListener(
-         bindings = @QueueBinding(
-              value = @Queue(name = MqArticleConstant.TAG_REMOVE_QUEUE),
-              exchange = @Exchange(
-                   name = MqArticleConstant.TAG_REMOVE_EXCHANGE,
-                   type = ExchangeTypes.TOPIC
-              ),
-              key = {MqArticleConstant.KEY_TAG_REMOVE}
-         ))
+        bindings = @QueueBinding(
+            value = @Queue(name = MqArticleConstant.TAG_REMOVE_QUEUE),
+            exchange = @Exchange(
+                name = MqArticleConstant.TAG_REMOVE_EXCHANGE,
+                type = ExchangeTypes.TOPIC),
+            key = {MqArticleConstant.KEY_TAG_REMOVE}))
     public void comUseTagsRemoveListener(MqArticleTagRemoveDto dto) throws Exception {
         log.info("监听到移除常用标签: {}", dto);
         mqTools.setLoginAuth(dto);
         if (mapper.removeTags(dto.getUserId(), dto.getTagIds()) == 0) {
-            log.warn("没有文章的标签被修改");
+            log.warn("没有文章的标签被修改: {}", dto);
+        }
+    }
+
+    @RabbitListener(
+        bindings = @QueueBinding(
+            value = @Queue(MqArticleConstant.FAVORITES_REMOVE_QUEUE),
+            exchange = @Exchange(
+                name = MqArticleConstant.FAVORITES_REMOVE_EXCHANGE,
+                type = ExchangeTypes.TOPIC),
+            key = {MqArticleConstant.KEY_FAVORITES_REMOVE}))
+    public void favoritesRemoveListener(MqFavoritesRemoveDto dto) throws Exception {
+        log.info("监听到移除收藏夹: {}", dto);
+        mqTools.setLoginAuth(dto);
+        if (!actionService.removeFavorites(dto.getFavoritesId())) {
+            log.warn("没有文章的收藏夹被移除: {}", dto);
         }
     }
 }

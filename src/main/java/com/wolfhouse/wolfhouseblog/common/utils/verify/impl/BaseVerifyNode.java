@@ -31,25 +31,25 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     }
 
     @Override
-    public VerifyNode<T> predicate(Predicate<T> predicate) {
+    public BaseVerifyNode<T> predicate(Predicate<T> predicate) {
         this.predicate = predicate;
         return this;
     }
 
     @Override
-    public VerifyNode<T> exception(Exception e) {
+    public BaseVerifyNode<T> exception(Exception e) {
         this.customException = e;
         return this;
     }
 
     @Override
-    public VerifyNode<T> exception(String message) {
+    public BaseVerifyNode<T> exception(String message) {
         this.customException = new VerifyException(message);
         return this;
     }
 
     @Override
-    public VerifyNode<T> allowNull(Boolean allowNull) {
+    public BaseVerifyNode<T> allowNull(Boolean allowNull) {
         this.allowNull = allowNull;
         return this;
     }
@@ -97,13 +97,13 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     }
 
     @Override
-    public VerifyNode<T> setStrategy(VerifyStrategy strategy) {
+    public BaseVerifyNode<T> setStrategy(VerifyStrategy strategy) {
         this.strategy = strategy;
         return this;
     }
 
     @Override
-    public VerifyNode<T> setCustomException(Exception e) {
+    public BaseVerifyNode<T> setCustomException(Exception e) {
         this.customException = e;
         return this;
     }
@@ -119,7 +119,7 @@ public abstract class BaseVerifyNode<T> implements VerifyNode<T> {
     }
 
     @Override
-    public VerifyNode<T> target(T target) {
+    public BaseVerifyNode<T> target(T target) {
         this.t = target;
         return this;
     }

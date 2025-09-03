@@ -81,6 +81,15 @@ CREATE TABLE IF NOT EXISTS article
     com_use_tags JSON COMMENT '常用文章标签，以 :\\ 分隔'
 ) AUTO_INCREMENT 100000000 COMMENT '文章表';
 
+CREATE TABLE IF NOT EXISTS `article_draft`
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '暂存 ID',
+    article_id BIGINT NOT NULL COMMENT '文章 ID',
+    author_id  BIGINT NOT NULL COMMENT '用户 ID',
+    UNIQUE (author_id, article_id) COMMENT '用户-文章 唯一键'
+) AUTO_INCREMENT 100000000 COMMENT '暂存文章表';
+
+
 DROP TABLE IF EXISTS `partition`;
 
 CREATE TABLE IF NOT EXISTS `partition`
@@ -112,5 +121,44 @@ CREATE TABLE IF NOT EXISTS user_tag
 ) AUTO_INCREMENT 10000000 COMMENT '用户-常用标签表';
 
 
+CREATE TABLE IF NOT EXISTS article_comment
+(
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '文章评论 ID',
+    user_id      BIGINT       NOT NULL COMMENT '用户 ID',
+    article_id   BIGINT       NOT NULL COMMENT '文章 ID',
+    reply_id     BIGINT COMMENT '父评论 ID',
+    content      VARCHAR(255) NOT NULL COMMENT '内容',
+    comment_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评论时间'
+) AUTO_INCREMENT 10000000 COMMENT '文章评论表';
 
 
+CREATE TABLE IF NOT EXISTS article_like
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '点赞 ID',
+    user_id    BIGINT NOT NULL COMMENT '用户 ID',
+    article_id BIGINT NOT NULL COMMENT '文章 ID',
+    like_date  DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '点赞时间'
+) AUTO_INCREMENT 10000000 COMMENT '文章点赞表';
+
+DROP TABLE IF EXISTS article_favorite;
+
+CREATE TABLE IF NOT EXISTS article_favorite
+(
+    id            BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏 ID',
+    user_id       BIGINT NOT NULL COMMENT '用户 ID',
+    favorite_id   BIGINT NOT NULL COMMENT '收藏夹 ID',
+    article_id    BIGINT NOT NULL COMMENT '文章 ID',
+    favorite_date DATE   NOT NULL DEFAULT (CURRENT_DATE) COMMENT '收藏时间'
+) AUTO_INCREMENT 10000000 COMMENT '文章收藏表';
+
+DROP TABLE IF EXISTS `favorites`;
+
+CREATE TABLE IF NOT EXISTS `favorites`
+(
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏夹 ID',
+    `user_id`    BIGINT       NOT NULL COMMENT '用户 ID',
+    `title`      VARCHAR(255) NOT NULL COMMENT '收藏夹名称',
+    `visibility` TINYINT      NOT NULL DEFAULT 0 COMMENT '可见性',
+    `is_default` TINYINT      NOT NULL DEFAULT 1 COMMENT '默认收藏夹',
+    UNIQUE KEY (user_id, title) COMMENT '用户 - 名称唯一约束'
+) AUTO_INCREMENT 100000 COMMENT '收藏夹表';

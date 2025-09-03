@@ -2,10 +2,7 @@ package com.wolfhouse.wolfhouseblog.handler;
 
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.TagConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.*;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
@@ -16,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -31,18 +29,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<HttpResult<?>> handleException(Exception e) {
         log.error("发生异常: [{}]", e.getMessage(), e);
         return HttpResult.failed(
-             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-             HttpCodeConstant.SERVER_ERROR,
-             ServiceExceptionConstant.SERVER_ERROR);
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpCodeConstant.SERVER_ERROR,
+            ServiceExceptionConstant.SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(HttpMediaTypeNotSupportedException e) {
+        log.error("媒体类型不支持: [{}]", e.getContentType());
+        return HttpResult.failed(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+            HttpCodeConstant.UNSUPPORTED_MEDIA_TYPE,
+            ServiceExceptionConstant.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleException(VerifyException e) {
         log.error("字段验证异常: [{}]", e.getMessage());
         return HttpResult.failed(
-             HttpStatus.FORBIDDEN.value(),
-             HttpCodeConstant.VERIFY_FAILED,
-             VerifyConstant.VERIFY_FAILED + "【" + e.getMessage() + "】");
+            HttpStatus.FORBIDDEN.value(),
+            HttpCodeConstant.VERIFY_FAILED,
+            VerifyConstant.VERIFY_FAILED + "【" + e.getMessage() + "】");
     }
 
     @ExceptionHandler
@@ -69,7 +75,8 @@ public class GlobalExceptionHandler {
                  TagConstant.NOT_EXIST,
                  TagConstant.ADD_FAILED,
                  UserConstant.NOT_SUBSCRIBED,
-                 UserConstant.USER_ALREADY_SUBSCRIBED -> {
+                 UserConstant.USER_ALREADY_SUBSCRIBED,
+                 ArticleConstant.ACCESS_DENIED -> {
                 code = HttpCodeConstant.ACCESS_DENIED;
                 status = HttpStatus.FORBIDDEN.value();
             }
@@ -89,6 +96,11 @@ public class GlobalExceptionHandler {
                 code = HttpCodeConstant.FAILED;
                 status = HttpStatus.FORBIDDEN.value();
             }
+            case AuthExceptionConstant.BAD_TOKEN -> {
+                code = HttpCodeConstant.BAD_TOKEN;
+                status = HttpStatus.UNAUTHORIZED.value();
+
+            }
             default -> {
                 code = HttpCodeConstant.SERVICE_ERROR;
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value();
@@ -102,16 +114,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<?> handlerException(HandlerMethodValidationException e) {
         return HttpResult.failed(
-             HttpStatus.FORBIDDEN.value(),
-             HttpCodeConstant.ARG_NOT_VALID,
-             VerifyConstant.VERIFY_FAILED);
+            HttpStatus.FORBIDDEN.value(),
+            HttpCodeConstant.ARG_NOT_VALID,
+            VerifyConstant.VERIFY_FAILED);
     }
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handlerException(AuthorizationDeniedException e) {
         return HttpResult.failed(
-             HttpStatus.FORBIDDEN.value(),
-             HttpCodeConstant.NO_PERMISSION,
-             AuthExceptionConstant.NO_PERMISSION);
+            HttpStatus.FORBIDDEN.value(),
+            HttpCodeConstant.NO_PERMISSION,
+            AuthExceptionConstant.NO_PERMISSION);
     }
 }

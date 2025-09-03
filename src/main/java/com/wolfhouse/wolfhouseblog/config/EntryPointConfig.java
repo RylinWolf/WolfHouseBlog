@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.config;
 
 import co.elastic.clients.util.ContentType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wolfhouse.wolfhouseblog.auth.exceptions.AuthenticationJwtException;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
@@ -28,11 +29,14 @@ public class EntryPointConfig {
         return (request, response, authException) -> {
             response.setContentType(ContentType.APPLICATION_JSON);
             response.setCharacterEncoding(CharEncoding.UTF_8);
+            var msg = AuthExceptionConstant.UNAUTHORIZED;
+            // 登录凭证失效
+            if (AuthenticationJwtException.class.isAssignableFrom(authException.getClass())) {
+                msg = authException.getMessage();
+            }
             response.getWriter()
                     .write(defaultObjectMapper.writeValueAsString(
-                            HttpResult.failed(
-                                    HttpCodeConstant.UN_LOGIN,
-                                    AuthExceptionConstant.UNAUTHORIZED)));
+                        HttpResult.failed(HttpCodeConstant.UN_LOGIN, msg)));
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         };
@@ -45,8 +49,8 @@ public class EntryPointConfig {
             response.setCharacterEncoding(CharEncoding.UTF_8);
 
             var result = HttpResult.failed(
-                    HttpCodeConstant.ACCESS_DENIED,
-                    AuthExceptionConstant.ACCESS_DENIED);
+                HttpCodeConstant.ACCESS_DENIED,
+                AuthExceptionConstant.ACCESS_DENIED);
 
             response.setStatus(HttpStatus.FORBIDDEN.value());
 

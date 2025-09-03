@@ -9,4 +9,5 @@ public class ServiceExceptionConstant {
     public static final String NO_RESOURCE = "资源不存在";
     public static final String SERVER_ERROR = "服务器异常";
     public static final String SERVICE_ERROR = "业务异常";
+    public static final String UNSUPPORTED_MEDIA_TYPE = "不支持的媒体类型";
 }

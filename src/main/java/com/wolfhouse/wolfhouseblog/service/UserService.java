@@ -88,7 +88,7 @@ public interface UserService extends IService<User> {
      * @return 订阅是否成功
      * @throws Exception 订阅过程中可能发生的异常
      */
-    Boolean subsribe(UserSubDto dto) throws Exception;
+    Boolean subscribe(UserSubDto dto) throws Exception;
 
     /**
      * 获取已订阅用户列表

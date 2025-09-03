@@ -22,7 +22,7 @@ BEGIN
 
     INSERT INTO wolfBlog.user_auth(id, password, is_enabled, is_deleted)
     VALUES (10000,
-            '$2a$10$YIZAiKlsaUyeV9w50Q1MNuPhNbooKgdepxSWMj5W/b3pzu1ivaxAC',
+            '$2a$10$ejleLVTJYSFdyQKxjb0UI.2PB7tDpH6ZJJ7K7zXxedjApxZRxuLsO',
             1, 0);
 
     INSERT INTO wolfBlog.user(id, username, `account`, `email`)

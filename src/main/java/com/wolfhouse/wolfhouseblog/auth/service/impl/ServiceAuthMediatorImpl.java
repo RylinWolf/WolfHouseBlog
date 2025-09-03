@@ -2,21 +2,27 @@ package com.wolfhouse.wolfhouseblog.auth.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
-import com.wolfhouse.wolfhouseblog.service.AdminService;
-import com.wolfhouse.wolfhouseblog.service.UserAuthService;
-import com.wolfhouse.wolfhouseblog.service.UserService;
+import com.wolfhouse.wolfhouseblog.service.*;
 import org.springframework.stereotype.Component;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
 
 /**
- * @author linexsong
+ * @author rylinwolf
  */
 @Component("authMediator")
 public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     private UserAuthService authService;
     private AdminService adminService;
     private UserService userService;
+    private ArticleService articleService;
+    private ArticleActionService actionService;
+    private FavoritesService favoritesService;
+
+    @Override
+    public void registerFavorite(FavoritesService favoritesService) {
+        this.favoritesService = favoritesService;
+    }
 
     @Override
     public void registerAdmin(AdminService adminService) {
@@ -31,6 +37,16 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public void registerUserAuth(UserAuthService userAuthService) {
         this.authService = userAuthService;
+    }
+
+    @Override
+    public void registerArticle(ArticleService articleService) {
+        this.articleService = articleService;
+    }
+
+    @Override
+    public void registerAction(ArticleActionService articleActionService) {
+        this.actionService = articleActionService;
     }
 
     @Override
@@ -82,5 +98,30 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public Long loginUserOrE() throws Exception {
         return authService.loginUserOrE();
+    }
+
+    @Override
+    public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
+        return articleService.isArticleReachable(userId, articleId);
+    }
+
+    @Override
+    public Boolean isArticleCommentExist(Long articleId, Long commentId) {
+        return actionService.isArticleCommentExist(articleId, commentId);
+    }
+
+    @Override
+    public Boolean isArticleOwner(Long articleId, Long login) {
+        return articleService.isArticleOwner(articleId, login);
+    }
+
+    @Override
+    public Boolean isFavoritesTitleExist(String title) throws Exception {
+        return favoritesService.isFavoritesTitleExist(title);
+    }
+
+    @Override
+    public Boolean isFavoritesIdOwn(Long id) throws Exception {
+        return favoritesService.isFavoritesIdOwn(id);
     }
 }
