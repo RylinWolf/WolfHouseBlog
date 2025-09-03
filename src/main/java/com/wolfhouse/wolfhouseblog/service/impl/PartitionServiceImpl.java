@@ -314,6 +314,16 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     }
 
     @Override
+    public Boolean isUserPartitionNameExist(Long userId, String partitionName) {
+        if (BeanUtil.isAnyBlank(userId, partitionName)) {
+            return false;
+        }
+        return mapper.selectCountByQuery(QueryWrapper.create()
+                                                     .eq(Partition::getUserId, userId)
+                                                     .eq(Partition::getName, partitionName)) > 0;
+    }
+
+    @Override
     public Boolean isUserPartitionReachable(Long userId, Long partitionId) throws Exception {
         // 分区为当前登录用户的分区
         var login = ServiceUtil.loginUser();

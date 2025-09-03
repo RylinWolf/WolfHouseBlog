@@ -112,4 +112,12 @@ public interface PartitionService extends IService<Partition> {
      */
     SortedSet<PartitionVo> deleteBatch(Long partitionId) throws Exception;
 
+    /**
+     * 检查指定用户是否存在指定名称的分区。
+     *
+     * @param userId        用户ID，用于指定需要检查的用户。
+     * @param partitionName 分区名称，用于检查用户是否拥有该名称的分区。
+     * @return true表示用户存在该名称的分区，false表示用户不存在该名称的分区。
+     */
+    Boolean isUserPartitionNameExist(Long userId, String partitionName);
 }
