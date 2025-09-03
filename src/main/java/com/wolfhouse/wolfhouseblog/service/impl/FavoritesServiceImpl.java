@@ -48,10 +48,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     @Override
     public List<FavoritesVo> getFavoritesList(Long userId) {
         // 初始化登录用户
-        Long login = null;
-        try {
-            login = mediator.loginUserOrE();
-        } catch (Exception ignored) {}
+        Long login = mediator.loginUserOrNull();
 
         return mapper.selectListByQueryAs(
             QueryWrapper.create()
