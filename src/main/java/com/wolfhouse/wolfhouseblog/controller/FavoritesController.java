@@ -56,4 +56,9 @@ public class FavoritesController {
             service.updateFavorites(dto));
     }
 
+    @GetMapping
+    @Operation(summary = "获取默认收藏夹")
+    public HttpResult<FavoritesVo> getDefaultFavorites() throws Exception {
+        return HttpResult.success(service.getDefaultFavoritesVo());
+    }
 }
