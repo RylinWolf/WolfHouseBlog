@@ -123,6 +123,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     @Override
     public FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception {
         Long id = dto.getId();
+        Long login = mediator.loginUserOrE();
         VerifyTool.of(
                       // 校验 ID、收藏夹标题
                       FavoritesVerifyNode.idOwn(mediator)
@@ -144,6 +145,23 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         // 更新权限
         dto.getVisibility()
            .ifPresent(v -> chain.set(FAVORITES.VISIBILITY, v, v != null));
+
+        // 更新默认
+        dto.getIsDefault()
+           .ifPresent(v -> {
+               // 默认字段不为 true
+               if (v == null || v.equals(DefaultEnum.NOT_DEFAULT)) {
+                   return;
+               }
+               // 取消默认
+               UpdateChain.of(FAVORITES)
+                          .where(FAVORITES.USER_ID.eq(login))
+                          .and(FAVORITES.IS_DEFAULT.eq(DefaultEnum.DEFAULT))
+                          .set(FAVORITES.IS_DEFAULT, DefaultEnum.NOT_DEFAULT)
+                          .update();
+               // 设置当前为默认
+               chain.set(FAVORITES.IS_DEFAULT, v);
+           });
 
         if (!chain.update()) {
             throw new ServiceException(FavoritesConstant.UPDATE_FAILED);
