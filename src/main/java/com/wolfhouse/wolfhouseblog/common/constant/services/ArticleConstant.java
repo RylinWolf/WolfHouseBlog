@@ -31,6 +31,8 @@ public class ArticleConstant {
     public static final String UNLIKE_FAILED = "取消点赞失败！";
     public static final String ALREADY_LIKED = "文章已点赞！";
     public static final String NOT_LIKED = "文章未点赞！";
+    public static final String FAVORITE_FAILED = "收藏失败！";
+    public static final String UNFAVORITE_FAILED = "取消收藏失败！";
     public static final String ALREADY_FAVORITE = "文章已收藏！";
     public static final String FAVORITE_NOT_EXIST = "文章不在该收藏夹中！";
 }
