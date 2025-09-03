@@ -24,7 +24,7 @@ public interface FavoritesService extends IService<Favorites> {
      * @param userId 要查询的用户ID
      * @return 收藏夹列表，包含收藏夹的基本信息
      */
-    List<FavoritesVo> getFavoritesList(Long userId);
+    List<FavoritesVo> getFavoritesList(Long userId) throws Exception;
 
     /**
      * 添加新的收藏夹。

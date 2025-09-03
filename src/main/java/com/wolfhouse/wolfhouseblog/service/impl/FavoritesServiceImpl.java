@@ -13,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
 import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
@@ -46,7 +47,12 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public List<FavoritesVo> getFavoritesList(Long userId) {
+    public List<FavoritesVo> getFavoritesList(Long userId) throws Exception {
+        // 验证要获取收藏夹的用户 ID 是否可达
+        VerifyTool.of(
+                      UserVerifyNode.id(mediator)
+                                    .target(userId))
+                  .doVerify();
         // 初始化登录用户
         Long login = mediator.loginUserOrNull();
 
