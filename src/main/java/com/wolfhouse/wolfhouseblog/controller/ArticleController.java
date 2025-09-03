@@ -154,7 +154,8 @@ public class ArticleController {
 
     @Operation(summary = "获取收藏夹内的文章列表")
     @PostMapping("/favorites")
-    public HttpResult<PageResult<ArticleBriefVo>> getFavoritesArticles(ArticleFavoritePageDto dto) throws Exception {
+    public HttpResult<PageResult<ArticleBriefVo>> getFavoritesArticles(@RequestBody
+                                                                       FavoritesArticlePageDto dto) throws Exception {
         return HttpResult.success(actionService.getFavoritesArticle(dto));
     }
 }

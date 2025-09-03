@@ -112,7 +112,7 @@ public interface ArticleActionService {
      * @return 文章简要信息列表分页数据，包含文章标题、作者、发布时间等
      * @throws Exception 查询失败时抛出异常，如收藏夹不存在
      */
-    PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception;
+    PageResult<ArticleBriefVo> getFavoritesArticle(FavoritesArticlePageDto dto) throws Exception;
 
     /**
      * 检查指定的文章是否存在于某个收藏夹中。

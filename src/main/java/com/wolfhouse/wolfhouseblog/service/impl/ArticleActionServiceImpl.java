@@ -253,7 +253,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception {
+    public PageResult<ArticleBriefVo> getFavoritesArticle(FavoritesArticlePageDto dto) throws Exception {
         // 指定收藏夹的收藏记录分页结果
         Page<ArticleFavorite> favoritePage = favoriteMapper.paginate(
             dto.getPageNumber(),
