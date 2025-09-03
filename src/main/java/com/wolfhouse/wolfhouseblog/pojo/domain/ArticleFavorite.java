@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ArticleFavorite {
     private Long id;
-    private Long favoriteId;
+    private Long favoritesId;
     private Long articleId;
     private Long userId;
     private LocalDate favoriteDate;
