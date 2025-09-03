@@ -304,7 +304,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean removeFavorite(ArticleFavoriteDto dto) throws Exception {
+    public Boolean unFavorite(ArticleFavoriteDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
         // 收藏夹为本人创建
         VerifyTool.of(

@@ -140,7 +140,7 @@ public interface ArticleActionService {
      * @return true表示取消成功，false表示取消失败
      * @throws Exception 未登录或收藏夹非本人创建
      */
-    Boolean removeFavorite(ArticleFavoriteDto dto) throws Exception;
+    Boolean unFavorite(ArticleFavoriteDto dto) throws Exception;
 
     /**
      * 清空指定收藏夹中的所有文章
