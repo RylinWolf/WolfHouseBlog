@@ -17,6 +17,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author rylinwolf
  */
@@ -123,5 +125,35 @@ public class ArticleController {
             HttpCodeConstant.FAILED,
             ArticleConstant.UNLIKE_FAILED,
             actionService.unlike(id));
+    }
+
+    @Operation(summary = "收藏文章")
+    @PostMapping("/favorite")
+    public HttpResult<?> favorite(@RequestBody ArticleFavoriteDto dto) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.FAVORITE_FAILED,
+            actionService.favorite(dto));
+    }
+
+    @Operation(summary = "取消收藏文章")
+    @DeleteMapping("/favorite")
+    public HttpResult<?> unFavorite(@RequestBody ArticleFavoriteDto dto) throws Exception {
+        return HttpResult.onCondition(
+            HttpCodeConstant.FAILED,
+            ArticleConstant.UNFAVORITE_FAILED,
+            actionService.unFavorite(dto));
+    }
+
+    @Operation(summary = "获取文章所属收藏夹列表")
+    @GetMapping("/favorite/{articleId}")
+    public HttpResult<List<ArticleFavoriteVo>> getArticleFavorites(@PathVariable Long articleId) throws Exception {
+        return HttpResult.success(actionService.getFavoritesByArticle(articleId));
+    }
+
+    @Operation(summary = "获取收藏夹内的文章列表")
+    @PostMapping("/favorites")
+    public HttpResult<PageResult<ArticleBriefVo>> getFavoritesArticles(ArticleFavoritePageDto dto) throws Exception {
+        return HttpResult.success(actionService.getFavoritesArticle(dto));
     }
 }
