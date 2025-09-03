@@ -1,29 +1,28 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition;
 
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
-import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
-import com.wolfhouse.wolfhouseblog.service.PartitionService;
 
 /**
  * @author linexsong
  */
 public class PartitionIdVerifyNode extends BaseVerifyNode<Long> {
-    private final PartitionService service;
+    private final ServiceAuthMediator mediator;
 
-    public PartitionIdVerifyNode(PartitionService service) {
-        this.service = service;
+    public PartitionIdVerifyNode(ServiceAuthMediator mediator) {
+        this.mediator = mediator;
     }
 
-    public PartitionIdVerifyNode(Long aLong, PartitionService service) {
+    public PartitionIdVerifyNode(Long aLong, ServiceAuthMediator mediator) {
         super(aLong);
-        this.service = service;
+        this.mediator = mediator;
     }
 
-    public PartitionIdVerifyNode(Long aLong, Boolean allowNull, PartitionService service) {
+    public PartitionIdVerifyNode(Long aLong, Boolean allowNull, ServiceAuthMediator mediator) {
         super(aLong, allowNull);
-        this.service = service;
+        this.mediator = mediator;
     }
 
     @Override
@@ -33,7 +32,7 @@ public class PartitionIdVerifyNode extends BaseVerifyNode<Long> {
         }
         this.customException = new ServiceException(PartitionConstant.NOT_EXIST);
         try {
-            return super.verify() && service.isUserPartitionExist(ServiceUtil.loginUserOrE(), t);
+            return super.verify() && mediator.isUserPartitionExist(mediator.loginUserOrE(), t);
         } catch (Exception e) {
             return false;
         }

@@ -1,33 +1,31 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition;
 
-import com.mybatisflex.core.query.QueryWrapper;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.PartitionConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
-import com.wolfhouse.wolfhouseblog.pojo.domain.Partition;
-import com.wolfhouse.wolfhouseblog.service.PartitionService;
 
 /**
  * @author linexsong
  */
 public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
-    private final PartitionService service;
+    private final ServiceAuthMediator mediator;
     private Long login;
 
-    public PartitionNameVerifyNode(PartitionService service) {
+    public PartitionNameVerifyNode(ServiceAuthMediator mediator) {
         super();
-        this.service = service;
+        this.mediator = mediator;
     }
 
-    public PartitionNameVerifyNode(PartitionService service, String t) {
-        this(service);
+    public PartitionNameVerifyNode(ServiceAuthMediator mediator, String t) {
+        this(mediator);
         this.t = t;
     }
 
-    public PartitionNameVerifyNode(PartitionService service, String t, Boolean allowNull) {
-        this(service, t);
+    public PartitionNameVerifyNode(ServiceAuthMediator mediator, String t, Boolean allowNull) {
+        this(mediator, t);
         this.allowNull = allowNull;
     }
 
@@ -44,10 +42,7 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
         // 分区已存在
         try {
             this.exception(new ServiceException(PartitionConstant.ALREADY_EXIST));
-            if (service.exists(QueryWrapper.create()
-                                           .eq(Partition::getUserId, login)
-                                           .eq(Partition::getName, this.t))) {
-
+            if (mediator.isUserPartitionNameExist(login, this.t)) {
                 return false;
             }
         } catch (Exception e) {
@@ -57,7 +52,7 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
         this.exception(VerifyConstant.VERIFY_FAILED + "[name]");
         return super.verify() &&
                new StringVerifyNode(1L, 10L, allowNull)
-                    .target(this.t)
-                    .verify();
+                   .target(this.t)
+                   .verify();
     }
 }
