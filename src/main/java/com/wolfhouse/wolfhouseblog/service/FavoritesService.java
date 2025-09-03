@@ -23,6 +23,7 @@ public interface FavoritesService extends IService<Favorites> {
      *
      * @param userId 要查询的用户ID
      * @return 收藏夹列表，包含收藏夹的基本信息
+     * @throws Exception 未登录或验证失败
      */
     List<FavoritesVo> getFavoritesList(Long userId) throws Exception;
 
@@ -55,6 +56,15 @@ public interface FavoritesService extends IService<Favorites> {
      * @throws Exception 当收藏夹不存在时抛出异常
      */
     FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception;
+
+    /**
+     * 获取默认收藏夹的视图对象。
+     * 默认收藏夹是用户的特殊收藏夹，用于默认存储用户的内容。
+     *
+     * @return 默认收藏夹视图对象，包含收藏夹的基本信息
+     * @throws Exception 当用户未登录或发生其他异常时抛出
+     */
+    FavoritesVo getDefaultFavoritesVo() throws Exception;
 
     /**
      * 更新收藏夹信息。

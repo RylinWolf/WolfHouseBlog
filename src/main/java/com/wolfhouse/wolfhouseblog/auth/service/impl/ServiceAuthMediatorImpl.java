@@ -4,6 +4,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.*;
 import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
@@ -103,6 +104,7 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
+    @NonNull
     public Long loginUserOrE() throws Exception {
         return authService.loginUserOrE();
     }

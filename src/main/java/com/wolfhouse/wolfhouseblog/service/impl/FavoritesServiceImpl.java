@@ -11,7 +11,7 @@ import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.EmptyVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
@@ -118,6 +118,17 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                         .where(FAVORITES.ID.eq(favoritesId))
                         // 若非自己的，则只允许获取公开可见收藏夹
                         .and(FAVORITES.VISIBILITY.eq(VisibilityEnum.PUBLIC, !isFavoritesIdOwn(favoritesId))),
+            FavoritesVo.class);
+    }
+
+    @Override
+    public FavoritesVo getDefaultFavoritesVo() throws Exception {
+        Long login = mediator.loginUserOrE();
+
+        return mapper.selectOneByQueryAs(
+            QueryWrapper.create()
+                        .where(FAVORITES.IS_DEFAULT.eq(DefaultEnum.DEFAULT))
+                        .and(FAVORITES.USER_ID.eq(login)),
             FavoritesVo.class);
     }
 

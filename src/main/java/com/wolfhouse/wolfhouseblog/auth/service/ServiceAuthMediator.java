@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.auth.service;
 
 import com.wolfhouse.wolfhouseblog.service.*;
 import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
+import org.springframework.lang.NonNull;
 
 /**
  * @author linexsong
@@ -136,6 +137,7 @@ public interface ServiceAuthMediator {
      * @return 当前登录用户ID
      * @throws Exception 未登录或登录用户不可达
      */
+    @NonNull
     Long loginUserOrE() throws Exception;
 
     /**
