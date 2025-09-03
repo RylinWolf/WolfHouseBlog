@@ -113,8 +113,13 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception {
-        return mapper.selectOneByQueryAs(QueryWrapper.create()
-                                                     .where(FAVORITES.ID.eq(favoritesId)), FavoritesVo.class);
+        return mapper.selectOneByQueryAs(
+            QueryWrapper.create()
+                        // 指定收藏夹 ID
+                        .where(FAVORITES.ID.eq(favoritesId))
+                        // 若非自己的，则只允许获取公开可见收藏夹
+                        .and(FAVORITES.VISIBILITY.eq(VisibilityEnum.PUBLIC, !isFavoritesIdOwn(favoritesId))),
+            FavoritesVo.class);
     }
 
     @Override
@@ -168,7 +173,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public Boolean isFavoritesTitleExist(String title) throws Exception {
-        Long login = mediator.loginUserOrE();
+        Long login = mediator.loginUserOrNull();
+        if (login == null) {
+            return false;
+        }
         return exists(QueryWrapper.create()
                                   .where(FAVORITES.USER_ID.eq(login))
                                   .and(FAVORITES.TITLE.eq(title)));
@@ -176,7 +184,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public Boolean isFavoritesIdOwn(Long favoritesId) throws Exception {
-        Long login = mediator.loginUserOrE();
+        Long login = mediator.loginUserOrNull();
+        if (login == null) {
+            return false;
+        }
         return exists(QueryWrapper.create()
                                   .where(FAVORITES.USER_ID.eq(login))
                                   .and(FAVORITES.ID.eq(favoritesId)));
