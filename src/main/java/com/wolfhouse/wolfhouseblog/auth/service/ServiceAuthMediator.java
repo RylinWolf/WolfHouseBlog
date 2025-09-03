@@ -139,6 +139,13 @@ public interface ServiceAuthMediator {
     Long loginUserOrE() throws Exception;
 
     /**
+     * 获取当前登录用户ID，如果用户未登录则返回null。
+     *
+     * @return 当前登录用户的ID，如果用户未登录则返回null。
+     */
+    Long loginUserOrNull();
+
+    /**
      * 检查指定用户是否可以访问文章
      *
      * @param userId    用户ID

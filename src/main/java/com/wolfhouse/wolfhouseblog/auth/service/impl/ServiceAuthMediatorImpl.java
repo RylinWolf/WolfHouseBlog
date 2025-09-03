@@ -108,6 +108,15 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
+    public Long loginUserOrNull() {
+        try {
+            return authService.loginUserOrE();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
     public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
         return articleService.isArticleReachable(userId, articleId);
     }
