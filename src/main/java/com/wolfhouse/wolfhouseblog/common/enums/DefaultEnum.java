@@ -8,9 +8,9 @@ import com.mybatisflex.annotation.EnumValue;
  */
 public enum DefaultEnum {
     /** 默认值 */
-    DEFAULT(0),
+    DEFAULT(1),
     /** 非默认值 */
-    NOT_DEFAULT(1);
+    NOT_DEFAULT(0);
 
     @JsonValue
     @EnumValue

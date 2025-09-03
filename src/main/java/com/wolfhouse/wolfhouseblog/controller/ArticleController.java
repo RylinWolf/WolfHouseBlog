@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
@@ -153,7 +154,8 @@ public class ArticleController {
 
     @Operation(summary = "获取收藏夹内的文章列表")
     @PostMapping("/favorites")
-    public HttpResult<PageResult<ArticleBriefVo>> getFavoritesArticles(ArticleFavoritePageDto dto) throws Exception {
+    public HttpResult<PageResult<ArticleBriefVo>> getFavoritesArticles(
+        @RequestBody FavoritesArticlePageDto dto) throws Exception {
         return HttpResult.success(actionService.getFavoritesArticle(dto));
     }
 }

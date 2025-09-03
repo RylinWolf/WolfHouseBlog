@@ -1,6 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.partition;
 
-import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 
 /**
  * @author linexsong
@@ -12,16 +12,16 @@ public class PartitionVerifyNode {
     private static PartitionIdVerifyNode ID;
     private static PartitionNameVerifyNode NAME;
 
-    public static PartitionIdVerifyNode id(PartitionService service) {
+    public static PartitionIdVerifyNode id(ServiceAuthMediator mediator) {
         if (ID == null) {
-            ID = new PartitionIdVerifyNode(service);
+            ID = new PartitionIdVerifyNode(mediator);
         }
         return ID;
     }
 
-    public static PartitionNameVerifyNode name(PartitionService service) {
+    public static PartitionNameVerifyNode name(ServiceAuthMediator mediator) {
         if (NAME == null) {
-            NAME = new PartitionNameVerifyNode(service);
+            NAME = new PartitionNameVerifyNode(mediator);
         }
         return NAME;
     }

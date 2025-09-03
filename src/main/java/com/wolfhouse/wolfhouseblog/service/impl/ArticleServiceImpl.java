@@ -184,6 +184,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long login = mediator.loginUserOrE();
 
         VerifyTool.of(
+                      // 标题、内容、摘要校验
                       ArticleVerifyNode.TITLE.target(dto.getTitle())
                                              .exception(ARTICLE.TITLE.getName()),
                       ArticleVerifyNode.CONTENT.target(dto.getContent())
@@ -191,6 +192,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                       ArticleVerifyNode.PRIMARY.target(dto.getPrimary())
                                                .allowNull(true)
                                                .exception(ARTICLE.PRIMARY.getName()),
+                      // 分区 ID 校验
+                      PartitionVerifyNode.id(mediator)
+                                         .target(dto.getPartitionId())
+                                         .allowNull(true),
                       comUseTagVerifyNode.userId(login)
                                          .target(dto.getComUseTags())
                                          .allowNull(true))
@@ -214,8 +219,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         ArticleDraft articleDraft = draftMapper.selectOneByQuery(
             QueryWrapper.create()
                         .where(ARTICLE_DRAFT
-                            .AUTHOR_ID
-                            .eq(login)));
+                                   .AUTHOR_ID
+                                   .eq(login)));
         if (BeanUtil.isBlank(articleDraft)) {
             return null;
         }
@@ -294,7 +299,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                       ArticleVerifyNode.primary(primary, true)
                                        .exception(ARTICLE.PRIMARY.getName()),
                       // 分区 ID
-                      PartitionVerifyNode.id(partitionService)
+                      PartitionVerifyNode.id(mediator)
                                          .target(partitionId)
                                          .allowNull(true),
                       // 常用标签

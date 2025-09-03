@@ -3,6 +3,8 @@ package com.wolfhouse.wolfhouseblog.auth.service.impl;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.*;
+import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.AdminTableDef.ADMIN;
@@ -18,10 +20,16 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     private ArticleService articleService;
     private ArticleActionService actionService;
     private FavoritesService favoritesService;
+    private PartitionService partitionService;
 
     @Override
     public void registerFavorite(FavoritesService favoritesService) {
         this.favoritesService = favoritesService;
+    }
+
+    @Override
+    public void registerPartition(PartitionServiceImpl partitionService) {
+        this.partitionService = partitionService;
     }
 
     @Override
@@ -96,8 +104,18 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
+    @NonNull
     public Long loginUserOrE() throws Exception {
         return authService.loginUserOrE();
+    }
+
+    @Override
+    public Long loginUserOrNull() {
+        try {
+            return authService.loginUserOrE();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -123,5 +141,15 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     @Override
     public Boolean isFavoritesIdOwn(Long id) throws Exception {
         return favoritesService.isFavoritesIdOwn(id);
+    }
+
+    @Override
+    public Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception {
+        return partitionService.isUserPartitionExist(userId, partitionId);
+    }
+
+    @Override
+    public Boolean isUserPartitionNameExist(Long userId, String partitionName) {
+        return partitionService.isUserPartitionNameExist(userId, partitionName);
     }
 }

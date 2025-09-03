@@ -22,6 +22,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.PartitionUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.mq.MqPartitionChangeDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.PartitionVo;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.lang.NonNull;
@@ -41,6 +42,11 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PA
 public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition> implements PartitionService {
     private final ServiceAuthMediator mediator;
     private final MqArticleService mqArticleService;
+
+    @PostConstruct
+    private void init() {
+        this.mediator.registerPartition(this);
+    }
 
     @Override
     public SortedSet<PartitionVo> getPartitionVos() throws Exception {
@@ -91,8 +97,8 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
 
         Map<Long, PartitionVo> partitionMap = partitions.stream()
                                                         .collect(Collectors.toMap(
-                                                             Partition::getId,
-                                                             p -> BeanUtil.copyProperties(p, PartitionVo.class)));
+                                                            Partition::getId,
+                                                            p -> BeanUtil.copyProperties(p, PartitionVo.class)));
 
         // 获取 ID -> 孩子 ID 的映射
         // 由于会寻找父节点，所以可能在获取部分节点时会新增 partitionMap 中不包含的节点
@@ -109,10 +115,10 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         // 遍历森林，构建 Vo 结构
         // 最大深度遍历
         SortedSet<PartitionVo> vos = deepSearchPartitionVos(
-             mapping.idMap(),
-             null,
-             new HashSet<>(),
-             partitionMap);
+            mapping.idMap(),
+            null,
+            new HashSet<>(),
+            partitionMap);
         vos.addAll(singlesList);
         return vos;
     }
@@ -143,10 +149,10 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
     @NonNull
     private List<Partition> getAllPartitions(Long userId) {
         return mapper.selectListByQuery(
-             QueryWrapper.create()
-                         .eq(Partition::getUserId, userId)
-                         .orderBy(Partition::getOrder, true)
-                         .orderBy(Partition::getId, true));
+            QueryWrapper.create()
+                        .eq(Partition::getUserId, userId)
+                        .orderBy(Partition::getOrder, true)
+                        .orderBy(Partition::getId, true));
     }
 
     /**
@@ -237,10 +243,10 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
             if (children != null && !children.isEmpty()) {
                 // 获取孩子的搜索结果
                 vo.setChildren(deepSearchPartitionVos(
-                     idMap,
-                     children,
-                     processed,
-                     partitionMap).toArray(new PartitionVo[0]));
+                    idMap,
+                    children,
+                    processed,
+                    partitionMap).toArray(new PartitionVo[0]));
             }
 
             // 将自身添加至结果，表示已处理过
@@ -272,13 +278,13 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         // 验证字段
         // 暂未使用分区可见性验证，因为自动映射会处理
         VerifyTool.of(
-                       // 验证分区名格式及是否已存在
-                       PartitionVerifyNode.name(this)
-                                          .login(login)
-                                          .target(dto.getName()),
-                       PartitionVerifyNode.id(this)
-                                          .target(dto.getParentId())
-                                          .allowNull(true))
+                      // 验证分区名格式及是否已存在
+                      PartitionVerifyNode.name(mediator)
+                                         .login(login)
+                                         .target(dto.getName()),
+                      PartitionVerifyNode.id(mediator)
+                                         .target(dto.getParentId())
+                                         .allowNull(true))
                   .doVerify();
         Partition partition = BeanUtil.copyProperties(dto, Partition.class);
         partition.setUserId(login);
@@ -305,6 +311,16 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         return mapper.selectCountByQuery(QueryWrapper.create()
                                                      .eq(Partition::getUserId, userId)
                                                      .eq(Partition::getId, partitionId)) > 0;
+    }
+
+    @Override
+    public Boolean isUserPartitionNameExist(Long userId, String partitionName) {
+        if (BeanUtil.isAnyBlank(userId, partitionName)) {
+            return false;
+        }
+        return mapper.selectCountByQuery(QueryWrapper.create()
+                                                     .eq(Partition::getUserId, userId)
+                                                     .eq(Partition::getName, partitionName)) > 0;
     }
 
     @Override
@@ -342,20 +358,20 @@ public class PartitionServiceImpl extends ServiceImpl<PartitionMapper, Partition
         String nameString = JsonNullableUtil.getObjOrNull(name);
 
         VerifyTool.of(
-                       PartitionVerifyNode.id(this)
-                                          .target(id),
-                       PartitionVerifyNode.id(this)
-                                          .target(parentLong)
-                                          .allowNull(true),
-                       PartitionVerifyNode.name(this)
-                                          .target(nameString)
-                                          .allowNull(true),
-                       new NotAllBlankVerifyNode(
-                            parentLong,
-                            nameString,
-                            visibility,
-                            order
-                       ))
+                      PartitionVerifyNode.id(mediator)
+                                         .target(id),
+                      PartitionVerifyNode.id(mediator)
+                                         .target(parentLong)
+                                         .allowNull(true),
+                      PartitionVerifyNode.name(mediator)
+                                         .target(nameString)
+                                         .allowNull(true),
+                      new NotAllBlankVerifyNode(
+                          parentLong,
+                          nameString,
+                          visibility,
+                          order
+                      ))
                   .doVerify();
 
         // 验证是否循环

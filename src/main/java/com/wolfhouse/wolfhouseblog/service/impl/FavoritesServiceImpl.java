@@ -11,8 +11,9 @@ import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
-import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.EmptyVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites.FavoritesVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.FavoritesMapper;
 import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Favorites;
@@ -46,12 +47,14 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
-    public List<FavoritesVo> getFavoritesList(Long userId) {
+    public List<FavoritesVo> getFavoritesList(Long userId) throws Exception {
+        // 验证要获取收藏夹的用户 ID 是否可达
+        VerifyTool.of(
+                      UserVerifyNode.id(mediator)
+                                    .target(userId))
+                  .doVerify();
         // 初始化登录用户
-        Long login = null;
-        try {
-            login = mediator.loginUserOrE();
-        } catch (Exception ignored) {}
+        Long login = mediator.loginUserOrNull();
 
         return mapper.selectListByQueryAs(
             QueryWrapper.create()
@@ -89,17 +92,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                       FavoritesVerifyNode.idOwn(mediator)
                                          .target(favoritesId),
                       // 不得删除默认收藏夹
-                      new BaseVerifyNode<Long>() {
-                          {
-                              customException = new ServiceException(FavoritesConstant.IS_DEFAULT);
-                          }
-
-                          @Override
-                          public boolean verify() {
-                              return getById(favoritesId).getIsDefault()
-                                                         .equals(DefaultEnum.NOT_DEFAULT);
-                          }
-                      })
+                      EmptyVerifyNode.of(favoritesId)
+                                     .setCustomException(new ServiceException(FavoritesConstant.IS_DEFAULT))
+                                     .predicate(t -> getById(t).getIsDefault()
+                                                               .equals(DefaultEnum.NOT_DEFAULT)))
                   .doVerify();
         int i = mapper.deleteById(favoritesId);
         if (i == 1) {
@@ -116,13 +112,30 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public FavoritesVo getFavoritesVoById(Long favoritesId) throws Exception {
-        return mapper.selectOneByQueryAs(QueryWrapper.create()
-                                                     .where(FAVORITES.ID.eq(favoritesId)), FavoritesVo.class);
+        return mapper.selectOneByQueryAs(
+            QueryWrapper.create()
+                        // 指定收藏夹 ID
+                        .where(FAVORITES.ID.eq(favoritesId))
+                        // 若非自己的，则只允许获取公开可见收藏夹
+                        .and(FAVORITES.VISIBILITY.eq(VisibilityEnum.PUBLIC, !isFavoritesIdOwn(favoritesId))),
+            FavoritesVo.class);
+    }
+
+    @Override
+    public FavoritesVo getDefaultFavoritesVo() throws Exception {
+        Long login = mediator.loginUserOrE();
+
+        return mapper.selectOneByQueryAs(
+            QueryWrapper.create()
+                        .where(FAVORITES.IS_DEFAULT.eq(DefaultEnum.DEFAULT))
+                        .and(FAVORITES.USER_ID.eq(login)),
+            FavoritesVo.class);
     }
 
     @Override
     public FavoritesVo updateFavorites(FavoritesUpdateDto dto) throws Exception {
         Long id = dto.getId();
+        Long login = mediator.loginUserOrE();
         VerifyTool.of(
                       // 校验 ID、收藏夹标题
                       FavoritesVerifyNode.idOwn(mediator)
@@ -145,6 +158,23 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
         dto.getVisibility()
            .ifPresent(v -> chain.set(FAVORITES.VISIBILITY, v, v != null));
 
+        // 更新默认
+        dto.getIsDefault()
+           .ifPresent(v -> {
+               // 默认字段不为 true
+               if (v == null || v.equals(DefaultEnum.NOT_DEFAULT)) {
+                   return;
+               }
+               // 取消默认
+               UpdateChain.of(FAVORITES)
+                          .where(FAVORITES.USER_ID.eq(login))
+                          .and(FAVORITES.IS_DEFAULT.eq(DefaultEnum.DEFAULT))
+                          .set(FAVORITES.IS_DEFAULT, DefaultEnum.NOT_DEFAULT)
+                          .update();
+               // 设置当前为默认
+               chain.set(FAVORITES.IS_DEFAULT, v);
+           });
+
         if (!chain.update()) {
             throw new ServiceException(FavoritesConstant.UPDATE_FAILED);
         }
@@ -153,7 +183,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public Boolean isFavoritesTitleExist(String title) throws Exception {
-        Long login = mediator.loginUserOrE();
+        Long login = mediator.loginUserOrNull();
+        if (login == null) {
+            return false;
+        }
         return exists(QueryWrapper.create()
                                   .where(FAVORITES.USER_ID.eq(login))
                                   .and(FAVORITES.TITLE.eq(title)));
@@ -161,7 +194,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
     @Override
     public Boolean isFavoritesIdOwn(Long favoritesId) throws Exception {
-        Long login = mediator.loginUserOrE();
+        Long login = mediator.loginUserOrNull();
+        if (login == null) {
+            return false;
+        }
         return exists(QueryWrapper.create()
                                   .where(FAVORITES.USER_ID.eq(login))
                                   .and(FAVORITES.ID.eq(favoritesId)));

@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class ArticleFavoriteDto {
     private Long articleId;
-    private Long favoriteId;
+    private Long favoritesId;
 }

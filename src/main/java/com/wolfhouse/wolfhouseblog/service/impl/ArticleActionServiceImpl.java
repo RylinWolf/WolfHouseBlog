@@ -23,6 +23,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.ArticleLike;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.PostConstruct;
@@ -247,19 +248,19 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         long count = favoriteMapper.selectCountByQuery(
             QueryWrapper.create()
                         .where(ARTICLE_FAVORITE.ARTICLE_ID.eq(dto.getArticleId()))
-                        .and(ARTICLE_FAVORITE.FAVORITE_ID.eq(dto.getFavoriteId())));
+                        .and(ARTICLE_FAVORITE.FAVORITES_ID.eq(dto.getFavoritesId())));
         return count > 0;
     }
 
     @Override
-    public PageResult<ArticleBriefVo> getFavoritesArticle(ArticleFavoritePageDto dto) throws Exception {
+    public PageResult<ArticleBriefVo> getFavoritesArticle(FavoritesArticlePageDto dto) throws Exception {
         // 指定收藏夹的收藏记录分页结果
         Page<ArticleFavorite> favoritePage = favoriteMapper.paginate(
             dto.getPageNumber(),
             dto.getPageSize(),
             QueryWrapper.create()
                         .select(ARTICLE_FAVORITE.ARTICLE_ID)
-                        .where(ARTICLE_FAVORITE.FAVORITE_ID.eq(
+                        .where(ARTICLE_FAVORITE.FAVORITES_ID.eq(
                             dto.getFavoritesId())));
         // 根据收藏记录获取文章
         Set<Long> articleIds = favoritePage.getRecords()
@@ -287,7 +288,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                        .target(dto.getArticleId()),
                       // 收藏夹为本人创建
                       FavoritesVerifyNode.idOwn(mediator)
-                                         .target(dto.getFavoriteId()))
+                                         .target(dto.getFavoritesId()))
                   .doVerify();
         // 已收藏
         if (isFavoriteExist(dto)) {
@@ -296,7 +297,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
 
         return favoriteMapper.insert(
             new ArticleFavorite(null,
-                                dto.getFavoriteId(),
+                                dto.getFavoritesId(),
                                 dto.getArticleId(),
                                 login,
                                 null)) > 0;
@@ -309,7 +310,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         // 收藏夹为本人创建
         VerifyTool.of(
                       FavoritesVerifyNode.idOwn(mediator)
-                                         .target(dto.getFavoriteId()))
+                                         .target(dto.getFavoritesId()))
                   .doVerify();
         // 文章未收藏
         if (!isFavoriteExist(dto)) {
@@ -319,7 +320,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         int i = favoriteMapper.deleteByQuery(
             QueryWrapper.create()
                         .where(ARTICLE_FAVORITE.ARTICLE_ID.eq(dto.getArticleId()))
-                        .and(ARTICLE_FAVORITE.FAVORITE_ID.eq(dto.getFavoriteId()))
+                        .and(ARTICLE_FAVORITE.FAVORITES_ID.eq(dto.getFavoritesId()))
                         .and(ARTICLE_FAVORITE.USER_ID.eq(login)));
         if (i == 1) {
             return true;
@@ -337,7 +338,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                   .doVerify();
         int i = favoriteMapper.deleteByQuery(
             QueryWrapper.create()
-                        .where(ARTICLE_FAVORITE.FAVORITE_ID.eq(favoritesId))
+                        .where(ARTICLE_FAVORITE.FAVORITES_ID.eq(favoritesId))
                         .and(ARTICLE_FAVORITE.USER_ID.eq(login)));
         log.info("清空收藏夹 {}，共 {} 条结果", favoritesId, i);
         return true;

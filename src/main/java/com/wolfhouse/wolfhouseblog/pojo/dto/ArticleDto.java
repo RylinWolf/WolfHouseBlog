@@ -28,4 +28,5 @@ public class ArticleDto {
     private VisibilityEnum visibility;
     private List<String> tags;
     private Set<Long> comUseTags;
+    private Long partitionId;
 }

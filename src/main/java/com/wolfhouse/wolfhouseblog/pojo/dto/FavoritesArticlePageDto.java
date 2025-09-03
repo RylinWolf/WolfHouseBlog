@@ -9,6 +9,6 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ArticleFavoritePageDto extends PageDto {
+public class FavoritesArticlePageDto extends PageDto {
     private Long favoritesId;
 }

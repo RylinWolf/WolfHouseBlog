@@ -1,6 +1,8 @@
 package com.wolfhouse.wolfhouseblog.auth.service;
 
 import com.wolfhouse.wolfhouseblog.service.*;
+import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
+import org.springframework.lang.NonNull;
 
 /**
  * @author linexsong
@@ -47,6 +49,14 @@ public interface ServiceAuthMediator {
      * @param favoritesService 要注册的收藏夹服务
      */
     void registerFavorite(FavoritesService favoritesService);
+
+    /**
+     * 注册分区服务实现。
+     *
+     * @param partitionService 要注册的分区服务
+     */
+    void registerPartition(PartitionServiceImpl partitionService);
+
 
     /**
      * 检查用户认证信息是否存在
@@ -127,7 +137,15 @@ public interface ServiceAuthMediator {
      * @return 当前登录用户ID
      * @throws Exception 未登录或登录用户不可达
      */
+    @NonNull
     Long loginUserOrE() throws Exception;
+
+    /**
+     * 获取当前登录用户ID，如果用户未登录则返回null。
+     *
+     * @return 当前登录用户的ID，如果用户未登录则返回null。
+     */
+    Long loginUserOrNull();
 
     /**
      * 检查指定用户是否可以访问文章
@@ -174,4 +192,24 @@ public interface ServiceAuthMediator {
      * @throws Exception 未登录异常
      */
     Boolean isFavoritesIdOwn(Long id) throws Exception;
+
+    /**
+     * 检查指定用户的分区是否存在。
+     *
+     * @param userId      用户ID
+     * @param partitionId 分区ID
+     * @return 如果分区存在返回true，否则返回false
+     * @throws Exception 未登录异常
+     */
+    Boolean isUserPartitionExist(Long userId, Long partitionId) throws Exception;
+
+    /**
+     * 检查指定用户的分区名称是否存在。
+     *
+     * @param userId        用户ID
+     * @param partitionName 分区名称
+     * @return 如果分区名称存在返回true，否则返回false
+     */
+    Boolean isUserPartitionNameExist(Long userId, String partitionName);
+
 }

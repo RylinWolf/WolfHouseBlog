@@ -28,7 +28,7 @@ public class FavoritesController {
 
     @GetMapping("/{userId}")
     @Operation(summary = "获取指定用户收藏夹")
-    public HttpResult<List<FavoritesVo>> getFavorites(@PathVariable Long userId) {
+    public HttpResult<List<FavoritesVo>> getFavorites(@PathVariable Long userId) throws Exception {
         return HttpResult.success(service.getFavoritesList(userId));
     }
 
@@ -56,4 +56,9 @@ public class FavoritesController {
             service.updateFavorites(dto));
     }
 
+    @GetMapping
+    @Operation(summary = "获取默认收藏夹")
+    public HttpResult<FavoritesVo> getDefaultFavorites() throws Exception {
+        return HttpResult.success(service.getDefaultFavoritesVo());
+    }
 }

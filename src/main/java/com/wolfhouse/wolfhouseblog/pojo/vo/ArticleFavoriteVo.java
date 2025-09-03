@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.pojo.dto;
+package com.wolfhouse.wolfhouseblog.pojo.vo;
 
 import lombok.Data;
 
