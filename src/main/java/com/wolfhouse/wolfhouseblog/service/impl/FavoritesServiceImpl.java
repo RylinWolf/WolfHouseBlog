@@ -92,17 +92,10 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                       FavoritesVerifyNode.idOwn(mediator)
                                          .target(favoritesId),
                       // 不得删除默认收藏夹
-                      new BaseVerifyNode<Long>() {
-                          {
-                              customException = new ServiceException(FavoritesConstant.IS_DEFAULT);
-                          }
-
-                          @Override
-                          public boolean verify() {
-                              return getById(favoritesId).getIsDefault()
-                                                         .equals(DefaultEnum.NOT_DEFAULT);
-                          }
-                      })
+                      EmptyVerifyNode.of(favoritesId)
+                                     .setCustomException(new ServiceException(FavoritesConstant.IS_DEFAULT))
+                                     .predicate(t -> getById(t).getIsDefault()
+                                                               .equals(DefaultEnum.NOT_DEFAULT)))
                   .doVerify();
         int i = mapper.deleteById(favoritesId);
         if (i == 1) {
