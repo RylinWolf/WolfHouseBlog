@@ -12,14 +12,14 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
 ## 技术栈
 
 - 语言/运行环境：Java 21
-- 框架：Spring Boot 3.5.3
+- 框架：Spring Boot 3.5.4
 - Web/AOP/校验：spring-boot-starter-web、spring-boot-starter-aop、spring-boot-starter-validation
 - 安全认证：spring-boot-starter-security、JWT（jjwt）
 - 持久化：MyBatis-Flex、HikariCP
 - 数据库：MySQL 8+
 - 缓存：Spring Data Redis
 - 消息队列：RabbitMQ
-- 检索：ElasticSearch Java Client 8.18
+- 检索：ElasticSearch Java Client 9.0.1
 - 工具库：Hutool
 - 接口文档：Knife4j OpenAPI 3
 - 构建工具：Maven
@@ -28,23 +28,24 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
 
 - 用户与认证
     - 用户基础信息、用户认证表
-    - JWT 登录/校验
-    - Spring Security 权限控制
+    - 注册、登录、获取当前账号信息、按用户名查询
+    - Spring Security 权限与角色控制（管理员/用户）
 - 内容域
-    - 文章发布、编辑、可见性控制、标签
-    - 分区（支持父子分区、排序、可见性）
-    - 常用标签管理
+    - 文章：发布、暂存、更新、删除、详情、分页检索
+    - 互动：评论（发布/删除/回复）、点赞（点赞/取消）、收藏（添加/移除/查询所属收藏夹）
+    - 分区：新增、修改、删除、级联删除、排序、父子分区、可见性
+    - 常用标签：获取列表、按ID获取、新增、修改、删除
+    - 收藏夹：新建、删除、修改、获取默认收藏夹、按用户获取、查看收藏夹内文章
 - 社交域
-    - 关注/订阅
-- 运维能力
-    - Redis 缓存
-    - RabbitMQ 异步消息
-    - ElasticSearch
-    - Knife4j 在线文档
+    - 关注/订阅：关注、取消关注、获取关注列表
+- 管理与权限
+    - 管理员：新增、修改、删除
+    - 权限：获取权限列表、分配/更新/删除管理员权限
+    - 用户管控：管理员删除用户、禁用/启用用户
 
 ## 开发阶段
 
-后端系统实现暂时分为三个阶段。
+后端系统功能实现暂时分为三个阶段。
 
 - [x] 第一阶段：实现基础功能
     - 用户管理：注册，登陆，修改信息，关注，获取信息
@@ -55,56 +56,50 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
     - 管理员管理：新增，修改，删除，获取权限，删除用户
     - 用户管理：禁用，注销
 - [ ] 第三阶段：实现高级功能
-    - [ ] 使用 AI 生成博客文章摘要
-    - [ ] 引入 Redis 缓存优化性能
-    - [x] 权限管理：新增，修改，删除，分配权限
-    - [ ] 文章管理：使用 ES 搜索
-    - [x] 用户管理：根据用户名搜索
+    - [ ] 用户管理：根据用户名搜索√，忘记密码，头像修改
     - [x] 权限限制：使用 Spring Security 实现管理员、用户操作权限控制
-    - [ ] 管理后台：使用动态入口
-    - [ ] 访问控制：优化 JWT
-    - [ ] 业务方法优化
-        - 优化获取分区列表的逻辑
+    - [x] 权限管理：新增，修改，删除，分配权限
+    - [ ] 文章管理：
+        - [x] 点赞：点赞、取消点赞
+        - [x] 收藏：添加、移除
+        - [x] 评论：发布、删除、回复
+        - [ ] 分享
+    - [x] 收藏夹管理：添加、移除、编辑、设置默认
 
 ## 目录结构
 
 ```
 WolfHouseBlog/
 ├─ pom.xml
-├─ HELP.md
-├─ readme.md                    
+├─ readme.md
 ├─ src
-└─ ├─ main
-   │  ├─ java/com/wolfhouse/wolfhouseblog
-   │  │  ├─ auth                # 安全认证相关
-   │  │  │  ├─ config          # 安全配置
-   │  │  │  ├─ filter         # JWT过滤器
-   │  │  │  └─ service        # 认证服务
-   │  │  ├─ common             # 通用组件
-   │  │  │  ├─ constant       # 常量定义
-   │  │  │  ├─ exceptions     # 自定义异常
-   │  │  │  ├─ http          # HTTP相关
-   │  │  │  └─ utils         # 工具类
-   │  │  ├─ config            # 全局配置
-   │  │  ├─ controller        # 控制器
-   │  │  ├─ handler          # 异常处理器
-   │  │  ├─ mapper           # MyBatis-Flex映射
-   │  │  ├─ pojo             # 领域对象
-   │  │  │  ├─ dto          # 数据传输对象
-   │  │  │  ├─ entity       # 实体类
-   │  │  │  └─ vo           # 视图对象
-   │  │  └─ service          # 业务服务
-   │  │     └─ impl         # 服务实现
-   │  └─ resources
-   │     ├─ application.yaml    # 基础配置（激活dev）
-   │     ├─ application-dev.yaml# 本地开发配置（需自行创建）
-   │     ├─ mapper             # SQL映射文件
-   │     ├─ static            # 静态资源
-   │     ├─ templates         # 模板文件
-   │     └─ sql              # 数据库初始化脚本
-   └─ test
-      └─ java                 # 单元测试
-
+│  ├─ main
+│  │  ├─ java/com/wolfhouse/wolfhouseblog
+│  │  │  ├─ auth                # 安全认证相关
+│  │  │  │  ├─ config           # 安全配置
+│  │  │  │  ├─ filter           # JWT 过滤器
+│  │  │  │  └─ service          # 认证服务
+│  │  │  ├─ common              # 通用组件
+│  │  │  │  ├─ constant         # 常量定义
+│  │  │  │  ├─ exceptions       # 自定义异常
+│  │  │  │  ├─ http             # HTTP 相关
+│  │  │  │  └─ utils            # 工具类
+│  │  │  ├─ config              # 全局配置
+│  │  │  ├─ controller          # 控制器
+│  │  │  ├─ handler             # 异常处理器
+│  │  │  ├─ mapper              # MyBatis-Flex 映射
+│  │  │  ├─ pojo                # 领域对象
+│  │  │  │  ├─ dto              # 数据传输对象
+│  │  │  │  ├─ entity           # 实体类
+│  │  │  │  └─ vo               # 视图对象
+│  │  │  └─ service             # 业务服务
+│  │  │     └─ impl             # 服务实现
+│  │  └─ resources
+│  │     ├─ application.yaml    # 基础配置（激活 dev）
+│  │     ├─ mapper              # SQL 映射文件
+│  │     └─ sql                 # 数据库初始化脚本
+│  └─ test
+│     └─ java/com               # 单元测试包根
 ```
 
 ## 环境要求
@@ -127,7 +122,8 @@ cd WolfHouseBlog
 
 2) 初始化数据库（MySQL）
 
-- 在本地 MySQL 中执行 `src/main/resources/sql/schema.sql`，将创建数据库 `wolfBlog` 及相关表结构。
+1. 在本地 MySQL 中执行 `src/main/resources/sql/schema.sql`，将创建数据库 `wolfBlog` 及相关表结构。
+2. 在本地 MySQL 中执行 `src/main/resources/sql/init.sql`，初始化管理员角色
 
 3) 配置本地开发环境
 
@@ -181,12 +177,13 @@ mvn spring-boot:run
 
 ```
 mvn clean package -DskipTests
-java -jar target/WolfHouseBlog-0.0.1-SNAPSHOT.jar
+java -jar target/WolfHouseBlog-1.2.1-SNAPSHOT.jar
 ```
 
 5) 访问接口文档（Knife4j）
 
-- 启动后访问：http://localhost:8999/swagger-ui/index.html
+- 启动后访问：http://localhost:8999/doc.html
+- 或者访问 Swagger UI：http://localhost:8999/swagger-ui/index.html
 
 ## 常见问题（FAQ）
 
