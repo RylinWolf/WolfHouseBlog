@@ -3,10 +3,8 @@ package com.wolfhouse.wolfhouseblog.common.utils;
 import com.aliyun.sdk.service.oss2.OSSClient;
 import com.aliyun.sdk.service.oss2.credentials.EnvironmentVariableCredentialsProvider;
 import com.aliyun.sdk.service.oss2.io.BoundedInputStream;
-import com.aliyun.sdk.service.oss2.models.CompleteMultipartUpload;
-import com.aliyun.sdk.service.oss2.models.CompleteMultipartUploadRequest;
-import com.aliyun.sdk.service.oss2.models.InitiateMultipartUploadRequest;
-import com.aliyun.sdk.service.oss2.models.UploadPartRequest;
+import com.aliyun.sdk.service.oss2.models.*;
+import com.aliyun.sdk.service.oss2.signer.SignerV4;
 import com.aliyun.sdk.service.oss2.transport.BinaryData;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.properties.OssProperties;
@@ -38,6 +36,7 @@ public class OssUtil {
                                   .credentialsProvider(new EnvironmentVariableCredentialsProvider())
                                   // 设置 Bucket 地址
                                   .region(properties.region())
+                                  .signer(new SignerV4())
                                   .build();
             }
             return CLIENT;
@@ -145,5 +144,23 @@ public class OssUtil {
         var completeResult = client.completeMultipartUpload(requestBuilder.build());
 
         return new FileUploadCompleteVo(completeResult.statusCode());
+    }
+
+    /**
+     * 中止分片上传操作，向存储服务发送中止上传请求并返回结果状态。
+     *
+     * @param dto 包含分片上传相关参数的传输对象，包括上传 ID 和对象名
+     * @return 返回包含中止操作后状态码的结果对象（FileUploadCompleteVo）
+     */
+    public FileUploadCompleteVo abortChunkUpload(ClientChunkFileUploadDto dto) {
+        var client = getClient();
+        var abortResult = client.abortMultipartUpload(
+            AbortMultipartUploadRequest.newBuilder()
+                                       .uploadId(dto.getUploadId())
+                                       .bucket(properties.bucket())
+                                       .key(dto.getObjectName())
+                                       .build());
+        return new FileUploadCompleteVo(abortResult.statusCode());
+
     }
 }
