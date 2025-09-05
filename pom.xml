@@ -159,6 +159,13 @@
             <version>0.11.5</version>
         </dependency>
 
+        <!-- ali oss -->
+        <!-- https://mvnrepository.com/artifact/com.aliyun/alibabacloud-oss-v2 -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alibabacloud-oss-v2</artifactId>
+            <version>0.1.0-beta1</version>
+        </dependency>
 
     </dependencies>
 
