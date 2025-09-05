@@ -33,7 +33,7 @@ public class FileController {
     @Operation(summary = "停止头像上传")
     @PostMapping("/avatar/stop/{uploadId}")
     public HttpResult<FileUploadResultVo> stopUploadAvatar(@PathVariable Long uploadId) {
-        return HttpResult.failedIfBlank(service.stopUploadAvatar(uploadId));
+        return HttpResult.failedIfBlank(service.completeUploadAvatar(uploadId));
     }
 
     @Operation(summary = "上传头像")
