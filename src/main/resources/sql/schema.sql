@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS `favorites`
 
 CREATE TABLE IF NOT EXISTS `oss_chunk_file`
 (
-    `upload_id`    BIGINT       NOT NULL COMMENT '上传 ID',
+    `upload_id`    VARCHAR(255) NOT NULL COMMENT '上传 ID',
     `chunk_number` BIGINT       NOT NULL COMMENT '分片号',
     `chunk_count`  BIGINT       NOT NULL COMMENT '分片数量',
     `chunk_size`   BIGINT       NOT NULL COMMENT '分片大小',
