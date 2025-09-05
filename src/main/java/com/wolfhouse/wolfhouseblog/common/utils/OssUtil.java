@@ -160,6 +160,10 @@ public class OssUtil {
                                        .parts(dto.getETags())
                                        .build());
         }
+
+        // 关闭客户端
+        shutdownClient();
+
         var completeResult = client.completeMultipartUpload(requestBuilder.build());
 
         return new FileUploadCompleteVo(completeResult.statusCode());
@@ -179,6 +183,8 @@ public class OssUtil {
                                        .bucket(properties.bucket())
                                        .key(dto.getObjectName())
                                        .build());
+        // 关闭客户端
+        shutdownClient();
         return new FileUploadCompleteVo(abortResult.statusCode());
 
     }
