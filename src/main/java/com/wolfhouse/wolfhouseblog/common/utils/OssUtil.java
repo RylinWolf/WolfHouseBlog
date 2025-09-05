@@ -19,13 +19,20 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * @author linexsong
+ * OSS(对象存储服务)工具类，用于处理文件上传、分片上传等OSS相关操作
+ * 提供了初始化上传、分片上传、完成上传和中止上传等功能
+ *
+ * @author rylinwolf
  */
 @Component
 @RequiredArgsConstructor
 public class OssUtil {
     private final OssProperties properties;
 
+    /**
+     * OSS客户端持有者，使用单例模式管理OSS客户端实例
+     * 负责OSS客户端的延迟初始化和实例管理
+     */
     private static class ClientHolder {
         private static OSSClient CLIENT;
 
@@ -43,10 +50,22 @@ public class OssUtil {
         }
     }
 
+    /**
+     * 获取OSS客户端实例
+     * 如果客户端未初始化，将创建新的客户端实例
+     *
+     * @return 返回OSS客户端实例
+     */
     public OSSClient getClient() {
         return ClientHolder.instance(properties);
     }
 
+    /**
+     * 关闭OSS客户端连接并清理资源
+     * 会将客户端实例设置为null，便于垃圾回收
+     *
+     * @throws ServiceException 当关闭客户端发生异常时抛出
+     */
     public void shutdownClient() {
         try {
             // 关闭客户端

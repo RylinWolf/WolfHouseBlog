@@ -24,17 +24,19 @@ import java.io.IOException;
 public class FileController {
     private final FileService service;
 
-    @PostMapping("/avatar/start")
     @Operation(summary = "开始头像上传")
+    @PostMapping("/avatar/start")
     public HttpResult<ChunkFilePermitVo> startUploadAvatar(@RequestBody ChunkFilePermitDto dto) {
         return HttpResult.failedIfBlank(service.startUploadAvatar(dto));
     }
 
+    @Operation(summary = "停止头像上传")
     @PostMapping("/avatar/stop/{uploadId}")
     public HttpResult<FileUploadResultVo> stopUploadAvatar(@PathVariable Long uploadId) {
         return HttpResult.failedIfBlank(service.stopUploadAvatar(uploadId));
     }
 
+    @Operation(summary = "上传头像")
     @PostMapping("/avatar/{uploadId}")
     public HttpResult<FileUploadResultVo> uploadAvatar(@PathVariable Long uploadId, HttpServletRequest request) {
         try (var ins = request.getInputStream()) {
