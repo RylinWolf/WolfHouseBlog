@@ -50,7 +50,11 @@ custom:
     endpoint: ${custom.oss.endpoint}
     bucket: ${custom.oss.bucket}
     region: ${custom.oss.region}
-    
+
+  file-upload:
+    basepath: ${custom.file-upload.basepath}
+    avatar: ${custom.file-upload.avatar}
+
 logging:
   level:
     com.wolfhouse.wolfhouseblog.*: info
