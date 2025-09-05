@@ -6,4 +6,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author linexsong
  */
 @ConfigurationProperties(prefix = "custom.oss")
-public record OssProperties(String endpoint, String bucket) {}
+public record OssProperties(String endpoint, String bucket, String region) {}
