@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.service.impl;
+package com.wolfhouse.wolfhouseblog.service.impl.file;
 
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.FileUploadConstant;
@@ -6,17 +6,19 @@ import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.properties.FileUploadProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.OssUtil;
-import com.wolfhouse.wolfhouseblog.pojo.domain.OssChunkFile;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.StringVerifyNode;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.file.FileUploadVerifyNode;
+import com.wolfhouse.wolfhouseblog.pojo.domain.file.OssChunkFile;
 import com.wolfhouse.wolfhouseblog.pojo.dto.file.ChunkFilePermitDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.file.ClientChunkFileUploadDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.ChunkFilePermitVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.FileUploadResultVo;
-import com.wolfhouse.wolfhouseblog.service.FileService;
-import com.wolfhouse.wolfhouseblog.service.OssChunkFileService;
+import com.wolfhouse.wolfhouseblog.service.file.FileService;
+import com.wolfhouse.wolfhouseblog.service.file.OssChunkFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
@@ -33,12 +35,24 @@ public class OssFileServiceImpl implements FileService {
     private final OssChunkFileService ossChunkFileService;
 
     @Override
-    public FileUploadResultVo uploadAvatar(Long uploadId, InputStream ins) {
-        return null;
+    public FileUploadResultVo uploadAvatar(ClientChunkFileUploadDto uploadDto) throws Exception {
+        // 验证登录信息及 上传 ID
+        VerifyTool.ofLoginExist(mediator,
+                                FileUploadVerifyNode.uploadIdExist(ossChunkFileService)
+                                                    .target(uploadDto.getUploadId()))
+                  .doVerify();
+
+        var resultVo = ossUtil.chunkUpload(uploadDto);
+        return resultVo;
     }
 
     @Override
-    public ChunkFilePermitVo startUploadAvatar(ChunkFilePermitDto dto) {
+    public ChunkFilePermitVo startUploadAvatar(ChunkFilePermitDto dto) throws Exception {
+        // 验证登录信息及 dto 参数
+        VerifyTool.ofLoginExist(mediator,
+                                new StringVerifyNode(1L, 20L, false).target(dto.getFilename()))
+                  .doVerify();
+
         // 初始化文件提交
         ChunkFilePermitVo permitVo = ossUtil
             .initialChunkUpload(ClientChunkFileUploadDto

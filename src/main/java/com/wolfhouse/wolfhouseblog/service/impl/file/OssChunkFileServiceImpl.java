@@ -1,9 +1,9 @@
-package com.wolfhouse.wolfhouseblog.service.impl;
+package com.wolfhouse.wolfhouseblog.service.impl.file;
 
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.mapper.OssChunkFileMapper;
-import com.wolfhouse.wolfhouseblog.pojo.domain.OssChunkFile;
-import com.wolfhouse.wolfhouseblog.service.OssChunkFileService;
+import com.wolfhouse.wolfhouseblog.mapper.file.OssChunkFileMapper;
+import com.wolfhouse.wolfhouseblog.pojo.domain.file.OssChunkFile;
+import com.wolfhouse.wolfhouseblog.service.file.OssChunkFileService;
 import org.springframework.stereotype.Service;
 
 /**

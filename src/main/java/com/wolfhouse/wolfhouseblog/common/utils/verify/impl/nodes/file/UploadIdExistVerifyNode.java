@@ -2,7 +2,7 @@ package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.file;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
-import com.wolfhouse.wolfhouseblog.service.OssChunkFileService;
+import com.wolfhouse.wolfhouseblog.service.file.OssChunkFileService;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.OssChunkFileTableDef.OSS_CHUNK_FILE;
 

@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.pojo.domain;
+package com.wolfhouse.wolfhouseblog.pojo.domain.file;
 
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.Table;
@@ -18,8 +18,6 @@ import lombok.NoArgsConstructor;
 public class OssChunkFile {
     @Id
     private String uploadId;
-    @Id
-    private Long chunkNumber;
     private Long chunkCount;
     private Long chunkSize;
     private String filename;

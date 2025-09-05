@@ -1,6 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.file;
 
-import com.wolfhouse.wolfhouseblog.service.OssChunkFileService;
+import com.wolfhouse.wolfhouseblog.service.file.OssChunkFileService;
 
 /**
  * @author linexsong
