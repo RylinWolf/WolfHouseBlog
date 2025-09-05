@@ -9,10 +9,12 @@ import lombok.Data;
  */
 @Data
 public class ChunkFilePermitDto {
+    /** 分片号 */
+    private Long chunkNumber;
     /** 分片数量 */
-    private Integer chunkNumber;
+    private Long chunkCount;
     /** 分片大小 */
-    private Integer chunkSize;
+    private Long chunkSize;
     /** 文件名 */
     private String filename;
     /** 文件类型 */
