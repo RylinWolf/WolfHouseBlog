@@ -46,6 +46,10 @@ custom:
     secret: ${custom.jwt.secret}
     expiration: ${custom.jwt.expiration}
 
+  oss:
+    endpoint: ${custom.oss.endpoint}
+    bucket: ${custom.oss.bucket}
+
 logging:
   level:
     com.wolfhouse.wolfhouseblog.*: info
