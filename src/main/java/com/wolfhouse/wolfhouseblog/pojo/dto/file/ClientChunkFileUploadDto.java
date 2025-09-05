@@ -1,6 +1,9 @@
 package com.wolfhouse.wolfhouseblog.pojo.dto.file;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.InputStream;
 
@@ -8,6 +11,9 @@ import java.io.InputStream;
  * @author linexsong
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ClientChunkFileUploadDto {
     /** 上传的对象名称 */
     private String objectName;

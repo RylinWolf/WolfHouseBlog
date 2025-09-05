@@ -80,7 +80,7 @@ public class OssUtil {
     /**
      * 初始化分片上传操作，向服务端发起分片上传的启动请求并返回上传许可信息。
      *
-     * @param dto 包含上传对象名称的参数数据传输对象（ClientChunkFileUploadInitialDto）
+     * @param dto 包含上传对象名称的参数数据传输对象，仅需传递 objectName
      * @return 返回包含上传ID和状态码的分片上传许可对象（ChunkFilePermitVo）
      */
     public ChunkFilePermitVo initialChunkUpload(ClientChunkFileUploadDto dto) {
