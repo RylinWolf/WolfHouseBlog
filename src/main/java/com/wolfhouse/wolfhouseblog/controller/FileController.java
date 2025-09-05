@@ -1,18 +1,19 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.file.ChunkFilePermitDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.file.ClientChunkFileUploadDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.ChunkFilePermitVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.FileUploadResultVo;
-import com.wolfhouse.wolfhouseblog.service.FileService;
+import com.wolfhouse.wolfhouseblog.service.file.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 /**
  * @author linexsong
@@ -26,7 +27,7 @@ public class FileController {
 
     @Operation(summary = "开始头像上传")
     @PostMapping("/avatar/start")
-    public HttpResult<ChunkFilePermitVo> startUploadAvatar(@RequestBody ChunkFilePermitDto dto) {
+    public HttpResult<ChunkFilePermitVo> startUploadAvatar(@RequestBody ChunkFilePermitDto dto) throws Exception {
         return HttpResult.failedIfBlank(service.startUploadAvatar(dto));
     }
 
@@ -37,11 +38,16 @@ public class FileController {
     }
 
     @Operation(summary = "上传头像")
-    @PostMapping("/avatar/{uploadId}")
-    public HttpResult<FileUploadResultVo> uploadAvatar(@PathVariable Long uploadId, HttpServletRequest request) {
+    @PostMapping(value = "/avatar",
+                 consumes = HttpMediaTypeConstant.APPLICATION_OCTET_STREAM_VALUE)
+    public HttpResult<FileUploadResultVo> uploadAvatar(@ModelAttribute
+                                                       @Valid
+                                                       ClientChunkFileUploadDto uploadDto,
+                                                       HttpServletRequest request) {
         try (var ins = request.getInputStream()) {
-            return HttpResult.failedIfBlank(service.uploadAvatar(uploadId, ins));
-        } catch (IOException e) {
+            uploadDto.setIns(ins);
+            return HttpResult.failedIfBlank(service.uploadAvatar(uploadDto));
+        } catch (Exception e) {
             throw new ServiceException(e.getMessage(), e);
         }
     }

@@ -117,7 +117,7 @@ public class OssUtil {
                                               // 上传 Id
                                               .uploadId(dto.getUploadId())
                                               // 分片号
-                                              .partNumber(dto.getPartNumber())
+                                              .partNumber(dto.getChunkNumber())
                                               // 上传内容
                                               .body(BinaryData.fromStream(bis));
             // 进行 MD5 校验
@@ -130,7 +130,7 @@ public class OssUtil {
             var res = client.uploadPart(reqBuilder.build());
 
             return new FileUploadResultVo(res.eTag(),
-                                          dto.getPartNumber(),
+                                          dto.getChunkNumber(),
                                           res.statusCode());
         } catch (IOException e) {
             throw new ServiceException(e.getMessage(), e);

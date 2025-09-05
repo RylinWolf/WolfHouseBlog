@@ -11,10 +11,6 @@ import lombok.Data;
  */
 @Data
 public class ChunkFilePermitDto {
-    /** 分片号 */
-    @NotNull
-    private Long chunkNumber;
-
     /** 分片数量 */
     @NotNull
     private Long chunkCount;

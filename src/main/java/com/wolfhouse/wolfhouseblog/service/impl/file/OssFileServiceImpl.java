@@ -36,6 +36,7 @@ public class OssFileServiceImpl implements FileService {
 
     @Override
     public FileUploadResultVo uploadAvatar(ClientChunkFileUploadDto uploadDto) throws Exception {
+        // TODO 在上传前后上传和更新信息到数据库
         // 验证登录信息及 上传 ID
         VerifyTool.ofLoginExist(mediator,
                                 FileUploadVerifyNode.uploadIdExist(ossChunkFileService)
@@ -43,6 +44,7 @@ public class OssFileServiceImpl implements FileService {
                   .doVerify();
 
         var resultVo = ossUtil.chunkUpload(uploadDto);
+
         return resultVo;
     }
 
