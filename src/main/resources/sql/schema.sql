@@ -163,16 +163,24 @@ CREATE TABLE IF NOT EXISTS `favorites`
     UNIQUE KEY (user_id, title) COMMENT '用户 - 名称唯一约束'
 ) AUTO_INCREMENT 100000 COMMENT '收藏夹表';
 
+DROP TABLE IF EXISTS `oss_chunk_file`;
 
 CREATE TABLE IF NOT EXISTS `oss_chunk_file`
 (
-    `upload_id`    VARCHAR(255) NOT NULL COMMENT '上传 ID',
-    `chunk_number` BIGINT       NOT NULL COMMENT '分片号',
-    `chunk_count`  BIGINT       NOT NULL COMMENT '分片数量',
-    `chunk_size`   BIGINT       NOT NULL COMMENT '分片大小',
-    `filename`     VARCHAR(255) NOT NULL COMMENT '文件名',
-    `type`         VARCHAR(255) NOT NULL COMMENT '文件类型',
-    `size`         BIGINT       NOT NULL COMMENT '文件大小',
-    PRIMARY KEY (`upload_id`, `chunk_number`) COMMENT '主键 上传 ID - 分片号'
+    `upload_id`   VARCHAR(255) PRIMARY KEY NOT NULL COMMENT '上传 ID',
+    `chunk_count` BIGINT                   NOT NULL COMMENT '分片数量',
+    `chunk_size`  BIGINT                   NOT NULL COMMENT '分片大小',
+    `filename`    VARCHAR(255)             NOT NULL COMMENT '文件名',
+    `type`        VARCHAR(255)             NOT NULL COMMENT '文件类型',
+    `size`        BIGINT                   NOT NULL COMMENT '文件大小'
 ) COMMENT 'OSS 文件分片上传表';
 
+
+CREATE TABLE IF NOT EXISTS `oss_chunk_file_part`
+(
+    `upload_id`    VARCHAR(255)      NOT NULL COMMENT '上传 ID',
+    `chunk_number` BIGINT            NOT NULL COMMENT '分区号',
+    `e_tag`        VARCHAR(255) COMMENT '上传标识',
+    `is_completed` TINYINT DEFAULT 0 NOT NULL COMMENT '是否上传完毕',
+    PRIMARY KEY (`upload_id`, `chunk_number`) COMMENT '主键 上传 ID - 分区号'
+) COMMENT 'OSS 文件分片详情表';
