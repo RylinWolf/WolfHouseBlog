@@ -28,10 +28,18 @@ public interface FileService {
     ChunkFilePermitVo startUploadAvatar(ChunkFilePermitDto dto);
 
     /**
-     * 停止用户头像文件的上传操作。
+     * 完成用户头像文件的上传操作。
      *
      * @param uploadId 上传任务的唯一标识符
      * @return 包含上传结果的文件上传结果视图对象
      */
-    FileUploadResultVo stopUploadAvatar(Long uploadId);
+    FileUploadResultVo completeUploadAvatar(Long uploadId);
+
+    /**
+     * 停止用户上传头像文件的操作。
+     *
+     * @param uploadId 上传任务的唯一标识符
+     * @return 包含上传结果的文件上传结果视图对象
+     */
+    FileUploadResultVo abortUploadAvatar(Long uploadId);
 }
