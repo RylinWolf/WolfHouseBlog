@@ -3,13 +3,17 @@ package com.wolfhouse.wolfhouseblog.common.utils;
 import com.aliyun.sdk.service.oss2.OSSClient;
 import com.aliyun.sdk.service.oss2.credentials.EnvironmentVariableCredentialsProvider;
 import com.aliyun.sdk.service.oss2.io.BoundedInputStream;
+import com.aliyun.sdk.service.oss2.models.CompleteMultipartUpload;
+import com.aliyun.sdk.service.oss2.models.CompleteMultipartUploadRequest;
 import com.aliyun.sdk.service.oss2.models.InitiateMultipartUploadRequest;
 import com.aliyun.sdk.service.oss2.models.UploadPartRequest;
 import com.aliyun.sdk.service.oss2.transport.BinaryData;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.properties.OssProperties;
+import com.wolfhouse.wolfhouseblog.pojo.dto.file.ClientChunkFileCompleteDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.file.ClientChunkFileUploadDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.ChunkFilePermitVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.file.FileUploadCompleteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.file.FileUploadResultVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -113,5 +117,33 @@ public class OssUtil {
         } catch (IOException e) {
             throw new ServiceException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * 完成文件分片上传操作，将已上传的所有分片合并为一个完整的文件。
+     *
+     * @param dto 包含文件分片上传完成信息的传输对象，包含上传对象名称、上传ID以及已上传分片的eTags
+     * @return 返回文件上传完成后的结果对象，包含处理状态码
+     */
+    public FileUploadCompleteVo completeChunkUpload(ClientChunkFileCompleteDto dto) {
+        var client = getClient();
+        var requestBuilder = CompleteMultipartUploadRequest.newBuilder()
+                                                           .bucket(properties.bucket())
+                                                           .key(dto.getObjectName())
+                                                           .uploadId(dto.getUploadId());
+        if (dto.getETags()
+               .isEmpty()) {
+            // 未传递已上传的 eTags，则自动构建
+            requestBuilder.header("x-oss-complete-all", "yes");
+        } else {
+            // 指定 eTags
+            requestBuilder.completeMultipartUpload(
+                CompleteMultipartUpload.newBuilder()
+                                       .parts(dto.getETags())
+                                       .build());
+        }
+        var completeResult = client.completeMultipartUpload(requestBuilder.build());
+
+        return new FileUploadCompleteVo(completeResult.statusCode());
     }
 }
