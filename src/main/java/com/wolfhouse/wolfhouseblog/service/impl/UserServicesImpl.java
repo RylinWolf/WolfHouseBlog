@@ -158,9 +158,10 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
     @Override
     public Boolean hasAccountOrEmail(String s) {
+        var sLowerCase = s.toLowerCase();
         long count = mapper.selectCountByQuery(
-            new QueryWrapper().eq(User::getAccount, s)
-                              .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
+            new QueryWrapper().eq(User::getAccount, sLowerCase)
+                              .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, sLowerCase)));
         return count > 0;
 
     }
