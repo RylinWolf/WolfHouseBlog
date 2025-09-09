@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -27,8 +28,8 @@ public class HttpExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleMethodNotAllowedException(HttpRequestMethodNotSupportedException e) {
         return ResponseEntity
-             .status(HttpStatus.METHOD_NOT_ALLOWED)
-             .body(HttpResult.failed(HttpCodeConstant.METHOD_NOT_ALLOWED, AuthExceptionConstant.ACCESS_DENIED));
+            .status(HttpStatus.METHOD_NOT_ALLOWED)
+            .body(HttpResult.failed(HttpCodeConstant.METHOD_NOT_ALLOWED, AuthExceptionConstant.ACCESS_DENIED));
     }
 
     @ExceptionHandler
@@ -41,19 +42,26 @@ public class HttpExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error(e.getMessage());
+        FieldError field = e.getFieldError();
+        String fieldName = "";
+        String message = "";
+        if (field != null) {
+            fieldName = field.getField();
+            message = field.getDefaultMessage();
+        }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                              .body(HttpResult.failed(
-                                  HttpCodeConstant.ARG_NOT_VALID,
-                                  ServiceExceptionConstant.ARG_FORMAT_ERROR));
+                                 HttpCodeConstant.ARG_NOT_VALID,
+                                 fieldName + ServiceExceptionConstant.ARG_FORMAT_ERROR + ":" + message));
     }
 
     @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleNoResourceFoundException(NoResourceFoundException e) {
         log.error(e.getMessage());
         return HttpResult.failed(
-             HttpStatus.NOT_FOUND.value(),
-             HttpCodeConstant.NOT_FOUND,
-             ServiceExceptionConstant.NO_RESOURCE);
+            HttpStatus.NOT_FOUND.value(),
+            HttpCodeConstant.NOT_FOUND,
+            ServiceExceptionConstant.NO_RESOURCE);
     }
 
 }

@@ -23,7 +23,7 @@ public class ArticleDto {
     private String primary;
 
     @NotNull
-    @Size(min = 1, max = 2000)
+    @Size(min = 1, max = 5000)
     private String content;
     private VisibilityEnum visibility;
     private List<String> tags;
