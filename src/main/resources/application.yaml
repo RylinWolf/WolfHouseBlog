@@ -31,10 +31,11 @@ spring:
         prefetch: 3
 
 knife4j:
-  enable: true
+  enable: ${knife4j.enable}
   setting:
     language: zh_cn
     swagger-model-name: 实体列表
+  production: ${knife4j.production}
 
 custom:
   date:
