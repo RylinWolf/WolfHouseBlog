@@ -362,9 +362,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
-        VerifyTool.of(new NotAnyBlankVerifyNode(userId, articleId))
+        VerifyTool.of(new NotAnyBlankVerifyNode(articleId))
                   .doVerify();
 
+        // 公开文章或当前用户的私密文章
         long count = mapper.selectCountByQuery(
             QueryWrapper.create()
                         .where(ARTICLE.ID.eq(articleId))
