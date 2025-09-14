@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,8 +41,9 @@ public class ArticleController {
 
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
-    public HttpResult<ArticleVo> get(@PathVariable Long id) throws Exception {
+    public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
         return HttpResult.failedIfBlank(
+            HttpStatus.OK.value(),
             HttpCodeConstant.ACCESS_DENIED,
             ArticleConstant.ACCESS_DENIED,
             articleService.getVoById(id));
