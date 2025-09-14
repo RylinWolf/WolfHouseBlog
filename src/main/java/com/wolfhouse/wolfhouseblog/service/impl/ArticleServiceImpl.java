@@ -107,7 +107,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long partitionId = dto.getPartitionId()
                               .orElse(null);
         // 分区可达
-        if (partitionService.isUserPartitionReachable(userId, partitionId)) {
+        if (!BeanUtil.isBlank(partitionId) && partitionService.isUserPartitionReachable(userId, partitionId)) {
             wrapper.eq(Article::getPartitionId, partitionId);
         }
 
