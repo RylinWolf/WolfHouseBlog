@@ -3,9 +3,9 @@ package com.wolfhouse.wolfhouseblog.auth.filter;
 import com.wolfhouse.wolfhouseblog.auth.exceptions.AuthenticationJwtException;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.UrlMatchUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
@@ -27,7 +27,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -69,18 +68,17 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
 
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             // 该链接不强制 JWT 验证
-            if (Arrays.stream(SecurityConstant.PUBLIC_URLS)
-                      .toList()
-                      .contains(request.getRequestURI())) {
+            if (UrlMatchUtil.instance()
+                            .isPublic(request.getRequestURI())) {
                 filterChain.doFilter(request, response);
                 return;
             }
             // 未认证
             entryPoint.commence(request,
-                response,
-                new AuthenticationJwtException(AuthExceptionConstant.BAD_TOKEN));
+                                response,
+                                new AuthenticationJwtException(AuthExceptionConstant.BAD_TOKEN));
         } catch (Exception ignored) {
             filterChain.doFilter(request, response);
         }
