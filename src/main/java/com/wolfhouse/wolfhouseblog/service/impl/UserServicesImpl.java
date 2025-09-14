@@ -120,8 +120,11 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
     @Override
     public String generateAccount(String username, Integer codeLen) {
+        if (username == null) {
+            throw new ServiceException(ServiceExceptionConstant.SERVER_ERROR);
+        }
         int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
-        String account = username + UserConstant.ACCOUNT_SEPARATOR;
+        String account = username.toLowerCase() + UserConstant.ACCOUNT_SEPARATOR;
         account += String.format("%0" + codeLen + "d", countCode);
 
         // 生成账号重复，重新生成
