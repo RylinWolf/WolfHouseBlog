@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,8 +46,10 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws IOException, ServletException {
-        String token = request.getHeader(HttpConstant.AUTH_HEADER);
+        // JWTFilter 执行了两次，第一次没有 Header，第二次才有
+        UrlMatchUtil urlUtil = UrlMatchUtil.instance();
 
+        String token = request.getHeader(HttpConstant.AUTH_HEADER);
         try {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
@@ -70,8 +73,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         } catch (JwtException | IllegalArgumentException e) {
             // 该链接不强制 JWT 验证
-            if (UrlMatchUtil.instance()
-                            .isPublic(request.getRequestURI())) {
+            if (HttpMethod.OPTIONS.matches(request.getMethod()) || urlUtil.isPublic(request.getRequestURI())) {
                 filterChain.doFilter(request, response);
                 return;
             }
