@@ -5,6 +5,7 @@ import org.springframework.http.server.PathContainer;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,15 +15,16 @@ import java.util.List;
 public class UrlMatchUtil {
     @SuppressWarnings("FieldMayBeFinal")
     private List<PathPattern> publicUrlList;
+    @SuppressWarnings("FieldMayBeFinal")
     private List<PathPattern> whiteList;
 
     private UrlMatchUtil() {
-        this.publicUrlList = Arrays.stream(SecurityConstant.PUBLIC_URLS)
-                                   .map(PathPatternParser.defaultInstance::parse)
-                                   .toList();
-        this.whiteList = Arrays.stream(SecurityConstant.STATIC_PATH_WHITELIST)
-                               .map(PathPatternParser.defaultInstance::parse)
-                               .toList();
+        this.publicUrlList = new ArrayList<>(Arrays.stream(SecurityConstant.PUBLIC_URLS)
+                                                   .map(PathPatternParser.defaultInstance::parse)
+                                                   .toList());
+        this.whiteList = new ArrayList<>(Arrays.stream(SecurityConstant.STATIC_PATH_WHITELIST)
+                                               .map(PathPatternParser.defaultInstance::parse)
+                                               .toList());
     }
 
     private static class SingletonHolder {
