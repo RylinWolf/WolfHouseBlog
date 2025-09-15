@@ -14,11 +14,15 @@ import java.util.List;
 public class UrlMatchUtil {
     @SuppressWarnings("FieldMayBeFinal")
     private List<PathPattern> publicUrlList;
+    private List<PathPattern> whiteList;
 
     private UrlMatchUtil() {
         this.publicUrlList = Arrays.stream(SecurityConstant.PUBLIC_URLS)
                                    .map(PathPatternParser.defaultInstance::parse)
                                    .toList();
+        this.whiteList = Arrays.stream(SecurityConstant.STATIC_PATH_WHITELIST)
+                               .map(PathPatternParser.defaultInstance::parse)
+                               .toList();
     }
 
     private static class SingletonHolder {
@@ -54,6 +58,8 @@ public class UrlMatchUtil {
 
     public Boolean isPublic(String url) {
         return this.publicUrlList.stream()
-                                 .anyMatch(p -> p.matches(PathContainer.parsePath(url)));
+                                 .anyMatch(p -> p.matches(PathContainer.parsePath(url)))
+               || this.whiteList.stream()
+                                .anyMatch(p -> p.matches(PathContainer.parsePath(url)));
     }
 }
