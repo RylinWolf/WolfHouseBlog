@@ -122,6 +122,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             wrapper.le(Article::getPostTime, end, end != null);
         }
 
+        // 排序
+        wrapper.orderBy(ARTICLE.POST_TIME.desc());
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
     }
 
