@@ -13,6 +13,6 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI springOpenApi() {
         return new OpenAPI()
-                .info(new Info().title("WolfHouseBlog API"));
+            .info(new Info().title("WolfHouseBlog API"));
     }
 }

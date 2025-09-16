@@ -107,7 +107,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long partitionId = dto.getPartitionId()
                               .orElse(null);
         // 分区可达
-        if (partitionService.isUserPartitionReachable(userId, partitionId)) {
+        if (!BeanUtil.isBlank(partitionId) && partitionService.isUserPartitionReachable(userId, partitionId)) {
             wrapper.eq(Article::getPartitionId, partitionId);
         }
 
@@ -122,6 +122,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             wrapper.le(Article::getPostTime, end, end != null);
         }
 
+        // 排序
+        wrapper.orderBy(ARTICLE.POST_TIME.desc());
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
     }
 
@@ -362,9 +364,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
-        VerifyTool.of(new NotAnyBlankVerifyNode(userId, articleId))
+        VerifyTool.of(new NotAnyBlankVerifyNode(articleId))
                   .doVerify();
 
+        // 公开文章或当前用户的私密文章
         long count = mapper.selectCountByQuery(
             QueryWrapper.create()
                         .where(ARTICLE.ID.eq(articleId))

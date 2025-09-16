@@ -3,9 +3,9 @@ package com.wolfhouse.wolfhouseblog.auth.filter;
 import com.wolfhouse.wolfhouseblog.auth.exceptions.AuthenticationJwtException;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
-import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.UrlMatchUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +28,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -46,8 +46,10 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws IOException, ServletException {
-        String token = request.getHeader(HttpConstant.AUTH_HEADER);
+        // JWTFilter 执行了两次，第一次没有 Header，第二次才有
+        UrlMatchUtil urlUtil = UrlMatchUtil.instance();
 
+        String token = request.getHeader(HttpConstant.AUTH_HEADER);
         try {
             Claims claims = jwtUtil.parseToken(token);
             Long userId = Long.parseLong(claims.getSubject());
@@ -69,18 +71,16 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
 
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             // 该链接不强制 JWT 验证
-            if (Arrays.stream(SecurityConstant.PUBLIC_URLS)
-                      .toList()
-                      .contains(request.getRequestURI())) {
+            if (HttpMethod.OPTIONS.matches(request.getMethod()) || urlUtil.isPublic(request.getRequestURI())) {
                 filterChain.doFilter(request, response);
                 return;
             }
             // 未认证
             entryPoint.commence(request,
-                response,
-                new AuthenticationJwtException(AuthExceptionConstant.BAD_TOKEN));
+                                response,
+                                new AuthenticationJwtException(AuthExceptionConstant.BAD_TOKEN));
         } catch (Exception ignored) {
             filterChain.doFilter(request, response);
         }

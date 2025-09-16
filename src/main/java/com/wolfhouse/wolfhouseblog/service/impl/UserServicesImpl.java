@@ -120,8 +120,11 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
     @Override
     public String generateAccount(String username, Integer codeLen) {
+        if (username == null) {
+            throw new ServiceException(ServiceExceptionConstant.SERVER_ERROR);
+        }
         int countCode = new Random().nextInt((int) Math.pow(10, codeLen - 1), (int) Math.pow(10, codeLen));
-        String account = username + UserConstant.ACCOUNT_SEPARATOR;
+        String account = username.toLowerCase() + UserConstant.ACCOUNT_SEPARATOR;
         account += String.format("%0" + codeLen + "d", countCode);
 
         // 生成账号重复，重新生成
@@ -158,9 +161,10 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
     @Override
     public Boolean hasAccountOrEmail(String s) {
+        var sLowerCase = s.toLowerCase();
         long count = mapper.selectCountByQuery(
-            new QueryWrapper().eq(User::getAccount, s)
-                              .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, s)));
+            new QueryWrapper().eq(User::getAccount, sLowerCase)
+                              .or((Consumer<QueryWrapper>) w -> w.eq(User::getEmail, sLowerCase)));
         return count > 0;
 
     }

@@ -28,11 +28,12 @@ public class IdReachableVerifyNode extends BaseVerifyNode<Long> {
         if (t == null) {
             return false;
         }
+        Long login = mediator.loginUserOrNull();
         try {
-            Long login = mediator.loginUserOrE();
             return mediator.isArticleReachable(login, t);
         } catch (Exception e) {
-            throw new ServiceException(e.getMessage(), e);
+            this.customException = new ServiceException(e.getMessage(), e);
+            return false;
         }
     }
 }
