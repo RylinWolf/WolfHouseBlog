@@ -5,7 +5,7 @@ package com.wolfhouse.wolfhouseblog.common.constant.redis;
  */
 public class UserRedisConstant {
     public static final String USER = "user";
-    public static final String BASE = RedisConstant.format(false, USER);
+    public static final String BASE = RedisConstant.format(USER);
 
     /** 权限字段 */
     public static final String AUTHORITIES =
