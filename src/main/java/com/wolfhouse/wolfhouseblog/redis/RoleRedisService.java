@@ -43,8 +43,8 @@ public class RoleRedisService {
      * @param token token
      * @return token 对应的 userId
      */
-    public Long findToken(final String token) {
-        Object o = valueOps.get(UserRedisConstant.TOKEN.formatted(token));
+    public Long getAndRefreshToken(final String token) {
+        Object o = valueOps.getAndExpire(UserRedisConstant.TOKEN.formatted(token), randTimeout(), TimeUnit.MINUTES);
         return o != null ? Long.parseLong(o.toString()) : null;
     }
 

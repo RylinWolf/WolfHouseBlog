@@ -58,7 +58,7 @@ public class JwtFilter extends OncePerRequestFilter {
             if (token == null) {
                 throw new JwtException(null);
             }
-            Long userId = roleRedisService.findToken(token);
+            Long userId = roleRedisService.getAndRefreshToken(token);
             List<Authority> authorities;
 
             if (userId == null) {
