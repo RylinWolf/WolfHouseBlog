@@ -1,0 +1,120 @@
+package com.wolfhouse.wolfhouseblog.es;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.TotalHits;
+import com.mybatisflex.core.paginate.Page;
+import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * @author linexsong
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ArticleElasticService {
+    private final ElasticsearchClient client;
+
+    @PostConstruct
+    public void init() throws IOException {
+        log.info("正在初始化 ES 索引库...");
+
+        try {
+            boolean flag = client.indices()
+                                 .exists(req -> req.index(ElasticConstant.ARTICLE_INDEX))
+                                 .value();
+            if (flag) {
+                // 索引库已存在
+                log.info("索引库 {} 已存在", ElasticConstant.ARTICLE_INDEX);
+                return;
+            }
+
+            // 初始化索引
+            client.indices()
+                  .create(r -> {
+                      r.index(ElasticConstant.ARTICLE_INDEX);
+                      return r;
+                  });
+            log.info("索引库 {} 初始化完成", ElasticConstant.ARTICLE_INDEX);
+        } catch (IOException e) {
+            log.error("初始化 ElasticSearch 索引失败");
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    public PageResult<ArticleBriefVo> getBriefVoList(ArticleQueryPageDto dto) throws IOException {
+        Integer pageSize = Integer.valueOf(dto.getPageSize()
+                                              .toString());
+        SearchResponse<ArticleBriefVo> response = client.search(r -> {
+            r.index(ElasticConstant.ARTICLE_INDEX);
+            // 分页参数
+            r.size(pageSize);
+            r.from((int) (dto.getPageSize() * (dto.getPageNumber() - 1)));
+            // 获取总条数
+            r.trackTotalHits(b -> {
+                b.enabled(true);
+                return b;
+            });
+            return r;
+        }, ArticleBriefVo.class);
+        List<Hit<ArticleBriefVo>> hits = response.hits()
+                                                 .hits();
+
+        Page<ArticleBriefVo> page = new Page<>();
+        TotalHits total = response.hits()
+                                  .total();
+        page.setTotalRow(total == null ? 0 : total.value());
+        page.setRecords(hits.stream()
+                            .map(Hit::source)
+                            .toList());
+        page.setTotalPage(page.getTotalRow() / page.getPageSize());
+        return PageResult.of(page);
+    }
+
+    public void saveVoList(List<ArticleBriefVo> voList) throws IOException {
+        int size = voList.size();
+        final int batch = 100;
+        int index = 0;
+        int round = size / batch;
+
+        log.info("正在执行批量插入: {}", size);
+
+        for (; index < round; index++) {
+            var builder = new BulkRequest.Builder();
+            // 本轮计数，是实际的个数索引，会更新
+            int roundCurrent = index * batch;
+            log.info("----- 第 {} 轮 -----", index + 1);
+            do {
+                final int nowIndex = roundCurrent;
+                builder.operations(op -> {
+                    // 构建
+                    op.index(idx -> {
+                        idx.index(ElasticConstant.ARTICLE_INDEX);
+                        idx.id(voList.get(nowIndex)
+                                     .getId()
+                                     .toString());
+                        idx.document(voList.get(nowIndex));
+                        return idx;
+                    });
+                    return op;
+                });
+                roundCurrent++;
+            } while (roundCurrent % batch != 0 && roundCurrent < size);
+
+            client.bulk(builder.build());
+        }
+    }
+}
