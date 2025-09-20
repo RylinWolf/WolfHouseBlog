@@ -47,6 +47,9 @@ custom:
     secret: ${custom.jwt.secret}
     expiration: ${custom.jwt.expiration}
 
+  elasticsearch:
+    host: ${custom.elasticsearch.host}
+
 logging:
   level:
     com.wolfhouse.wolfhouseblog.*: info
