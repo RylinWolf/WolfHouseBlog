@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.es.ArticleElasticService;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
@@ -32,11 +33,13 @@ import java.util.List;
 public class ArticleController {
     private final ArticleService articleService;
     private final ArticleActionService actionService;
+    private final ArticleElasticService elasticService;
 
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
-        return HttpResult.success(articleService.getBriefQuery(dto));
+//        return HttpResult.success(articleService.getBriefQuery(dto));
+        return HttpResult.success(elasticService.getBriefVoList(dto));
     }
 
     @Operation(summary = "获取详情")
