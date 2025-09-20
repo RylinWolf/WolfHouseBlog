@@ -80,6 +80,7 @@ public class ArticleElasticService {
         page.setRecords(hits.stream()
                             .map(Hit::source)
                             .toList());
+        page.setPageNumber(dto.getPageNumber());
         page.setTotalPage(page.getTotalRow() / page.getPageSize());
         return PageResult.of(page);
     }
