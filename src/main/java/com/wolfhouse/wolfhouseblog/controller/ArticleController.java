@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,11 +33,19 @@ import java.util.List;
 public class ArticleController {
     private final ArticleService articleService;
     private final ArticleActionService actionService;
+    private final ArticleRedisService redisService;
 
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
-        return HttpResult.success(articleService.getBriefQuery(dto));
+        PageResult<ArticleBriefVo> vos = redisService.getCachedBrief(dto);
+        if (vos != null) {
+            return HttpResult.success(vos);
+        }
+        // 临时缓存
+        PageResult<ArticleBriefVo> brief = articleService.getBriefQuery(dto);
+        redisService.cacheBriefs(dto, brief);
+        return HttpResult.success(brief);
     }
 
     @Operation(summary = "获取详情")
