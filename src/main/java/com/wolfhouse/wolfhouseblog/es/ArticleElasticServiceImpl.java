@@ -93,18 +93,17 @@ public class ArticleElasticServiceImpl implements ArticleService {
         }
     }
 
-    public void saveBatch(List<Article> articles) throws IOException {
+    public void saveBatch(List<Article> articles, final int batchSize) throws IOException {
         int size = articles.size();
-        final int batch = 200;
         int index = 0;
-        int round = size / batch;
+        int round = size / batchSize;
 
         log.info("正在执行批量插入: {}", size);
 
         for (; index < round; index++) {
             var builder = new BulkRequest.Builder();
             // 本轮计数，是实际的个数索引，会更新
-            int roundCurrent = index * batch;
+            int roundCurrent = index * batchSize;
             log.info("----- 第 {} 轮 -----", index + 1);
             do {
                 final int nowIndex = roundCurrent;
@@ -121,7 +120,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
                     return op;
                 });
                 roundCurrent++;
-            } while (roundCurrent % batch != 0 && roundCurrent < size);
+            } while (roundCurrent % batchSize != 0 && roundCurrent < size);
 
             client.bulk(builder.build());
         }
