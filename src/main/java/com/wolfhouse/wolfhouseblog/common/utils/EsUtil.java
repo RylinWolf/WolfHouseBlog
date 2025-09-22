@@ -1,6 +1,9 @@
 package com.wolfhouse.wolfhouseblog.common.utils;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
@@ -49,5 +52,19 @@ public class EsUtil {
                    .map(Hit::source)
                    .toList();
 
+    }
+
+    public static Query matchBuilder(String name, String t) {
+        return new MatchQuery.Builder().field(name)
+                                       .query(t)
+                                       .build()
+                                       ._toQuery();
+    }
+
+    public static Query termBuilder(String name, Long id) {
+        return new TermQuery.Builder().field(name)
+                                      .value(id)
+                                      .build()
+                                      ._toQuery();
     }
 }
