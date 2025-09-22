@@ -75,7 +75,9 @@ public class ArticleController {
     public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         Article article = articleService.post(dto);
         if (article != null) {
-            mqEsService.postArticle(article);
+            // 前端暂未适配，使用阻塞式
+//            mqEsService.postArticle(article);
+            elasticService.saveOne(article);
         }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.POST_FAILED,
