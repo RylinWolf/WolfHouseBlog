@@ -5,7 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
-import com.wolfhouse.wolfhouseblog.es.ArticleElasticService;
+import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,15 +33,27 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "文章接口")
 public class ArticleController {
-    private final ArticleService articleService;
     private final ArticleActionService actionService;
-    private final ArticleElasticService elasticService;
+    private ArticleService articleService;
+    private ArticleElasticServiceImpl elasticService;
+
+    @Autowired
+    @Qualifier("articleServiceImpl")
+    public void setArticleService(ArticleService articleService) {
+        this.articleService = articleService;
+    }
+
+    @Autowired
+    @Qualifier("articleElasticServiceImpl")
+    public void setElasticService(ArticleElasticServiceImpl elasticService) {
+        this.elasticService = elasticService;
+    }
 
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
-//        return HttpResult.success(articleService.getBriefQuery(dto));
-        return HttpResult.success(elasticService.getBriefVoList(dto));
+        // TODO ES 实现复杂查询，存储结构与数据库完全一致
+        return HttpResult.success(elasticService.getBriefQuery(dto));
     }
 
     @Operation(summary = "获取详情")
