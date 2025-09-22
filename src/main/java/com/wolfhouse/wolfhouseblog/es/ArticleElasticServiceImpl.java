@@ -212,7 +212,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     }
 
     @Override
-    public ArticleVo post(ArticleDto dto) {
+    public Article post(ArticleDto dto) {
         throw new ServiceException(EsExceptionConstant.TO_METHOD.formatted("saveOne"));
     }
 

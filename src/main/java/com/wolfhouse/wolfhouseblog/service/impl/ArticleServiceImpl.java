@@ -182,7 +182,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ArticleVo post(ArticleDto dto) throws Exception {
+    public Article post(ArticleDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
 
         VerifyTool.of(
@@ -210,7 +210,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 取消暂存
         unDraft();
 
-        return getVoById(article.getId());
+        return article;
     }
 
     @Override
@@ -256,14 +256,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         // 1. 发布文章，设置可见性为 私密
         article.setVisibility(VisibilityEnum.PRIVATE);
-        ArticleVo vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
+        Article vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
 
         // 2. 将文章 ID 存储到文章暂存中
         int i = draftMapper.insert(new ArticleDraft(null, vo.getAuthorId(), vo.getId()));
         if (i != 1) {
             throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
         }
-        return vo;
+        return BeanUtil.copyProperties(vo, ArticleVo.class);
     }
 
     @Override
