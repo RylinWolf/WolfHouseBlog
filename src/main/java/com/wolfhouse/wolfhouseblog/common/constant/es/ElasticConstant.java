@@ -20,7 +20,7 @@ public class ElasticConstant {
         Map.entry("content", ofProperty("text", true, "ik_max_word")),
         Map.entry("post_time", ofProperty("date", true, null)),
         Map.entry("edit_time", ofProperty("date", false, null)),
-        Map.entry("visibility", ofProperty("keyword", false, null)),
+        Map.entry("visibility", ofProperty("keyword", true, null)),
         Map.entry("partition_id", ofProperty("keyword", false, null)),
         Map.entry("tags", ofProperty("text", true, "ik_smart")),
         Map.entry("com_use_tags", ofProperty("keyword", false, null)));
