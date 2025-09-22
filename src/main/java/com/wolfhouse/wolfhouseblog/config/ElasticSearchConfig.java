@@ -11,6 +11,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,7 @@ public class ElasticSearchConfig {
 
 
     @Bean(destroyMethod = "close")
-    public ElasticsearchClient elasticsearchClient(ObjectMapper defaultObjectMapper) {
+    public ElasticsearchClient elasticsearchClient(@Qualifier("esObjectMapper") ObjectMapper esObjectMapper) {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
         RestClient restClient = RestClient.builder(HttpHost.create(host))
@@ -39,6 +40,6 @@ public class ElasticSearchConfig {
                                                                                credentialsProvider))
                                           .build();
         return new ElasticsearchClient(new RestClientTransport(restClient,
-                                                               new JacksonJsonpMapper(defaultObjectMapper)));
+                                                               new JacksonJsonpMapper(esObjectMapper)));
     }
 }

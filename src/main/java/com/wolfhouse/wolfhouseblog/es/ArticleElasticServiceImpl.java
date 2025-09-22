@@ -2,6 +2,12 @@ package com.wolfhouse.wolfhouseblog.es;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.InlineGet;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.DateRangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,9 +17,11 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.EsExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.EsUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.config.ElasticSearchConfig;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
@@ -32,10 +40,8 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
 
@@ -49,7 +55,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     private final ElasticsearchClient client;
     private final ElasticSearchConfig config;
     private final ServiceAuthMediator mediator;
-    @Resource(name = "jsonNullableObjectMapper")
+    @Resource(name = "esObjectMapper")
     private ObjectMapper objectMapper;
 
     @PostConstruct
@@ -87,18 +93,17 @@ public class ArticleElasticServiceImpl implements ArticleService {
         }
     }
 
-    public void saveBatch(List<Article> articles) throws IOException {
+    public void saveBatch(List<Article> articles, final int batchSize) throws IOException {
         int size = articles.size();
-        final int batch = 200;
         int index = 0;
-        int round = size / batch;
+        int round = size / batchSize;
 
         log.info("正在执行批量插入: {}", size);
 
         for (; index < round; index++) {
             var builder = new BulkRequest.Builder();
             // 本轮计数，是实际的个数索引，会更新
-            int roundCurrent = index * batch;
+            int roundCurrent = index * batchSize;
             log.info("----- 第 {} 轮 -----", index + 1);
             do {
                 final int nowIndex = roundCurrent;
@@ -115,7 +120,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
                     return op;
                 });
                 roundCurrent++;
-            } while (roundCurrent % batch != 0 && roundCurrent < size);
+            } while (roundCurrent % batchSize != 0 && roundCurrent < size);
 
             client.bulk(builder.build());
         }
@@ -153,9 +158,62 @@ public class ArticleElasticServiceImpl implements ArticleService {
             });
         }
         // 分页参数
-        buildPagination(builder, (int) (dto.getPageSize() * (dto.getPageNumber() - 1)), (int) pageSize);
+        buildPagination(builder,
+                        dto.getPageNumber()
+                           .intValue(),
+                        (int) pageSize);
 
-        // TODO 复杂查询未实现
+        var boolQuery = new BoolQuery.Builder();
+        var mustList = new ArrayList<Query>();
+
+        // ID 匹配
+        Long id = JsonNullableUtil.getObjOrNull(dto.getId());
+        if (id != null) {
+            mustList.add(EsUtil.termBuilder(ARTICLE.ID.getName(), id));
+        }
+
+        // 标题匹配
+        String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
+        if (title != null) {
+            mustList.add(EsUtil.matchBuilder(ARTICLE.TITLE.getName(), title));
+        }
+
+        // 时间范围
+        DateRangeQuery.Builder dateBuilder = new DateRangeQuery.Builder();
+        LocalDateTime startDate = JsonNullableUtil.getObjOrNull(dto.getPostStart());
+        LocalDateTime endDate = JsonNullableUtil.getObjOrNull(dto.getPostEnd());
+        boolean isDateField = startDate != null || endDate != null;
+        if (isDateField) {
+            dateBuilder.field(ARTICLE.POST_TIME.getName());
+            if (startDate != null) {
+                dateBuilder.gte(startDate.toString());
+            }
+            if (endDate != null) {
+                dateBuilder.lte(endDate.toString());
+            }
+            mustList.add(dateBuilder.build()
+                                    ._toRangeQuery()
+                                    ._toQuery());
+        }
+
+        // TODO 复杂查询未全部实现
+
+        // 排序
+        SortOptions.Builder sortBuilder = new SortOptions.Builder();
+        // 默认按照发布时间排序
+        sortBuilder.field(f -> {
+            f.field(ARTICLE.POST_TIME.getName());
+            f.order(SortOrder.Desc);
+            f.missing("_last");
+            return f;
+        });
+
+        builder.sort(sortBuilder.build());
+
+        // 构建查询条件
+        // must 复合查询
+        boolQuery.must(mustList);
+        builder.query(boolQuery.build());
 
         SearchResponse<Article> response = client.search(builder.build(), Article.class);
         return toPage(response, dto.getPageNumber(), pageSize);
@@ -163,15 +221,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @Override
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
-        long pageSize = dto.getPageSize();
-        SearchResponse<ArticleBriefVo> response = client.search(r -> {
-            r.index(ElasticConstant.ARTICLE_INDEX);
-            // 分页参数
-            buildPagination(r, (int) (dto.getPageSize() * (dto.getPageNumber() - 1)), (int) pageSize);
-            // 获取总条数
-            return r;
-        }, ArticleBriefVo.class);
-        return PageResult.of(toPage(response, dto.getPageNumber(), pageSize));
+        return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
     }
 
     @Override
@@ -208,7 +258,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
     public ArticleVo getVoById(Long id) throws Exception {
         ArticleQueryPageDto dto = new ArticleQueryPageDto();
         dto.setId(JsonNullable.of(id));
-        return BeanUtil.copyProperties(queryBy(dto), ArticleVo.class);
+        List<Article> records = queryBy(dto).getRecords();
+        return BeanUtil.isBlank(records) ? null : BeanUtil.copyProperties(records.getFirst(), ArticleVo.class);
     }
 
     @Override
@@ -232,7 +283,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     }
 
     @Override
-    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+    public Article update(ArticleUpdateDto dto) throws Exception {
         var builder = new UpdateRequest.Builder<Article, Map<?, ?>>();
         builder.index(ElasticConstant.ARTICLE_INDEX);
         builder.id(dto.getId()
@@ -240,11 +291,11 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
         builder.doc(objectMapper.convertValue(dto, Map.class));
         UpdateResponse<Article> resp = client.update(builder.build(), Article.class);
-        if (resp.get() == null) {
+        InlineGet<Article> res = resp.get();
+        if (res == null) {
             return null;
         }
-        return BeanUtil.copyProperties(resp.get()
-                                           .source(), ArticleVo.class);
+        return res.source();
     }
 
     @Override
@@ -304,12 +355,12 @@ public class ArticleElasticServiceImpl implements ArticleService {
         throw new ServiceException(EsExceptionConstant.METHOD_NOT_SUPPORT);
     }
 
-    private void buildPagination(SearchRequest.Builder builder, int from, int size) {
+    private void buildPagination(SearchRequest.Builder builder, int pageNum, int size) {
         builder.trackTotalHits(b -> {
             b.enabled(true);
             return b;
         });
-        builder.from(from);
+        builder.from(size * (pageNum - 1));
         builder.size(size);
     }
 

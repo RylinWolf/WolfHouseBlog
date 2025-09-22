@@ -211,7 +211,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 取消暂存
         unDraft();
 
-        return article;
+        return getById(article.getId());
     }
 
     @Override
@@ -248,7 +248,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             // 冗余验证，登录用户为文章作者，则更新
             if (!new IdOwnVerifyNode(mediator).target(article.getId())
                                               .verify()) {
-                return update(objectMapper.convertValue(article, ArticleUpdateDto.class));
+                return BeanUtil.copyProperties(update(objectMapper.convertValue(article, ArticleUpdateDto.class)),
+                                               ArticleVo.class);
             }
             // 非作者
             log.error("暂存文章 ID 匹配，但作者验证未通过。已有暂存：{}, 更新暂存： {}", draft, article);
@@ -280,7 +281,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+    public Article update(ArticleUpdateDto dto) throws Exception {
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
@@ -346,7 +347,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
 
-        return getVoById(dto.getId());
+        return getById(dto.getId());
     }
 
     @Override

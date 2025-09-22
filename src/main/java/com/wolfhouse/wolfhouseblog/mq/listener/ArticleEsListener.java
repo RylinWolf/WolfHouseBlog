@@ -6,6 +6,7 @@ import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author linexsong
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ArticleEsListener {
@@ -30,7 +32,9 @@ public class ArticleEsListener {
         key = {MqArticleEsConstant.POST_KEY}
     ))
     public void post(Article article) {
+        log.debug("监听到发布文章信息: {}", article.getId());
         articleService.saveOne(article);
+        log.debug("{} 文章发布完成", article.getId());
     }
 
     @RabbitListener(bindings = @QueueBinding(
@@ -43,7 +47,9 @@ public class ArticleEsListener {
     ))
     public void update(ArticleUpdateDto dto) {
         try {
+            log.debug("监听到更新文章信息: {}", dto.getId());
             articleService.update(dto);
+            log.debug("{} 文章更新完成", dto.getId());
         } catch (Exception e) {
             throw new ServiceException(e.getMessage(), e);
         }
@@ -59,7 +65,9 @@ public class ArticleEsListener {
     ))
     public void delete(Long id) {
         try {
+            log.debug("监听到删除文章信息: {}", id);
             articleService.deleteById(id);
+            log.debug("{} 文章删除成功", id);
         } catch (Exception e) {
             throw new ServiceException(e.getMessage(), e);
         }

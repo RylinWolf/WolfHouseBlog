@@ -12,6 +12,8 @@ spring:
   data:
     redis:
       password: ${spring.data.redis.password}
+      host: ${spring.data.redis.host}
+
 
   rabbitmq:
     username: ${spring.rabbitmq.username}

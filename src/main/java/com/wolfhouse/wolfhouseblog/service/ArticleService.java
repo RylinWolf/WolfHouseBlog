@@ -121,7 +121,7 @@ public interface ArticleService extends IService<Article> {
      * @return 更新后的文章详情视图对象
      * @throws Exception 当文章不存在或更新操作失败时抛出异常
      */
-    ArticleVo update(ArticleUpdateDto dto) throws Exception;
+    Article update(ArticleUpdateDto dto) throws Exception;
 
     /**
      * 通过ID删除文章

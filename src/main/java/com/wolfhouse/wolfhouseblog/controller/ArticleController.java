@@ -95,14 +95,14 @@ public class ArticleController {
     @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
-        ArticleVo update = articleService.update(dto);
+        Article update = articleService.update(dto);
         if (update != null) {
             mqEsService.updateArticle(dto);
         }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.UPDATE_FAILED,
             ArticleConstant.UPDATE_FAILED,
-            update);
+            BeanUtil.copyProperties(update, ArticleVo.class));
     }
 
     @Operation(summary = "删除")
