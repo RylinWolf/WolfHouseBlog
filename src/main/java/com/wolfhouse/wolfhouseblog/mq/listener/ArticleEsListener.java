@@ -51,6 +51,7 @@ public class ArticleEsListener {
             articleService.update(dto);
             log.debug("{} 文章更新完成", dto.getId());
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
         }
     }
@@ -69,6 +70,7 @@ public class ArticleEsListener {
             articleService.deleteById(id);
             log.debug("{} 文章删除成功", id);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
         }
     }
