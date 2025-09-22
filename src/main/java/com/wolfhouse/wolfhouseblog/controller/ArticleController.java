@@ -4,8 +4,11 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
+import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
@@ -36,6 +39,7 @@ public class ArticleController {
     private final ArticleActionService actionService;
     private ArticleService articleService;
     private ArticleElasticServiceImpl elasticService;
+    private final MqEsService mqEsService;
 
     @Autowired
     @Qualifier("articleServiceImpl")
@@ -52,7 +56,7 @@ public class ArticleController {
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
-        // TODO ES 实现复杂查询，存储结构与数据库完全一致
+        // TODO ES 实现复杂查询
         return HttpResult.success(elasticService.getBriefQuery(dto));
     }
 
@@ -63,16 +67,20 @@ public class ArticleController {
             HttpStatus.OK.value(),
             HttpCodeConstant.ACCESS_DENIED,
             ArticleConstant.ACCESS_DENIED,
-            articleService.getVoById(id));
+            elasticService.getVoById(id));
     }
 
     @Operation(summary = "发布")
     @PostMapping
     public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
+        Article article = articleService.post(dto);
+        if (article != null) {
+            mqEsService.postArticle(article);
+        }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.POST_FAILED,
             ArticleConstant.POST_FAILED,
-            articleService.post(dto));
+            BeanUtil.copyProperties(article, ArticleVo.class));
     }
 
     @Operation(summary = "暂存")
@@ -87,18 +95,24 @@ public class ArticleController {
     @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
+        ArticleVo update = articleService.update(dto);
+        if (update != null) {
+            mqEsService.updateArticle(dto);
+        }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.UPDATE_FAILED,
             ArticleConstant.UPDATE_FAILED,
-            articleService.update(dto));
+            update);
     }
 
     @Operation(summary = "删除")
     @DeleteMapping("/{id}")
     public HttpResult<?> delete(@PathVariable Long id) throws Exception {
-        return HttpResult.onCondition(
-            HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED,
-            articleService.deleteById(id));
+        Boolean b = articleService.deleteById(id);
+        if (b) {
+            mqEsService.deleteArticle(id);
+        }
+        return HttpResult.onCondition(HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED, b);
     }
 
     @Operation(summary = "获取评论")
