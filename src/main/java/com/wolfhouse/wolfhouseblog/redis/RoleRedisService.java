@@ -1,7 +1,9 @@
 package com.wolfhouse.wolfhouseblog.redis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.constant.redis.UserRedisConstant;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -19,6 +21,9 @@ public class RoleRedisService {
     /** 基础过期时间 */
     public static final Long BASE_TIME_OUT = 24 * 60L;
 
+    @Resource(name = "defaultObjectMapper")
+    private ObjectMapper objectMapper;
+
     private final ValueOperations<String, Object> valueOps;
 
     @Autowired
@@ -26,10 +31,15 @@ public class RoleRedisService {
         this.valueOps = redisTemplate.opsForValue();
     }
 
-    @SuppressWarnings("unchecked")
     public List<Authority> getAuthorities(final Long userId) {
         Object o = valueOps.get(UserRedisConstant.AUTHORITIES.formatted(userId));
-        return o == null ? null : (List<Authority>) o;
+        if (o == null) {
+            return null;
+        }
+        List<?> list = objectMapper.convertValue(o, List.class);
+        return list.stream()
+                   .map(a -> objectMapper.convertValue(a, Authority.class))
+                   .toList();
     }
 
     public void saveAuthorities(final Long userId, final List<Authority> authorities) {

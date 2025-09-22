@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.auth.exceptions.AuthenticationJwtException;
 import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.UrlMatchUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
@@ -55,7 +56,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = request.getHeader(HttpConstant.AUTH_HEADER);
         try {
             // token 为空，直接跳出
-            if (token == null) {
+            if (BeanUtil.isBlank(token)) {
                 throw new JwtException(null);
             }
             Long userId = roleRedisService.getAndRefreshToken(token);
