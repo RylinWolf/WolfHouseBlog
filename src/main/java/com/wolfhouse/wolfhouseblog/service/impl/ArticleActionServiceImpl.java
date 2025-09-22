@@ -29,6 +29,8 @@ import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,11 +51,17 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.
 @Service
 @RequiredArgsConstructor
 public class ArticleActionServiceImpl implements ArticleActionService {
-    private final ArticleService articleService;
+    private ArticleService articleService;
     private final ServiceAuthMediator mediator;
     private final ArticleCommentMapper commentMapper;
     private final ArticleFavoriteMapper favoriteMapper;
     private final ArticleLikeMapper likeMapper;
+
+    @Autowired
+    @Qualifier("articleServiceImpl")
+    public void setArticleService(ArticleService articleService) {
+        this.articleService = articleService;
+    }
 
     @PostConstruct
     private void init() {
@@ -267,7 +275,6 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                            .stream()
                                            .map(ArticleFavorite::getArticleId)
                                            .collect(Collectors.toSet());
-
 
         // 获取结果
         List<ArticleBriefVo> brief = articleService.getBriefByIds(articleIds);

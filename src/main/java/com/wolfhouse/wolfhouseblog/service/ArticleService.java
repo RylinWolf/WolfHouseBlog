@@ -62,7 +62,7 @@ public interface ArticleService extends IService<Article> {
      * @return 文章详细信息的分页结果集
      * @throws Exception 查询过程中可能出现的异常
      */
-    PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception;
+    PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception;
 
     /**
      * 通过ID获取文章详情
@@ -82,7 +82,7 @@ public interface ArticleService extends IService<Article> {
      * @return 发布成功后的文章详情视图对象
      * @throws Exception 当文章数据验证失败或保存失败时抛出异常
      */
-    ArticleVo post(@Valid ArticleDto dto) throws Exception;
+    Article post(@Valid ArticleDto dto) throws Exception;
 
     /**
      * 保存文章草稿
