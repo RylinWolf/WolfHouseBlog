@@ -147,7 +147,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
+    public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
@@ -157,7 +157,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception {
+    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) {
         // 根据登录用户构建查询条件
         Long login = ServiceUtil.loginUser();
 
