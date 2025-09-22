@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.mq.listener;
 
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleEsConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqUserConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,18 @@ public class ErrorListener {
     )
     public void articleErrorListener(Object object) {
         log.error("监听到文章业务错误信息: 【{}】", object);
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+        value = @Queue(name = MqConstant.ES_ERROR_QUEUE),
+        exchange = @Exchange(
+            name = MqConstant.ERROR_EXCHANGE,
+            type = ExchangeTypes.TOPIC
+        ),
+        key = {MqConstant.ERROR + MqConstant.SEPARATOR + MqArticleEsConstant.ES + MqConstant.MULTI_WILDCARD}
+    ))
+    public void articleEsErrorListener(Object object) {
+        log.error("监听到 ES 业务错误信息：【{}】", object);
     }
 
     @RabbitListener(
