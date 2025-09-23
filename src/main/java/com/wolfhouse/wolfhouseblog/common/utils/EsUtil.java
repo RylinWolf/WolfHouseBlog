@@ -61,7 +61,7 @@ public class EsUtil {
                                        ._toQuery();
     }
 
-    public static Query termBuilder(String name, Long id) {
+    public static Query termLongBuilder(String name, Long id) {
         return new TermQuery.Builder().field(name)
                                       .value(id)
                                       .build()

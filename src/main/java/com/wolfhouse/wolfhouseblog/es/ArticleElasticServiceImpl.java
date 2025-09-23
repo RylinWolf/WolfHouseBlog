@@ -144,6 +144,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
     @Override
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         long pageSize = dto.getPageSize();
+        long login = mediator.loginUserOrNull();
+
         SearchRequest.Builder builder = new SearchRequest.Builder();
         // 索引库
         builder.index(ElasticConstant.ARTICLE_INDEX);
@@ -162,14 +164,48 @@ public class ArticleElasticServiceImpl implements ArticleService {
                         dto.getPageNumber()
                            .intValue(),
                         (int) pageSize);
+        // 排序
+        SortOptions.Builder sortBuilder = new SortOptions.Builder();
+        // 默认按照发布时间排序
+        sortBuilder.field(f -> {
+            f.field(ARTICLE.POST_TIME.getName());
+            f.order(SortOrder.Desc);
+            f.missing("_last");
+            return f;
+        });
+        builder.sort(sortBuilder.build());
 
+        // 复合查询
         var boolQuery = new BoolQuery.Builder();
+
+        // 仅查询公开或登录用户为作者的文章
+        EsUtil.reachableBuilder(boolQuery, login, ARTICLE.VISIBILITY.getName(), ARTICLE.AUTHOR_ID.getName());
+
+        // 构建查询条件
+        // must 复合查询
+        boolQuery.must(buildMustQueryListFromDto(dto, login));
+        builder.query(boolQuery.build());
+
+        SearchResponse<Article> response = client.search(builder.build(), Article.class);
+        return toPage(response, dto.getPageNumber(), pageSize);
+    }
+
+    /**
+     * 根据传入的 ArticleQueryPageDto 数据构建 Elasticsearch 查询条件列表。
+     * 查询条件包括文章 ID、标题、发布日期范围、作者 ID、文章内容和分区等，
+     * 以生成 "must" 查询条件的集合。
+     *
+     * @param dto   包含查询参数的数据传输对象 ArticleQueryPageDto。
+     * @param login 当前登录用户的唯一标识，用于校验用户分区等权限相关字段。
+     * @return 包含所有构建好的 "must" 查询条件的列表。
+     */
+    private ArrayList<Query> buildMustQueryListFromDto(ArticleQueryPageDto dto, long login) {
         var mustList = new ArrayList<Query>();
 
         // ID 匹配
         Long id = JsonNullableUtil.getObjOrNull(dto.getId());
         if (id != null) {
-            mustList.add(EsUtil.termBuilder(ARTICLE.ID.getName(), id));
+            mustList.add(EsUtil.termLongBuilder(ARTICLE.ID.getName(), id));
         }
 
         // 标题匹配
@@ -196,30 +232,35 @@ public class ArticleElasticServiceImpl implements ArticleService {
                                     ._toQuery());
         }
 
-        // TODO 复杂查询未全部实现
+        // 作者
+        dto.getAuthorId()
+           .ifPresent(aid -> {
+               if (aid == null) {
+                   return;
+               }
+               mustList.add(EsUtil.termLongBuilder(ARTICLE.AUTHOR_ID.getName(), aid));
+           });
 
-        // 排序
-        SortOptions.Builder sortBuilder = new SortOptions.Builder();
-        // 默认按照发布时间排序
-        sortBuilder.field(f -> {
-            f.field(ARTICLE.POST_TIME.getName());
-            f.order(SortOrder.Desc);
-            f.missing("_last");
-            return f;
-        });
+        // 文章内容
+        dto.getContent()
+           .ifPresent(c -> {
+               if (BeanUtil.isBlank(c)) {
+                   return;
+               }
+               mustList.add(EsUtil.matchBuilder(ARTICLE.CONTENT.getName(), c));
+           });
 
-        builder.sort(sortBuilder.build());
-
-        // 仅查询公开或登录用户为作者的文章
-        EsUtil.reachableBuilder(boolQuery, login, ARTICLE.VISIBILITY.getName(), ARTICLE.AUTHOR_ID.getName());
-        
-        // 构建查询条件
-        // must 复合查询
-        boolQuery.must(mustList);
-        builder.query(boolQuery.build());
-
-        SearchResponse<Article> response = client.search(builder.build(), Article.class);
-        return toPage(response, dto.getPageNumber(), pageSize);
+        // 分区
+        dto.getPartitionId()
+           .ifPresent(p -> {
+               try {
+                   mediator.isUserPartitionExist(login, p);
+               } catch (Exception e) {
+                   throw new ServiceException(e.getMessage(), e);
+               }
+               mustList.add(EsUtil.termLongBuilder(ARTICLE.PARTITION_ID.getName(), p));
+           });
+        return mustList;
     }
 
     @Override
