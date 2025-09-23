@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.wolfhouse</groupId>
     <artifactId>WolfHouseBlog</artifactId>
-    <version>1.3.3-ALPHA</version>
+    <version>1.4.0-ALPHA</version>
     <name>WolfHouseBlog</name>
     <description>WolfHouseBlog</description>
     <url/>
