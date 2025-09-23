@@ -6,10 +6,8 @@ import co.elastic.clients.elasticsearch._types.InlineGet;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.DateRangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
-import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.BaseMapper;
 import com.mybatisflex.core.paginate.Page;
@@ -143,8 +141,21 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @Override
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
+        return queryBy(dto, dto.getHighlight(), columns);
+    }
+
+    /**
+     * 根据传入的查询参数和配置，从 Elasticsearch 查询文章数据，并返回分页结果。
+     *
+     * @param dto       包含查询参数的 ArticleQueryPageDto 对象，如文章 ID、标题、作者 ID、发布时间范围等。
+     * @param highLight 是否开启高亮功能，如果 true，则返回结果中包含高亮字段。
+     * @param columns   指定需要查询的字段数组，可以为空数组表示查询所有字段。
+     * @return 包含查询结果的分页 Page 对象，其中包含文章数据以及分页信息。
+     * @throws Exception 如果在查询过程中发生任何异常，例如 Elasticsearch 查询失败。
+     */
+    public Page<Article> queryBy(ArticleQueryPageDto dto, Boolean highLight, QueryColumn... columns) throws Exception {
         long pageSize = dto.getPageSize();
-        long login = mediator.loginUserOrNull();
+        Long login = mediator.loginUserOrNull();
 
         SearchRequest.Builder builder = new SearchRequest.Builder();
         // 索引库
@@ -182,12 +193,12 @@ public class ArticleElasticServiceImpl implements ArticleService {
         EsUtil.reachableBuilder(boolQuery, login, ARTICLE.VISIBILITY.getName(), ARTICLE.AUTHOR_ID.getName());
 
         // 构建查询条件
-        // must 复合查询
-        boolQuery.must(buildMustQueryListFromDto(dto, login));
+        // must 复合查询，若开启高亮，则自动构建 builder
+        boolQuery.must(buildMustQueryListFromDto(dto, login, highLight, builder));
         builder.query(boolQuery.build());
-
         SearchResponse<Article> response = client.search(builder.build(), Article.class);
-        return toPage(response, dto.getPageNumber(), pageSize);
+
+        return EsUtil.responseToPage(response, dto.getPageNumber(), pageSize, highLight);
     }
 
     /**
@@ -199,38 +210,43 @@ public class ArticleElasticServiceImpl implements ArticleService {
      * @param login 当前登录用户的唯一标识，用于校验用户分区等权限相关字段。
      * @return 包含所有构建好的 "must" 查询条件的列表。
      */
-    private ArrayList<Query> buildMustQueryListFromDto(ArticleQueryPageDto dto, long login) {
+    private ArrayList<Query> buildMustQueryListFromDto(ArticleQueryPageDto dto,
+                                                       Long login,
+                                                       Boolean highlight,
+                                                       SearchRequest.Builder builder) {
         var mustList = new ArrayList<Query>();
+        // 高亮字段，其中的所有字段将在最后被构建为 HighLight 对象
+        var highlightFields = new HashSet<String>();
+        boolean highlightEnabled = highlight != null && highlight;
+        // 高亮参数检查
+        if (highlightEnabled && (builder == null)) {
+            throw new ServiceException("builder must be not null while highlight is enabled");
+        }
+
 
         // ID 匹配
         Long id = JsonNullableUtil.getObjOrNull(dto.getId());
         if (id != null) {
-            mustList.add(EsUtil.termLongBuilder(ARTICLE.ID.getName(), id));
+            mustList.add(EsUtil.termLongQuery(ARTICLE.ID.getName(), id));
         }
 
         // 标题匹配
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         if (title != null) {
-            mustList.add(EsUtil.matchBuilder(ARTICLE.TITLE.getName(), title));
+            if (highlightEnabled) {
+                highlightFields.add(ARTICLE.TITLE.getName());
+            }
+            mustList.add(EsUtil.matchQuery(ARTICLE.TITLE.getName(), title));
         }
 
         // 时间范围
-        DateRangeQuery.Builder dateBuilder = new DateRangeQuery.Builder();
         LocalDateTime startDate = JsonNullableUtil.getObjOrNull(dto.getPostStart());
         LocalDateTime endDate = JsonNullableUtil.getObjOrNull(dto.getPostEnd());
-        boolean isDateField = startDate != null || endDate != null;
-        if (isDateField) {
-            dateBuilder.field(ARTICLE.POST_TIME.getName());
-            if (startDate != null) {
-                dateBuilder.gte(startDate.toString());
-            }
-            if (endDate != null) {
-                dateBuilder.lte(endDate.toString());
-            }
-            mustList.add(dateBuilder.build()
-                                    ._toRangeQuery()
-                                    ._toQuery());
+        Query query = EsUtil.dateRangeQuery(startDate, endDate);
+        if (query != null) {
+            mustList.add(query);
         }
+
 
         // 作者
         dto.getAuthorId()
@@ -238,7 +254,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
                if (aid == null) {
                    return;
                }
-               mustList.add(EsUtil.termLongBuilder(ARTICLE.AUTHOR_ID.getName(), aid));
+               mustList.add(EsUtil.termLongQuery(ARTICLE.AUTHOR_ID.getName(), aid));
            });
 
         // 文章内容
@@ -247,19 +263,32 @@ public class ArticleElasticServiceImpl implements ArticleService {
                if (BeanUtil.isBlank(c)) {
                    return;
                }
-               mustList.add(EsUtil.matchBuilder(ARTICLE.CONTENT.getName(), c));
+               mustList.add(EsUtil.matchQuery(ARTICLE.CONTENT.getName(), c));
+               if (highlightEnabled) {
+                   highlightFields.add(ARTICLE.CONTENT.getName());
+               }
            });
 
         // 分区
         dto.getPartitionId()
            .ifPresent(p -> {
+               if (p == null) {
+                   return;
+               }
                try {
                    mediator.isUserPartitionExist(login, p);
                } catch (Exception e) {
                    throw new ServiceException(e.getMessage(), e);
                }
-               mustList.add(EsUtil.termLongBuilder(ARTICLE.PARTITION_ID.getName(), p));
+               mustList.add(EsUtil.termLongQuery(ARTICLE.PARTITION_ID.getName(), p));
            });
+
+        // 激活高亮字段
+        if (highlightEnabled && !highlightFields.isEmpty()) {
+            // 构建高亮字段映射
+            builder.highlight(EsUtil.highLight(highlightFields));
+        }
+
         return mustList;
     }
 
@@ -295,7 +324,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @Override
     public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
-        return PageResult.of(queryBy(dto), ArticleVo.class);
+        return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
     @Override
@@ -408,19 +437,5 @@ public class ArticleElasticServiceImpl implements ArticleService {
         builder.size(size);
     }
 
-    private <T> Page<T> toPage(SearchResponse<T> response, long pageNum, long pageSize) {
-        Page<T> page = new Page<>();
-        // 记录
-        page.setRecords(EsUtil.searchHitsToList(response));
 
-        // 总行数
-        TotalHits total = response.hits()
-                                  .total();
-
-        page.setTotalRow(total == null ? 0 : total.value());
-        page.setPageNumber(pageNum);
-        page.setPageSize(pageSize);
-        page.setTotalPage(page.getTotalRow() / page.getPageSize());
-        return page;
-    }
 }

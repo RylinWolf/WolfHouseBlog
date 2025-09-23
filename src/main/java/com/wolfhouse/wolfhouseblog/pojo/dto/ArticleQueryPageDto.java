@@ -22,6 +22,7 @@ public class ArticleQueryPageDto extends PageDto {
     private JsonNullable<LocalDateTime> postEnd = JsonNullable.undefined();
     private JsonNullable<Long> partitionId = JsonNullable.undefined();
     private JsonNullable<String> content = JsonNullable.undefined();
+    /** 激活高亮字段时，查询结果对象中，支持高亮查询的字段会自动有高亮显示 */
     private Boolean highlight;
 
     @Override

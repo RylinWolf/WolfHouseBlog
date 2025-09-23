@@ -5,6 +5,7 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
@@ -55,8 +56,14 @@ public class ArticleController {
 
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
-    public HttpResult<PageResult<ArticleBriefVo>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
-        // TODO ES 实现复杂查询
+    public HttpResult<PageResult<?>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
+        // ES 实现复杂查询
+        // 传递了文章内容字段，则查询完整的文章视图
+        if (!BeanUtil.isBlank(JsonNullableUtil.getObjOrNull(dto.getContent()))) {
+            // 检索文章内容
+            return HttpResult.success(elasticService.getQueryVo(dto));
+        }
+        // 不检索内容，仅缩略
         return HttpResult.success(elasticService.getBriefQuery(dto));
     }
 
