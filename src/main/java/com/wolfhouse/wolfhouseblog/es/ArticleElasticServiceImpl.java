@@ -210,6 +210,9 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
         builder.sort(sortBuilder.build());
 
+        // 仅查询公开或登录用户为作者的文章
+        EsUtil.reachableBuilder(boolQuery, login, ARTICLE.VISIBILITY.getName(), ARTICLE.AUTHOR_ID.getName());
+        
         // 构建查询条件
         // must 复合查询
         boolQuery.must(mustList);
