@@ -38,7 +38,6 @@ public class EntryPointConfig {
                     .write(defaultObjectMapper.writeValueAsString(
                         HttpResult.failed(HttpCodeConstant.UN_LOGIN, msg)));
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-
         };
     }
 

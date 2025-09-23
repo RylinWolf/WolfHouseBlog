@@ -107,7 +107,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         Long partitionId = dto.getPartitionId()
                               .orElse(null);
         // 分区可达
-        if (partitionService.isUserPartitionReachable(userId, partitionId)) {
+        if (!BeanUtil.isBlank(partitionId) && partitionService.isUserPartitionReachable(userId, partitionId)) {
             wrapper.eq(Article::getPartitionId, partitionId);
         }
 
@@ -122,6 +122,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             wrapper.le(Article::getPostTime, end, end != null);
         }
 
+        // 排序
+        wrapper.orderBy(ARTICLE.POST_TIME.desc());
         return mapper.paginate(dto.getPageNumber(), dto.getPageSize(), wrapper);
     }
 
@@ -145,17 +147,18 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageResult<ArticleVo> getQuery(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
+    public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
     @Override
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
+
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
     }
 
     @Override
-    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception {
+    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) {
         // 根据登录用户构建查询条件
         Long login = ServiceUtil.loginUser();
 
@@ -180,7 +183,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ArticleVo post(ArticleDto dto) throws Exception {
+    public Article post(ArticleDto dto) throws Exception {
         Long login = mediator.loginUserOrE();
 
         VerifyTool.of(
@@ -208,7 +211,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 取消暂存
         unDraft();
 
-        return getVoById(article.getId());
+        return getById(article.getId());
     }
 
     @Override
@@ -245,7 +248,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             // 冗余验证，登录用户为文章作者，则更新
             if (!new IdOwnVerifyNode(mediator).target(article.getId())
                                               .verify()) {
-                return update(objectMapper.convertValue(article, ArticleUpdateDto.class));
+                return BeanUtil.copyProperties(update(objectMapper.convertValue(article, ArticleUpdateDto.class)),
+                                               ArticleVo.class);
             }
             // 非作者
             log.error("暂存文章 ID 匹配，但作者验证未通过。已有暂存：{}, 更新暂存： {}", draft, article);
@@ -254,14 +258,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         // 1. 发布文章，设置可见性为 私密
         article.setVisibility(VisibilityEnum.PRIVATE);
-        ArticleVo vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
+        Article vo = post(BeanUtil.copyProperties(article, ArticleDto.class));
 
         // 2. 将文章 ID 存储到文章暂存中
         int i = draftMapper.insert(new ArticleDraft(null, vo.getAuthorId(), vo.getId()));
         if (i != 1) {
             throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
         }
-        return vo;
+        return BeanUtil.copyProperties(vo, ArticleVo.class);
     }
 
     @Override
@@ -277,7 +281,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
+    public Article update(ArticleUpdateDto dto) throws Exception {
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
@@ -343,7 +347,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
 
-        return getVoById(dto.getId());
+        return getById(dto.getId());
     }
 
     @Override
@@ -362,9 +366,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public Boolean isArticleReachable(Long userId, Long articleId) throws Exception {
-        VerifyTool.of(new NotAnyBlankVerifyNode(userId, articleId))
+        VerifyTool.of(new NotAnyBlankVerifyNode(articleId))
                   .doVerify();
 
+        // 公开文章或当前用户的私密文章
         long count = mapper.selectCountByQuery(
             QueryWrapper.create()
                         .where(ARTICLE.ID.eq(articleId))

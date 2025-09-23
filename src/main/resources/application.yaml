@@ -12,6 +12,8 @@ spring:
   data:
     redis:
       password: ${spring.data.redis.password}
+      host: ${spring.data.redis.host}
+
 
   rabbitmq:
     username: ${spring.rabbitmq.username}
@@ -31,10 +33,11 @@ spring:
         prefetch: 3
 
 knife4j:
-  enable: true
+  enable: ${knife4j.enable}
   setting:
     language: zh_cn
     swagger-model-name: 实体列表
+  production: ${knife4j.production}
 
 custom:
   date:
@@ -45,6 +48,10 @@ custom:
   jwt:
     secret: ${custom.jwt.secret}
     expiration: ${custom.jwt.expiration}
+
+  elasticsearch:
+    host: ${custom.elasticsearch.host}
+    max-result-window: ${custom.elasticsearch.max-result-window}
 
 logging:
   level:

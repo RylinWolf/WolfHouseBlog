@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqConstant;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,8 +20,9 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class MqMessageRecoverConfig {
     private final RabbitTemplate template;
-    private final ObjectMapper defaultObjectMapper;
     private final MessagePostProcessor messageIdPostProcessor;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper objectMapper;
 
     @Bean
     public MessageRecoverer messageRecoverer(RabbitTemplate rabbitTemplate) {
@@ -29,7 +31,7 @@ public class MqMessageRecoverConfig {
 
     @PostConstruct
     public void configureRabbitTemplate() {
-        template.setMessageConverter(new Jackson2JsonMessageConverter(defaultObjectMapper));
+        template.setMessageConverter(new Jackson2JsonMessageConverter(objectMapper));
         template.setBeforePublishPostProcessors(messageIdPostProcessor);
     }
 }

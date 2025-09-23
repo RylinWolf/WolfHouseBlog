@@ -22,6 +22,8 @@ public class MqConstant {
 
     public static final String USER_ERROR_QUEUE = MqUserConstant.USER + ERROR_QUEUE;
     public static final String ARTICLE_ERROR_QUEUE = MqArticleConstant.ARTICLE + ERROR_QUEUE;
+    public static final String FAVORITES_ERROR_QUEUE = MqFavoritesConstant.FAVORITES + ERROR_QUEUE;
+    public static final String ES_ERROR_QUEUE = MqArticleEsConstant.ES + ERROR_QUEUE;
 
     public static final String EXCEPTION_SERVICE = "业务异常";
     public static final String CONCURRENCY = "5";

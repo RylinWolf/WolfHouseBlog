@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.JacksonObjectMapper;
@@ -32,6 +33,15 @@ public class ObjectMapperConfig {
         var mapper = getDefault();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.registerModule(new JsonNullableModule());
+        return mapper;
+    }
+
+    @Bean(name = "esObjectMapper")
+    public ObjectMapper esObjectMapper() {
+        var mapper = getDefault();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.registerModule(new JsonNullableModule());
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         return mapper;
     }
 

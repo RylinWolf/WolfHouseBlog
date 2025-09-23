@@ -17,6 +17,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * @author linexsong
@@ -35,11 +36,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(MethodArgumentTypeMismatchException e) {
+        log.error("方法字段类型不支持: [{}]", e.getMessage(), e);
+        return HttpResult.failed(HttpStatus.BAD_REQUEST.value(),
+                                 HttpCodeConstant.ARG_NOT_VALID,
+                                 ServiceExceptionConstant.ARG_FORMAT_ERROR);
+    }
+
+    @ExceptionHandler
     public ResponseEntity<HttpResult<?>> handleException(HttpMediaTypeNotSupportedException e) {
         log.error("媒体类型不支持: [{}]", e.getContentType());
         return HttpResult.failed(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
-            HttpCodeConstant.UNSUPPORTED_MEDIA_TYPE,
-            ServiceExceptionConstant.UNSUPPORTED_MEDIA_TYPE);
+                                 HttpCodeConstant.UNSUPPORTED_MEDIA_TYPE,
+                                 ServiceExceptionConstant.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler
