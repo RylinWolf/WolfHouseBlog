@@ -22,6 +22,7 @@ public class ArticleQueryPageDto extends PageDto {
     private JsonNullable<LocalDateTime> postEnd = JsonNullable.undefined();
     private JsonNullable<Long> partitionId = JsonNullable.undefined();
     private JsonNullable<String> content = JsonNullable.undefined();
+    private Boolean highlight;
 
     @Override
     public String toString() {
