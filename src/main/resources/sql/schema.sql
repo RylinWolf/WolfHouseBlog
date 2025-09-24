@@ -77,8 +77,9 @@ CREATE TABLE IF NOT EXISTS article
     edit_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '编辑日期',
     visibility   TINYINT      NOT NULL DEFAULT 0 COMMENT '可见权限\n0 - 公开\n1 - 私人',
     partition_id BIGINT COMMENT '分区 ID',
-    tags         JSON COMMENT '文章标签，以 :\\ 分隔',
-    com_use_tags JSON COMMENT '常用文章标签，以 :\\ 分隔'
+    tags         JSON COMMENT '文章标签',
+    com_use_tags JSON COMMENT '常用文章标签',
+    views        BIGINT                DEFAULT 0 COMMENT '浏览量'
 ) AUTO_INCREMENT 100000000 COMMENT '文章表';
 
 CREATE TABLE IF NOT EXISTS `article_draft`
