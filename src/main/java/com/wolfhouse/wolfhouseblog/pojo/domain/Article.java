@@ -35,4 +35,5 @@ public class Article {
     private List<String> tags;
     @Column(typeHandler = JacksonTypeHandler.class)
     private List<Long> comUseTags;
+    private Long views;
 }

@@ -1,10 +1,8 @@
 package com.wolfhouse.wolfhouseblog.es;
 
+import cn.hutool.core.collection.ConcurrentHashSet;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.InlineGet;
-import co.elastic.clients.elasticsearch._types.SortOptions;
-import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
@@ -17,6 +15,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.EsExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.EsUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
@@ -53,6 +52,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
     private final ElasticsearchClient client;
     private final ElasticSearchConfig config;
     private final ServiceAuthMediator mediator;
+    private final DateProperties dateProperties;
+
     @Resource(name = "esObjectMapper")
     private ObjectMapper objectMapper;
 
@@ -437,5 +438,22 @@ public class ArticleElasticServiceImpl implements ArticleService {
         builder.size(size);
     }
 
-
+    @Override
+    public Set<Long> addViews(Map<String, Long> views) {
+        ConcurrentHashSet<Long> ids = new ConcurrentHashSet<>();
+        // 为每篇文章更新
+        views.forEach((k, v) -> {
+            UpdateRequest.Builder<Article, Map<String, Long>> builder = new UpdateRequest.Builder<>();
+            builder.index(ElasticConstant.ARTICLE_INDEX);
+            builder.id(k);
+            builder.script(s -> s.source("ctx._source.%s += %s".formatted(ARTICLE.VIEWS.getName(), v)));
+            try {
+                client.update(builder.build(), Article.class);
+                ids.add(Long.parseLong(k));
+            } catch (IOException ignored) {} catch (ElasticsearchException e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+        return new HashSet<>(ids);
+    }
 }

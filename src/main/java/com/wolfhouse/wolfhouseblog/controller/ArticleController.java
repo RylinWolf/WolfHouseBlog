@@ -15,6 +15,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +42,7 @@ public class ArticleController {
     private ArticleService articleService;
     private ArticleElasticServiceImpl elasticService;
     private final MqEsService mqEsService;
+    private final ArticleRedisService redisService;
 
     @Autowired
     @Qualifier("articleServiceImpl")
@@ -70,11 +72,16 @@ public class ArticleController {
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
+        ArticleVo vo = elasticService.getVoById(id);
+        if (!BeanUtil.isBlank(vo)) {
+            // 通过 Redis 存储浏览量
+            redisService.increaseView(id);
+        }
         return HttpResult.failedIfBlank(
             HttpStatus.OK.value(),
             HttpCodeConstant.ACCESS_DENIED,
             ArticleConstant.ACCESS_DENIED,
-            elasticService.getVoById(id));
+            vo);
     }
 
     @Operation(summary = "发布")

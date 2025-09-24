@@ -15,6 +15,8 @@ import jakarta.validation.Valid;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 文章服务接口，提供文章的增删改查等基本操作
@@ -153,4 +155,12 @@ public interface ArticleService extends IService<Article> {
      * @return 是否为文章所有者，true表示是，false表示否
      */
     Boolean isArticleOwner(Long articleId, Long login);
+
+    /**
+     * 设置文章的浏览次数。
+     *
+     * @param views 包含文章ID和对应浏览次数的映射表，其中键为文章ID，值为浏览次数
+     * @return 成功设置浏览次数的文章数量
+     */
+    Set<Long> addViews(Map<String, Long> views);
 }
