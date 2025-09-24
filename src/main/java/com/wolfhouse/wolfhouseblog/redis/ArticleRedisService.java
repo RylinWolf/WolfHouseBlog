@@ -81,6 +81,28 @@ public class ArticleRedisService {
     }
 
     /**
+     * 将文章数据缓存到 Redis 中。
+     *
+     * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
+     */
+    public void cacheArticle(ArticleVo articleVo) {
+        redisTemplate.opsForValue()
+                     .set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
+                          articleVo,
+                          randTimeout(),
+                          TimeUnit.MINUTES);
+    }
+
+    /**
+     * 删除指定文章的缓存数据。
+     *
+     * @param articleId 要删除缓存的文章 ID
+     */
+    public void removeArticleCache(Long articleId) {
+        redisTemplate.delete(ArticleRedisConstant.VO.formatted(articleId));
+    }
+
+    /**
      * 增加指定文章的浏览量。
      *
      * @param articleId 文章的唯一标识 ID
