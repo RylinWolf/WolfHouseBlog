@@ -242,7 +242,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
         // 时间范围
         LocalDateTime startDate = JsonNullableUtil.getObjOrNull(dto.getPostStart());
         LocalDateTime endDate = JsonNullableUtil.getObjOrNull(dto.getPostEnd());
-        Query query = EsUtil.dateRangeQuery(startDate, endDate);
+        Query query = EsUtil.dateRangeQuery(startDate, endDate, dateProperties.datetime());
         if (query != null) {
             mustList.add(query);
         }

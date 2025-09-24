@@ -10,6 +10,8 @@ import com.mybatisflex.core.paginate.Page;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -113,17 +115,18 @@ public class EsUtil {
                                       ._toQuery();
     }
 
-    public static Query dateRangeQuery(Object startDate, Object endDate) {
+    public static Query dateRangeQuery(LocalDateTime startDate, LocalDateTime endDate, String format) {
         DateRangeQuery.Builder dateBuilder = new DateRangeQuery.Builder();
         if (!BeanUtil.isAnyNotBlank(startDate, endDate)) {
             return null;
         }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         dateBuilder.field(ARTICLE.POST_TIME.getName());
         if (startDate != null) {
-            dateBuilder.gte(startDate.toString());
+            dateBuilder.gte(startDate.format(formatter));
         }
         if (endDate != null) {
-            dateBuilder.lte(endDate.toString());
+            dateBuilder.lte(endDate.format(formatter));
         }
         return dateBuilder.build()
                           ._toRangeQuery()
