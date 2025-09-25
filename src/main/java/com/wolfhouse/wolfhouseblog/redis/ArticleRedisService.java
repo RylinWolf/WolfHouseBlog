@@ -32,8 +32,10 @@ import java.util.concurrent.TimeUnit;
 public class ArticleRedisService {
     private ValueOperations<String, PageResult<ArticleBriefVo>> pageOps;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
-    private static final Long BASE_TIME_OUT = 24 * 60L;
+    @Resource(name = "jsonNullableObjectMapper")
+    private ObjectMapper objectMapper;
+    /** 基础缓存过期时间，三天 */
+    private static final Long BASE_TIME_OUT = 3 * 24 * 60L;
 
     @PostConstruct
     public void init() {
