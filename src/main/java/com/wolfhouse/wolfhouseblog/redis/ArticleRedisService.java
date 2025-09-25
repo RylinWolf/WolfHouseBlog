@@ -110,11 +110,34 @@ public class ArticleRedisService {
     public void increaseView(Long articleId) {
         String key = ArticleRedisConstant.VIEW.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        // 文章 key 不存在
         if (!redisTemplate.hasKey(key)) {
-            ops.set(key, 0);
+            try {
+                // 获得锁
+                if (Boolean
+                    .TRUE
+                    .equals(ops.setIfAbsent(ArticleRedisConstant.LOCK,
+                                            0,
+                                            ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                            TimeUnit.SECONDS))) {
+                    // 双重检查锁定
+                    if (!redisTemplate.hasKey(key)) {
+                        ops.set(key, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
+
+                    }
+                } else {
+                    // 未获取到锁，等待一会儿确保可以正常获取到 key
+                    Thread.sleep(100);
+                }
+            } catch (Exception ignored) {
+                // 移除锁
+                ops.getAndDelete(ArticleRedisConstant.LOCK);
+            }
         }
-        redisTemplate.opsForValue()
-                     .increment(key);
+        // 自增
+        ops.increment(key);
+        // 刷新过期时间
+        ops.set(key, Objects.requireNonNull(ops.get(key)), ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
     }
 
 
