@@ -6,6 +6,7 @@ package com.wolfhouse.wolfhouseblog.common.constant.redis;
 public class ArticleRedisConstant {
     public static final String ARTICLE = "article";
     public static final String BASE = RedisConstant.format(ARTICLE);
+    public static final Long LOCK_TIME_SECONDS = 10L;
 
     /** 查询文章缩略列表 */
     public static final String QUERY_BRIEF =
@@ -14,4 +15,7 @@ public class ArticleRedisConstant {
     public static final String VO = RedisConstant.format(false, BASE, "vo") + RedisConstant.SEPARATOR + "%s";
 
     public static final String VIEW = RedisConstant.format(false, BASE, "view") + RedisConstant.SEPARATOR + "%s";
+
+    public static final String LOCK = RedisConstant.format(false, BASE, RedisConstant.LOCK);
+    public static final Long VIEWS_EXPIRE_MINUTES = 130L;
 }
