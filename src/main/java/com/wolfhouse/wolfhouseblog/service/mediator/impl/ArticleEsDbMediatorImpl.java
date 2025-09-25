@@ -1,6 +1,9 @@
 package com.wolfhouse.wolfhouseblog.service.mediator.impl;
 
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import org.springframework.stereotype.Component;
@@ -61,5 +64,26 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     @Override
     public Boolean addViewsRedisToBoth(Long articleId, Long views) {
         return addViewsRedisToDb(articleId, views) && addViewsRedisToEs(articleId, views);
+    }
+
+    @Override
+    public void syncArticle(Long articleId) {
+        Article article = articleService.getById(articleId);
+        esService.saveOne(article);
+    }
+
+    @Override
+    public ArticleVo getVoById(Long id) throws Exception {
+        // 从 ES 获取 Vo
+        ArticleVo vo = esService.getVoById(id);
+        if (BeanUtil.isBlank(vo)) {
+            // ES 的文章为空
+            if (BeanUtil.isBlank(vo = articleService.getVoById(id))) {
+                // 数据库中文章不存在
+                return null;
+            }
+            syncArticle(id);
+        }
+        return vo;
     }
 }

@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service.mediator;
 
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 
 import java.util.Map;
@@ -14,8 +15,18 @@ import java.util.Set;
  */
 public interface ArticleEsDbMediator {
 
+    /**
+     * 注册文章数据库服务
+     *
+     * @param articleService 文章数据库服务
+     */
     void registerArticleService(ArticleService articleService);
 
+    /**
+     * 注册文章 ES 服务
+     *
+     * @param esService 文章 ES 服务
+     */
     void registerEsService(ArticleElasticServiceImpl esService);
 
 
@@ -71,4 +82,20 @@ public interface ArticleEsDbMediator {
      * @return 是否成功同步，成功返回true，失败返回false
      */
     Boolean addViewsRedisToBoth(Long articleId, Long views);
+
+    /**
+     * 同步指定文章ID的相关数据。
+     *
+     * @param id 文章的唯一标识符
+     */
+    void syncArticle(Long id);
+
+    /**
+     * 根据文章ID获取对应的ArticleVo对象。
+     *
+     * @param id 文章的唯一标识符
+     * @return 对应的ArticleVo对象
+     * @throws Exception 如果获取文章信息失败时抛出异常
+     */
+    ArticleVo getVoById(Long id) throws Exception;
 }
