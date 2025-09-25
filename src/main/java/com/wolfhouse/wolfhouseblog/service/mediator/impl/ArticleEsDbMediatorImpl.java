@@ -3,8 +3,6 @@ package com.wolfhouse.wolfhouseblog.service.mediator.impl;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
-import jakarta.annotation.Resource;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -14,11 +12,19 @@ import java.util.Set;
  * @author linexsong
  */
 @Component
-@RequiredArgsConstructor
 public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
-    private final ArticleElasticServiceImpl esService;
-    @Resource(name = "articleServiceImpl")
+    private ArticleElasticServiceImpl esService;
     private ArticleService articleService;
+
+    @Override
+    public void registerArticleService(ArticleService articleService) {
+        this.articleService = articleService;
+    }
+
+    @Override
+    public void registerEsService(ArticleElasticServiceImpl esService) {
+        this.esService = esService;
+    }
 
     @Override
     public Set<Long> addViewsRedisToEs(Map<String, Long> articleIdViews) {

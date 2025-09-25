@@ -1,5 +1,8 @@
 package com.wolfhouse.wolfhouseblog.service.mediator;
 
+import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
+import com.wolfhouse.wolfhouseblog.service.ArticleService;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -10,6 +13,11 @@ import java.util.Set;
  * @author linexsong
  */
 public interface ArticleEsDbMediator {
+
+    void registerArticleService(ArticleService articleService);
+
+    void registerEsService(ArticleElasticServiceImpl esService);
+
 
     /**
      * 将Redis中的文章浏览量数据同步到Elasticsearch
