@@ -144,6 +144,35 @@ public class ArticleRedisService {
         articleIds.forEach(id -> redisTemplate.delete(ArticleRedisConstant.VIEW.formatted(id)));
     }
 
+    /**
+     * 减少指定文章的浏览量。
+     *
+     * @param views 包含文章 ID 及其对应需要减少的浏览量的映射。键为文章 ID 的字符串表示，值为减少的浏览量。
+     */
+    public void decreaseViews(Map<String, Long> views) {
+        views.forEach((k, v) -> {
+            Object o = redisTemplate.opsForValue()
+                                    .get(ArticleRedisConstant.VIEW.formatted(k));
+            if (o == null) {
+                return;
+            }
+            redisTemplate.opsForValue()
+                         .decrement(ArticleRedisConstant.VIEW.formatted(k), v);
+        });
+    }
+
+    /**
+     * 减少指定文章的浏览量。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @param views     需要减少的浏览量
+     */
+    public void decreaseViews(Long articleId, Long views) {
+        redisTemplate.opsForValue()
+                     .decrement(ArticleRedisConstant.VIEW.formatted(articleId), views);
+    }
+
+
     public void cacheBriefs(ArticleQueryPageDto dto, PageResult<ArticleBriefVo> briefs) {
         pageOps.set(ArticleRedisConstant.QUERY_BRIEF.formatted(dto), briefs, randTimeout(), TimeUnit.MINUTES);
     }
