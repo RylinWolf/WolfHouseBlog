@@ -21,4 +21,6 @@ public class ArticleVo {
     private List<String> tags;
     private List<Long> comUseTags;
     private VisibilityEnum visibility;
+    /** 浏览量 */
+    private Long views;
 }

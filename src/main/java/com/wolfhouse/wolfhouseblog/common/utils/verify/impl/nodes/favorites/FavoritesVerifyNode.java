@@ -1,6 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.favorites;
 
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 
 /**
  * @author linexsong

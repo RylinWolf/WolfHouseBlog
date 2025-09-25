@@ -1,11 +1,11 @@
 package com.wolfhouse.wolfhouseblog.config;
 
 import com.wolfhouse.wolfhouseblog.auth.filter.JwtFilter;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.SecurityConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.redis.RoleRedisService;
 import com.wolfhouse.wolfhouseblog.service.AdminService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

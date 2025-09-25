@@ -1,12 +1,12 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import cn.hutool.core.collection.ConcurrentHashSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
@@ -38,6 +38,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef.ARTICLE_DRAFT;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
@@ -390,5 +388,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return mapper.selectOneById(articleId)
                      .getAuthorId()
                      .equals(login);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Set<Long> addViews(Map<String, Long> views) {
+        ConcurrentHashSet<Long> ids = new ConcurrentHashSet<>();
+        views.forEach((k, v) -> {
+            UpdateChain<Article> chain = UpdateChain.of(Article.class);
+            chain.setRaw(ARTICLE.VIEWS, ARTICLE.VIEWS.getName() + "+" + v);
+            chain.where(ARTICLE.ID.eq(Long.valueOf(k)));
+            if (chain.update()) {
+                ids.add(Long.valueOf(k));
+            }
+        });
+        if (ids.size() != views.size()) {
+            throw new ServiceException(ArticleConstant.UPDATE_INCOMPLETE);
+        }
+        return new HashSet<>(ids);
+    }
+
+    @Override
+    public Boolean addViews(Long articleId, Long views) {
+        UpdateChain<Article> chain = UpdateChain.of(Article.class);
+        chain.setRaw(ARTICLE.VIEWS, ARTICLE.VIEWS.getName() + "+" + views);
+        chain.where(ARTICLE.ID.eq(articleId));
+        return chain.update();
     }
 }

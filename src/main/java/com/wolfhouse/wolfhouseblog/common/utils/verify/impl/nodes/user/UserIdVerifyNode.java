@@ -1,9 +1,9 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user;
 
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 
 /**
  * @author linexsong

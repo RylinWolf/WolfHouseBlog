@@ -18,4 +18,6 @@ public class ArticleBriefVo {
     private Long authorId;
     private LocalDateTime postTime;
     private VisibilityEnum visibility;
+    /** 浏览量 */
+    private Long views;
 }

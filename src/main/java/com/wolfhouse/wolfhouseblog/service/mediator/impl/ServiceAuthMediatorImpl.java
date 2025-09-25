@@ -1,9 +1,9 @@
-package com.wolfhouse.wolfhouseblog.auth.service.impl;
+package com.wolfhouse.wolfhouseblog.service.mediator.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.*;
 import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 

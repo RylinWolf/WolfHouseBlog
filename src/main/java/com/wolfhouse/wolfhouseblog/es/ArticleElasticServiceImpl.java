@@ -1,10 +1,8 @@
 package com.wolfhouse.wolfhouseblog.es;
 
+import cn.hutool.core.collection.ConcurrentHashSet;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.InlineGet;
-import co.elastic.clients.elasticsearch._types.SortOptions;
-import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
@@ -12,11 +10,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.BaseMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.EsExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.EsUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
@@ -30,6 +28,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +52,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
     private final ElasticsearchClient client;
     private final ElasticSearchConfig config;
     private final ServiceAuthMediator mediator;
+    private final DateProperties dateProperties;
+
     @Resource(name = "esObjectMapper")
     private ObjectMapper objectMapper;
 
@@ -242,7 +243,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
         // 时间范围
         LocalDateTime startDate = JsonNullableUtil.getObjOrNull(dto.getPostStart());
         LocalDateTime endDate = JsonNullableUtil.getObjOrNull(dto.getPostEnd());
-        Query query = EsUtil.dateRangeQuery(startDate, endDate);
+        Query query = EsUtil.dateRangeQuery(startDate, endDate, dateProperties.datetime());
         if (query != null) {
             mustList.add(query);
         }
@@ -437,5 +438,41 @@ public class ArticleElasticServiceImpl implements ArticleService {
         builder.size(size);
     }
 
+    @Override
+    public Set<Long> addViews(Map<String, Long> views) {
+        ConcurrentHashSet<Long> ids = new ConcurrentHashSet<>();
+        // 为每篇文章更新
+        views.forEach((k, v) -> {
+            UpdateRequest.Builder<Article, Map<String, Long>> builder = new UpdateRequest.Builder<>();
+            builder.index(ElasticConstant.ARTICLE_INDEX);
+            builder.id(k);
+            builder.script(s -> s.source("ctx._source.%s += %s".formatted(ARTICLE.VIEWS.getName(), v)));
+            try {
+                // TODO 未判断更新是否生效
+                client.update(builder.build(), Article.class);
+                ids.add(Long.parseLong(k));
+            } catch (IOException ignored) {} catch (ElasticsearchException e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+        if (ids.size() != views.size()) {
+            throw new ServiceException(ArticleConstant.UPDATE_INCOMPLETE);
+        }
+        return new HashSet<>(ids);
+    }
 
+    @Override
+    public Boolean addViews(Long articleId, Long views) {
+        UpdateRequest.Builder<Article, Map<String, Long>> builder = new UpdateRequest.Builder<>();
+        builder.index(ElasticConstant.ARTICLE_INDEX);
+        builder.id(articleId.toString());
+        builder.script(s -> s.source("ctx._source.%s += %s".formatted(ARTICLE.VIEWS.getName(), views)));
+        try {
+            client.update(builder.build(), Article.class);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
 }

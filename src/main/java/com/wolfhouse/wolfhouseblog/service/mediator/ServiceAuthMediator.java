@@ -1,4 +1,4 @@
-package com.wolfhouse.wolfhouseblog.auth.service;
+package com.wolfhouse.wolfhouseblog.service.mediator;
 
 import com.wolfhouse.wolfhouseblog.service.*;
 import com.wolfhouse.wolfhouseblog.service.impl.PartitionServiceImpl;
