@@ -13,7 +13,9 @@ public class ArticleConstant {
         ArticleTableDef.ARTICLE.VISIBILITY,
         ArticleTableDef.ARTICLE.PRIMARY,
         ArticleTableDef.ARTICLE.AUTHOR_ID,
-        ArticleTableDef.ARTICLE.POST_TIME};
+        ArticleTableDef.ARTICLE.POST_TIME,
+        ArticleTableDef.ARTICLE.VIEWS
+    };
 
     public static final String POST_FAILED = "文章发布失败！";
     public static final String UPDATE_INCOMPLETE = "更新不完整！";

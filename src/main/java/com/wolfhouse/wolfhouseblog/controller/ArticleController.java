@@ -62,6 +62,7 @@ public class ArticleController {
     @Operation(summary = "文章检索")
     @PostMapping(value = "/query", consumes = {HttpMediaTypeConstant.APPLICATION_JSON_NULLABLE_VALUE})
     public HttpResult<PageResult<?>> query(@RequestBody ArticleQueryPageDto dto) throws Exception {
+        // TODO 排序字段校验
         // ES 实现复杂查询
         // 传递了文章内容字段，则查询完整的文章视图
         if (!BeanUtil.isBlank(JsonNullableUtil.getObjOrNull(dto.getContent()))) {
@@ -98,7 +99,7 @@ public class ArticleController {
                              .orElse(0L);
         // 更新文章浏览量
         vo.setViews(vo.getViews() + views);
-        
+
         return HttpResult.failedIfBlank(
             HttpStatus.OK.value(),
             HttpCodeConstant.ACCESS_DENIED,

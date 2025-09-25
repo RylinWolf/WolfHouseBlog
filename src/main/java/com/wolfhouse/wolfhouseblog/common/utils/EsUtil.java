@@ -1,17 +1,22 @@
 package com.wolfhouse.wolfhouseblog.common.utils;
 
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
 import co.elastic.clients.elasticsearch.core.search.HighlightField;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
+import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.paginate.Page;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
+import com.wolfhouse.wolfhouseblog.pojo.queryorder.OrderField;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -170,5 +175,25 @@ public class EsUtil {
         page.setPageSize(pageSize);
         page.setTotalPage(page.getTotalRow() / page.getPageSize());
         return page;
+    }
+
+    /**
+     * 根据给定的排序字段集合，构建一个包含排序选项的列表。
+     * 该方法将对集合中的每个字段生成对应的排序配置。
+     *
+     * @param order 包含排序字段的集合，每个字段对象包含字段名称和排序方向（升序或降序）。
+     * @return 一个包含排序选项的列表，每个选项指定了字段和其对应的排序方向。
+     */
+    public static List<SortOptions> sortOptions(Collection<? extends OrderField> order) {
+        List<SortOptions> sortOptions = new ArrayList<>();
+        for (var field : order) {
+            sortOptions.add(SortOptions.of(b -> b.field(f -> {
+                f.field(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getField()));
+                f.order(field.getIsAsc() ? SortOrder.Asc : SortOrder.Desc);
+                f.missing(field.getMissing());
+                return f;
+            })));
+        }
+        return sortOptions;
     }
 }
