@@ -101,7 +101,22 @@ public class ArticleRedisService {
      * @param articleId 要删除缓存的文章 ID
      */
     public void removeArticleCache(Long articleId) {
-        redisTemplate.delete(ArticleRedisConstant.VO.formatted(articleId));
+        String key = ArticleRedisConstant.VO.formatted(articleId);
+        redisTemplate.delete(key);
+    }
+
+    /**
+     * 批量删除指定文章的缓存数据。
+     *
+     * @param articleIds 需要删除缓存的文章 ID 集合
+     */
+    public void removeArticleCache(Collection<?> articleIds) {
+        articleIds.forEach(id -> removeArticleCache(Long.parseLong(id.toString())));
+    }
+
+    public ArticleVo getCachedArticle(Long id) {
+        return objectMapper.convertValue(redisTemplate.opsForValue()
+                                                      .get(ArticleRedisConstant.VO.formatted(id)), ArticleVo.class);
     }
 
     /**
