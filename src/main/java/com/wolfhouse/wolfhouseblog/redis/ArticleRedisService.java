@@ -233,4 +233,45 @@ public class ArticleRedisService {
         return BASE_TIME_OUT + new Random().nextLong(60);
     }
 
+
+    public Boolean addViews(Map<String, Long> views) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        // 获取块级锁
+        String lock = ArticleRedisConstant.VIEWS_LOCK.formatted(RedisConstant.BLOCK_LOCK);
+        if (!getVoLock(lock)) {
+            return false;
+        }
+        try {
+            // 获取每一个需要更新浏览量的文章
+            views.forEach((k, v) -> {
+                var key = ArticleRedisConstant.VO.formatted(k);
+                Object o = ops.get(key);
+                if (o == null) {
+                    return;
+                }
+                ArticleVo articleVo = objectMapper.convertValue(o, ArticleVo.class);
+                // 更新浏览量
+                articleVo.setViews(articleVo.getViews() + v);
+                ops.set(key, articleVo, randTimeout(), TimeUnit.MINUTES);
+            });
+        } catch (Exception ignored) {
+            return false;
+        } finally {
+            // 释放锁
+            ops.getAndDelete(lock);
+        }
+        return true;
+    }
+
+    /**
+     * 尝试为指定的文章 ID 设置浏览量更新锁。
+     *
+     * @param lock 要设置的锁 ID
+     * @return 如果成功设置锁返回 true，否则返回 false
+     */
+    private Boolean getVoLock(String lock) {
+        return Boolean.TRUE.equals(
+            redisTemplate.opsForValue()
+                         .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
+    }
 }
