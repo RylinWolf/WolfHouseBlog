@@ -163,4 +163,13 @@ public interface ArticleService extends IService<Article> {
      * @return 成功设置浏览次数的文章数量
      */
     Set<Long> addViews(Map<String, Long> views);
+
+    /**
+     * 增加指定文章的浏览次数。
+     *
+     * @param articleId 文章的唯一标识ID
+     * @param views     新增的浏览次数
+     * @return 更新是否成功
+     */
+    Boolean addViews(Long articleId, Long views);
 }

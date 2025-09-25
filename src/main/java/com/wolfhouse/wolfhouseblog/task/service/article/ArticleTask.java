@@ -1,9 +1,7 @@
 package com.wolfhouse.wolfhouseblog.task.service.article;
 
-import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
-import com.wolfhouse.wolfhouseblog.service.ArticleService;
-import jakarta.annotation.Resource;
+import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,9 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ArticleTask {
     private final ArticleRedisService redisService;
-    private final ArticleElasticServiceImpl esService;
-    @Resource(name = "articleServiceImpl")
-    private ArticleService articleService;
+    private final ArticleEsDbMediator mediator;
 
     {
         log.info("文章定时任务已启动...");
@@ -50,18 +46,18 @@ public class ArticleTask {
                              .map(Long::valueOf)
                              .collect(Collectors.toSet());
         try {
-            articleService.addViews(views);
+            mediator.addViewsRedisToDb(views);
         } catch (Exception e) {
             log.warn("数据库浏览量同步错误");
             return;
         }
-        Set<Long> esRes = esService.addViews(views);
+        Set<Long> esRes = mediator.addViewsRedisToEs(views);
         if (ids.size() != esRes.size()) {
             HashSet<Long> failed = new HashSet<>(esRes);
             log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);
         }
         log.info("浏览量同步完成");
         // 移除 ID
-        redisService.deleteViews(ids);
+        redisService.decreaseViews(views);
     }
 }

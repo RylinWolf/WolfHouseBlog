@@ -2,7 +2,6 @@ package com.wolfhouse.wolfhouseblog.service.impl;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AdminConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.AuthorityConstant;
@@ -18,6 +17,7 @@ import com.wolfhouse.wolfhouseblog.pojo.domain.Authority;
 import com.wolfhouse.wolfhouseblog.pojo.domain.table.AuthorityTableDef;
 import com.wolfhouse.wolfhouseblog.pojo.dto.AuthorityByIdDto;
 import com.wolfhouse.wolfhouseblog.service.AuthorityService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -83,9 +83,9 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
             throw new ServiceException(AuthExceptionConstant.BAD_REQUEST);
         }
         if (adminAuthMapper.deleteByQuery(
-             QueryWrapper.create()
-                         .where(ADMIN_AUTH.AUTH_ID.in(ids))
-                         .and(ADMIN_AUTH.ADMIN_ID.eq(admin))) != ids.size()) {
+            QueryWrapper.create()
+                        .where(ADMIN_AUTH.AUTH_ID.in(ids))
+                        .and(ADMIN_AUTH.ADMIN_ID.eq(admin))) != ids.size()) {
             throw new ServiceException(AuthorityConstant.NOT_EXIST);
         }
         return true;
@@ -97,13 +97,13 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
         Set<Long> ids = dto.getIds();
         ids = ids == null ? new HashSet<>() : ids;
         VerifyTool.of(
-                       // 管理员是否存在
-                       AdminVerifyNode.id(mediator)
-                                      .target(adminId),
-                       // 权限是否存在
-                       AdminVerifyNode.authorityId(mediator)
-                                      .target(ids.toArray(Long[]::new))
-                                      .allowNull(true))
+                      // 管理员是否存在
+                      AdminVerifyNode.id(mediator)
+                                     .target(adminId),
+                      // 权限是否存在
+                      AdminVerifyNode.authorityId(mediator)
+                                     .target(ids.toArray(Long[]::new))
+                                     .allowNull(true))
                   .doVerify();
         // 移除所有权限
         if (BeanUtil.isBlank(ids)) {
@@ -138,20 +138,20 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
 
         // 0. 验证
         VerifyTool.of(
-                       // 0.1 登录用户是否存在
-                       UserVerifyNode.id(mediator)
+                      // 0.1 登录用户是否存在
+                      UserVerifyNode.id(mediator)
+                                    .target(adminId),
+                      // 0.2 登陆用户是否为管理员
+                      AdminVerifyNode.id(mediator)
                                      .target(adminId),
-                       // 0.2 登陆用户是否为管理员
-                       AdminVerifyNode.id(mediator)
-                                      .target(adminId),
-                       // 0.3 修改的管理员是否存在
-                       AdminVerifyNode.id(mediator)
-                                      .target(adminId),
-                       // 0.4 权限列表是否存在
-                       AdminVerifyNode.authorityId(mediator)
-                                      .target(newAuthIds
-                                                   .toArray(Long[]::new))
-                                      .allowNull(true))
+                      // 0.3 修改的管理员是否存在
+                      AdminVerifyNode.id(mediator)
+                                     .target(adminId),
+                      // 0.4 权限列表是否存在
+                      AdminVerifyNode.authorityId(mediator)
+                                     .target(newAuthIds
+                                                 .toArray(Long[]::new))
+                                     .allowNull(true))
                   .doVerify();
 
         // 0.1 修改权限列表为空
@@ -203,9 +203,9 @@ public class AuthorityServiceImpl extends ServiceImpl<AuthorityMapper, Authority
 
         if (!(removeCount.equals(authIds.size()) && addCount.equals(newAuthIdsSet.size()))) {
             log.error(
-                 "removeCount: {}, addCount: {}" +
-                 "repeatedIds: {}, newAuthIdsSet: {} ",
-                 removeCount, addCount, repeatIds, newAuthIdsSet);
+                "removeCount: {}, addCount: {}" +
+                "repeatedIds: {}, newAuthIdsSet: {} ",
+                removeCount, addCount, repeatIds, newAuthIdsSet);
             throw new ServiceException(AdminConstant.AUTHORITIES_CHANGE_FAILED);
         }
         return removeCount + addCount;

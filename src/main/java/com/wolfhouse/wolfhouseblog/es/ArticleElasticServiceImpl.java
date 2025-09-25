@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.BaseMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.EsExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
@@ -29,6 +28,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -448,12 +448,31 @@ public class ArticleElasticServiceImpl implements ArticleService {
             builder.id(k);
             builder.script(s -> s.source("ctx._source.%s += %s".formatted(ARTICLE.VIEWS.getName(), v)));
             try {
+                // TODO 未判断更新是否生效
                 client.update(builder.build(), Article.class);
                 ids.add(Long.parseLong(k));
             } catch (IOException ignored) {} catch (ElasticsearchException e) {
                 log.error(e.getMessage(), e);
             }
         });
+        if (ids.size() != views.size()) {
+            throw new ServiceException(ArticleConstant.UPDATE_INCOMPLETE);
+        }
         return new HashSet<>(ids);
+    }
+
+    @Override
+    public Boolean addViews(Long articleId, Long views) {
+        UpdateRequest.Builder<Article, Map<String, Long>> builder = new UpdateRequest.Builder<>();
+        builder.index(ElasticConstant.ARTICLE_INDEX);
+        builder.id(articleId.toString());
+        builder.script(s -> s.source("ctx._source.%s += %s".formatted(ARTICLE.VIEWS.getName(), views)));
+        try {
+            client.update(builder.build(), Article.class);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
     }
 }

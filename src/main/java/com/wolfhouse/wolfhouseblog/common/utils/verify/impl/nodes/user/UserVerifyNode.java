@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user;
 
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.service.UserService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 
 /**
  * @author linexsong

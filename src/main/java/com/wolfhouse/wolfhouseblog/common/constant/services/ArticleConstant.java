@@ -16,6 +16,7 @@ public class ArticleConstant {
         ArticleTableDef.ARTICLE.POST_TIME};
 
     public static final String POST_FAILED = "文章发布失败！";
+    public static final String UPDATE_INCOMPLETE = "更新不完整！";
     public static final String UPDATE_FAILED = "文章修改失败！";
     public static final String ACCESS_DENIED = "无法访问该文章！";
     public static final String DELETE_FAILED = "文章删除失败！";

@@ -7,7 +7,6 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
@@ -39,6 +38,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -403,8 +403,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             }
         });
         if (ids.size() != views.size()) {
-            throw new ServiceException(ArticleConstant.UPDATE_FAILED);
+            throw new ServiceException(ArticleConstant.UPDATE_INCOMPLETE);
         }
         return new HashSet<>(ids);
+    }
+
+    @Override
+    public Boolean addViews(Long articleId, Long views) {
+        UpdateChain<Article> chain = UpdateChain.of(Article.class);
+        chain.setRaw(ARTICLE.VIEWS, ARTICLE.VIEWS.getName() + "+" + views);
+        chain.where(ARTICLE.ID.eq(articleId));
+        return chain.update();
     }
 }

@@ -4,7 +4,6 @@ import com.mybatisflex.core.logicdelete.LogicDeleteManager;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
-import com.wolfhouse.wolfhouseblog.auth.service.ServiceAuthMediator;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
@@ -13,6 +12,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserIdVer
 import com.wolfhouse.wolfhouseblog.mapper.UserAuthMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserAuth;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -116,25 +116,25 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     public Boolean isUserDeleted(Long userId) {
         throwIfNotExist(userId);
         return selectWithoutLogicDelete(
-             () -> mapper
-                  .selectOneByQuery(
-                       QueryWrapper.create()
-                                   .select(USER_AUTH.IS_DELETED)
-                                   .where(USER_AUTH.USER_ID.eq(userId)))
-                  .getIsDeleted());
+            () -> mapper
+                .selectOneByQuery(
+                    QueryWrapper.create()
+                                .select(USER_AUTH.IS_DELETED)
+                                .where(USER_AUTH.USER_ID.eq(userId)))
+                .getIsDeleted());
     }
 
     @Override
     public Boolean isUserEnabled(Long userId) {
         throwIfNotExist(userId);
         return selectWithoutLogicDelete(
-             () -> mapper
-                  .selectOneByQuery(
-                       QueryWrapper
-                            .create()
-                            .select(USER_AUTH.IS_ENABLED)
-                            .where(USER_AUTH.USER_ID.eq(userId)))
-                  .getIsEnabled());
+            () -> mapper
+                .selectOneByQuery(
+                    QueryWrapper
+                        .create()
+                        .select(USER_AUTH.IS_ENABLED)
+                        .where(USER_AUTH.USER_ID.eq(userId)))
+                .getIsEnabled());
     }
 
     @Override
@@ -147,8 +147,8 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
         throwIfNotExist(userId);
 
         return encoder.matches(
-             password,
-             mapper.selectOneById(userId)
-                   .getPassword());
+            password,
+            mapper.selectOneById(userId)
+                  .getPassword());
     }
 }
