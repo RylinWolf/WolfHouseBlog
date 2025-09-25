@@ -9,6 +9,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -125,7 +126,7 @@ public class ArticleRedisService {
      * @param articleId 文章的唯一标识 ID
      */
     public void increaseView(Long articleId) {
-        String key = ArticleRedisConstant.VIEW.formatted(articleId);
+        String key = ArticleRedisConstant.VIEWS.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 文章 key 不存在
         if (!redisTemplate.hasKey(key)) {
@@ -158,9 +159,9 @@ public class ArticleRedisService {
     }
 
 
-    public Map<String, Long> getViews() {
+    public Map<String, Long> getViewsAndDelete() {
         // 获取所有缓存的浏览量键
-        Set<String> keys = redisTemplate.keys(ArticleRedisConstant.VIEW.formatted("*"));
+        Set<String> keys = redisTemplate.keys(ArticleRedisConstant.VIEWS.formatted("*"));
         if (keys.isEmpty()) {
             return null;
         }
@@ -180,8 +181,8 @@ public class ArticleRedisService {
         return views;
     }
 
-    public Long getViews(Long articleId) {
-        String key = ArticleRedisConstant.VIEW.formatted(articleId);
+    public Long getViewsAndDelete(Long articleId) {
+        String key = ArticleRedisConstant.VIEWS.formatted(articleId);
         Object o = redisTemplate.opsForValue()
                                 .getAndDelete(key);
         if (o == null) {
@@ -189,6 +190,16 @@ public class ArticleRedisService {
         }
         return Long.parseLong(o.toString());
     }
+
+    public Long getViews(Long articleId) {
+        Object o = redisTemplate.opsForValue()
+                                .get(ArticleRedisConstant.VIEWS.formatted(articleId));
+        if (o == null) {
+            return null;
+        }
+        return Long.parseLong(o.toString());
+    }
+
 
     /**
      * 减少指定文章的浏览量。
@@ -198,12 +209,12 @@ public class ArticleRedisService {
     public void decreaseViews(Map<String, Long> views) {
         views.forEach((k, v) -> {
             Object o = redisTemplate.opsForValue()
-                                    .get(ArticleRedisConstant.VIEW.formatted(k));
+                                    .get(ArticleRedisConstant.VIEWS.formatted(k));
             if (o == null) {
                 return;
             }
             redisTemplate.opsForValue()
-                         .decrement(ArticleRedisConstant.VIEW.formatted(k), v);
+                         .decrement(ArticleRedisConstant.VIEWS.formatted(k), v);
         });
     }
 
@@ -215,7 +226,7 @@ public class ArticleRedisService {
      */
     public void decreaseViews(Long articleId, Long views) {
         redisTemplate.opsForValue()
-                     .decrement(ArticleRedisConstant.VIEW.formatted(articleId), views);
+                     .decrement(ArticleRedisConstant.VIEWS.formatted(articleId), views);
     }
 
 

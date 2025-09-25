@@ -34,10 +34,10 @@ public class ArticleTask {
      * 2. 将获取到的浏览量数据批量更新到数据库中。
      * 3. 将获取到的浏览量数据同步更新到 Elasticsearch 中。
      */
-    @Scheduled(cron = "0 30 * * * ?")
+    @Scheduled(cron = "0 0 0/1 * * ?")
     public void viewRedisToDb() {
         log.info("文章定时任务启动，同步浏览量至数据库与 ES...");
-        Map<String, Long> views = redisService.getViews();
+        Map<String, Long> views = redisService.getViewsAndDelete();
         if (views == null) {
             return;
         }
@@ -57,7 +57,11 @@ public class ArticleTask {
             log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);
         }
         log.info("浏览量同步完成");
-        // 移除 ID
+        // 移除浏览量 ID
         redisService.decreaseViews(views);
+        // 更新 redis 的浏览量
+        if (!redisService.addViews(views)) {
+            redisService.removeArticleCache(views.keySet());
+        }
     }
 }
