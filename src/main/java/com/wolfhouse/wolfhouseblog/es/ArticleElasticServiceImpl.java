@@ -28,6 +28,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -52,6 +53,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     private final ElasticsearchClient client;
     private final ElasticSearchConfig config;
     private final ServiceAuthMediator mediator;
+    private final ArticleEsDbMediator esDbMediator;
     private final DateProperties dateProperties;
 
     @Resource(name = "esObjectMapper")
@@ -59,6 +61,9 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @PostConstruct
     public void init() throws IOException {
+        // 向中介者注册
+        this.esDbMediator.registerEsService(this);
+        
         log.info("正在初始化 ES 索引库...");
 
         try {
@@ -90,6 +95,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
             log.error("初始化 ElasticSearch 索引失败");
             throw new ServiceException(e.getMessage(), e);
         }
+
     }
 
     public void saveBatch(List<Article> articles, final int batchSize) throws IOException {

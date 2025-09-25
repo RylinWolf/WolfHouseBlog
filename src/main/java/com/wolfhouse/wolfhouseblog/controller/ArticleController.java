@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author rylinwolf
@@ -74,19 +75,30 @@ public class ArticleController {
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
-        ArticleVo vo = elasticService.getVoById(id);
-        if (!BeanUtil.isBlank(vo)) {
-            // 通过 Redis 存储浏览量
-            redisService.increaseView(id);
+        // 从 Redis 缓存中读取文章
+        ArticleVo vo = redisService.getCachedArticle(id);
+        // 缓存中没有文章，则从数据库获取并保存到缓存
+        if (BeanUtil.isBlank(vo)) {
+            // 缓存为空，从 ES 和数据库获取
+            if (BeanUtil.isBlank((vo = esDbMediator.getVoById(id)))) {
+                // 该文章不存在
+                return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
+                                         HttpCodeConstant.ACCESS_DENIED,
+                                         ArticleConstant.ACCESS_DENIED,
+                                         null);
+            }
+            // 缓存文章至 Redis
+            redisService.cacheArticle(vo);
         }
-        // 获取文章时，从 Redis 中读取浏览量，并同步到数据库和 ES
-        Long views = redisService.getViews(id);
-        if (esDbMediator.addViewsRedisToBoth(id, views)) {
-            // 同步成功则减少新的浏览量
-            redisService.decreaseViews(id, views);
-        }
+        // 通过 Redis 存储浏览量，自增
+        redisService.increaseView(id);
+
+        // 获取文章时，从 Redis 中读取浏览量
+        Long views = Optional.ofNullable(redisService.getViews(id))
+                             .orElse(0L);
+        // 更新文章浏览量
         vo.setViews(vo.getViews() + views);
-        // TODO 从 Redis 缓存中读取文章
+        
         return HttpResult.failedIfBlank(
             HttpStatus.OK.value(),
             HttpCodeConstant.ACCESS_DENIED,

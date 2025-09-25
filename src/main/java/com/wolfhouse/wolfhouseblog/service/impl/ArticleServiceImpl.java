@@ -38,6 +38,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
+import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -63,6 +64,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
+    private final ArticleEsDbMediator esDbMediator;
 
     /**
      * 常用标签验证节点
@@ -73,7 +75,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @PostConstruct
     private void init() {
+        // 注册中介者
         this.mediator.registerArticle(this);
+        this.esDbMediator.registerArticleService(this);
     }
 
 

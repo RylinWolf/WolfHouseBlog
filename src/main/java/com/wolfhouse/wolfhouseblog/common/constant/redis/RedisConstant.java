@@ -11,6 +11,7 @@ public class RedisConstant {
     public static final String SERVICE = "service";
     public static final String SEPARATOR = ":";
     public static final String LOCK = "lock";
+    public static final Object BLOCK_LOCK = "block-lock";
 
     public static String format(String... path) {
         return format(true, path);

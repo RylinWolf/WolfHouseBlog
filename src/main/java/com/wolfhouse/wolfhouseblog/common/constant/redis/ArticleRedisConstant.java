@@ -13,9 +13,9 @@ public class ArticleRedisConstant {
         RedisConstant.format(false, BASE, "brief") + RedisConstant.SEPARATOR + "%s";
 
     public static final String VO = RedisConstant.format(false, BASE, "vo") + RedisConstant.SEPARATOR + "%s";
+    public static final String VO_LOCK = RedisConstant.format(false, BASE, "vo", RedisConstant.LOCK) + "%s";
 
-    public static final String VIEW = RedisConstant.format(false, BASE, "view") + RedisConstant.SEPARATOR + "%s";
-
-    public static final String LOCK = RedisConstant.format(false, BASE, RedisConstant.LOCK);
+    public static final String VIEWS = RedisConstant.format(false, BASE, "views") + RedisConstant.SEPARATOR + "%s";
+    public static final String VIEWS_LOCK = RedisConstant.format(false, BASE, "views", RedisConstant.LOCK);
     public static final Long VIEWS_EXPIRE_MINUTES = 130L;
 }
