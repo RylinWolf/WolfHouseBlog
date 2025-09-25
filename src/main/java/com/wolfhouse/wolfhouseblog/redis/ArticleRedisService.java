@@ -133,7 +133,7 @@ public class ArticleRedisService {
                 // 获得锁
                 if (Boolean
                     .TRUE
-                    .equals(ops.setIfAbsent(ArticleRedisConstant.LOCK,
+                    .equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
                                             0,
                                             ArticleRedisConstant.LOCK_TIME_SECONDS,
                                             TimeUnit.SECONDS))) {
@@ -146,9 +146,9 @@ public class ArticleRedisService {
                     // 未获取到锁，等待一会儿确保可以正常获取到 key
                     Thread.sleep(100);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception ignored) {} finally {
                 // 移除锁
-                ops.getAndDelete(ArticleRedisConstant.LOCK);
+                ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
             }
         }
         // 自增
