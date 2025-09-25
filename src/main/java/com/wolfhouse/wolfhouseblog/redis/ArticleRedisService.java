@@ -140,8 +140,14 @@ public class ArticleRedisService {
         return views;
     }
 
-    public void deleteViews(Set<Long> articleIds) {
-        articleIds.forEach(id -> redisTemplate.delete(ArticleRedisConstant.VIEW.formatted(id)));
+    public Long getViews(Long articleId) {
+        String key = ArticleRedisConstant.VIEW.formatted(articleId);
+        Object o = redisTemplate.opsForValue()
+                                .getAndDelete(key);
+        if (o == null) {
+            return null;
+        }
+        return Long.parseLong(o.toString());
     }
 
     /**
