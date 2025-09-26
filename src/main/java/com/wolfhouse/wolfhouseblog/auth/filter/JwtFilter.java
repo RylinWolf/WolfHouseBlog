@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.auth.filter;
 
 import com.wolfhouse.wolfhouseblog.auth.exceptions.AuthenticationJwtException;
 import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.UserAuthException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpConstant;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
@@ -101,6 +102,9 @@ public class JwtFilter extends OncePerRequestFilter {
             entryPoint.commence(request,
                                 response,
                                 new AuthenticationJwtException(AuthExceptionConstant.BAD_TOKEN));
+        } catch (UserAuthException e) {
+            log.debug("用户登录失败，{}: 【{}】", e.getMessage(), e.getUserId());
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             filterChain.doFilter(request, response);
