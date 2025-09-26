@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 
 .mvn/
+.aiassistant/
 
 ### config ###
 src/main/resources/application-dev.yaml
