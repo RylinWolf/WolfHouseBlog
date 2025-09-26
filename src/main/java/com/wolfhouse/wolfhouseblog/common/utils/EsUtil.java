@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.utils;
 
+import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
@@ -10,6 +11,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.paginate.Page;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import com.wolfhouse.wolfhouseblog.pojo.queryorder.OrderField;
 
@@ -187,12 +189,17 @@ public class EsUtil {
     public static List<SortOptions> sortOptions(Collection<? extends OrderField> order) {
         List<SortOptions> sortOptions = new ArrayList<>();
         for (var field : order) {
-            sortOptions.add(SortOptions.of(b -> b.field(f -> {
-                f.field(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getField()));
-                f.order(field.getIsAsc() ? SortOrder.Asc : SortOrder.Desc);
-                f.missing(field.getMissing());
-                return f;
-            })));
+            FieldSort.Builder sortBuilder = new FieldSort.Builder();
+            String fieldName = field.getField();
+            // 剔除不允许排序的字段
+            if (!ArticleConstant.SORT_FIELD_ALLOWED.contains(fieldName)) {
+                continue;
+            }
+            sortBuilder.field(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName));
+            sortBuilder.order(field.getIsAsc() ? SortOrder.Asc : SortOrder.Desc);
+            sortBuilder.missing(field.getMissing());
+
+            sortOptions.add(SortOptions.of(b -> b.field(sortBuilder.build())));
         }
         return sortOptions;
     }

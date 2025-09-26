@@ -3,6 +3,10 @@ package com.wolfhouse.wolfhouseblog.common.constant.services;
 import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef;
 
+import java.util.Set;
+
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
+
 /**
  * @author linexsong
  */
@@ -38,4 +42,7 @@ public class ArticleConstant {
     public static final String UNFAVORITE_FAILED = "取消收藏失败！";
     public static final String ALREADY_FAVORITE = "文章已收藏！";
     public static final String FAVORITE_NOT_EXIST = "文章不在该收藏夹中！";
+    /** 允许排序的字段 */
+    public static final Set<String> SORT_FIELD_ALLOWED = Set.of(ARTICLE.POST_TIME.getName(),
+                                                                ARTICLE.VIEWS.getName());
 }
