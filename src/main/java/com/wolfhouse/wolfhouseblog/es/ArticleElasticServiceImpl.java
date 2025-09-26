@@ -2,7 +2,9 @@ package com.wolfhouse.wolfhouseblog.es;
 
 import cn.hutool.core.collection.ConcurrentHashSet;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.*;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.InlineGet;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
@@ -25,6 +27,8 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.queryorder.OrderField;
+import com.wolfhouse.wolfhouseblog.pojo.queryorder.QueryOrderField;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
@@ -63,7 +67,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     public void init() throws IOException {
         // 向中介者注册
         this.esDbMediator.registerEsService(this);
-        
+
         log.info("正在初始化 ES 索引库...");
 
         try {
@@ -182,16 +186,6 @@ public class ArticleElasticServiceImpl implements ArticleService {
                         dto.getPageNumber()
                            .intValue(),
                         (int) pageSize);
-        // 排序
-        SortOptions.Builder sortBuilder = new SortOptions.Builder();
-        // 默认按照发布时间排序
-        sortBuilder.field(f -> {
-            f.field(ARTICLE.POST_TIME.getName());
-            f.order(SortOrder.Desc);
-            f.missing("_last");
-            return f;
-        });
-        builder.sort(sortBuilder.build());
 
         // 复合查询
         var boolQuery = new BoolQuery.Builder();
@@ -254,7 +248,6 @@ public class ArticleElasticServiceImpl implements ArticleService {
             mustList.add(query);
         }
 
-
         // 作者
         dto.getAuthorId()
            .ifPresent(aid -> {
@@ -289,6 +282,15 @@ public class ArticleElasticServiceImpl implements ArticleService {
                }
                mustList.add(EsUtil.termLongQuery(ARTICLE.PARTITION_ID.getName(), p));
            });
+
+        // 排序字段
+        QueryOrderField order = dto.getSort()
+                                   .orElse(new QueryOrderField());
+        if (BeanUtil.isBlank(order)) {
+            // 默认按照发布时间排序
+            order.add(new OrderField(ARTICLE.POST_TIME.getName(), false));
+        }
+        builder.sort(EsUtil.sortOptions(order));
 
         // 激活高亮字段
         if (highlightEnabled && !highlightFields.isEmpty()) {

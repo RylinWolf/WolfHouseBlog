@@ -28,22 +28,25 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
 
 ## 功能概览
 
-- 用户与认证
-    - 用户基础信息、用户认证表
-    - 注册、登录、获取当前账号信息、按用户名查询
-    - Spring Security 权限与角色控制（管理员/用户）
+- 账号与安全
+    - 注册、登录、登出，获取当前账号资料（JWT）
+    - 角色与权限：管理员（ADMIN）/ 用户（USER），基于 Spring Security 的接口级鉴权
 - 内容域
-    - 文章：发布、暂存、更新、删除、详情、分页检索
-    - 互动：评论（发布/删除/回复）、点赞（点赞/取消）、收藏（添加/移除/查询所属收藏夹）
-    - 分区：新增、修改、删除、级联删除、排序、父子分区、可见性
-    - 常用标签：获取列表、按ID获取、新增、修改、删除
-    - 收藏夹：新建、删除、修改、获取默认收藏夹、按用户获取、查看收藏夹内文章
+    - 文章：发布/草稿、更新、删除、详情；分页与排序；复杂检索（数据库或 ElasticSearch，高亮返回、日期范围过滤）
+    - 互动：评论（发布/删除/回复）、点赞（点赞/取消）、收藏（添加/移除/按收藏夹查询）
+    - 分区：父子层级、排序、级联删除、可见性控制
+    - 标签：常用标签（增删改查）与文章标签绑定展示
+    - 收藏夹：新建/编辑/删除、设置默认、按用户获取、查看收藏夹内文章
 - 社交域
     - 关注/订阅：关注、取消关注、获取关注列表
 - 管理与权限
-    - 管理员：新增、修改、删除
-    - 权限：获取权限列表、分配/更新/删除管理员权限
+    - 管理员管理：新增、修改、删除
+    - 权限管理：获取权限列表、分配/更新/删除管理员权限
     - 用户管控：管理员删除用户、禁用/启用用户
+- 系统能力（非功能性）
+    - Redis 缓存、RabbitMQ 集成
+    - ElasticSearch 检索与统一高亮、排序字段白名单
+    - 全局异常处理、统一响应模型、Swagger/Knife4j 文档
 
 ## 开发阶段
 
@@ -62,11 +65,15 @@ MyBatis-Flex、Redis、RabbitMQ、ElasticSearch、Knife4j 等常用技术组件�
     - [x] 权限限制：使用 Spring Security 实现管理员、用户操作权限控制
     - [x] 权限管理：新增，修改，删除，分配权限
     - [ ] 文章管理：
+        - [x] 复杂查询：模糊查询，排序
         - [x] 点赞：点赞、取消点赞
         - [x] 收藏：添加、移除
         - [x] 评论：发布、删除、回复
         - [ ] 分享
     - [x] 收藏夹管理：添加、移除、编辑、设置默认
+    - [x] 系统优化：
+        - 引入 Redis 缓存: 用户登录，文章详情
+        - 引入 ElasticSearch: 文章复杂查询
 
 ## 目录结构
 
@@ -111,7 +118,7 @@ WolfHouseBlog/
 - MySQL 8+
 - Redis 6+
 - RabbitMQ 3.11+
-- ElasticSearch 8+
+- ElasticSearch 8.18.7
 
 ## 快速开始
 
@@ -136,6 +143,7 @@ cd WolfHouseBlog
     - MySQL：`spring.datasource.url/username/password`
     - Redis：`spring.data.redis.password`
     - RabbitMQ：`spring.rabbitmq.*`
+    - ElasticSearch: `custom.elasticsearch.host`
     - JWT：`custom.jwt.secret`、`custom.jwt.expiration`
     - 日期格式：`custom.date.*`
 
@@ -160,11 +168,20 @@ spring:
 custom:
   jwt:
     secret: [自定义密钥]
-    expiration: 86400000
+    expiration: 86400000  # token 过期时间
   date:
     datetime: yyyy-MM-dd HH:mm:ss
     time: HH:mm:ss
     date: yyyy-MM-dd
+   
+  elasticsearch:
+    host: [你的 ES 服务器地址]
+    max-result-window: 500000 # 最大查询窗口
+
+
+knife4j:
+  enable: true
+  production: false  # 若要在生产环境中关闭，则设置为 true
 ```
 
 4) 运行项目
@@ -179,7 +196,7 @@ mvn spring-boot:run
 
 ```
 mvn clean package -DskipTests
-java -jar target/WolfHouseBlog-1.2.1-SNAPSHOT.jar
+java -jar target/WolfHouseBlog-1.4.3-SNAPSHOT.jar
 ```
 
 5) 访问接口文档（Knife4j）
@@ -192,9 +209,10 @@ java -jar target/WolfHouseBlog-1.2.1-SNAPSHOT.jar
 - 端口被占用？
     - 修改 `application.yaml` 的 `server.port` 或释放 8999 端口。
 - 数据库连接失败？
-    - 确认已创建数据库并执行了 `schema.sql`，检查 `application-dev.yaml` 中 MySQL URL、账号与密码。
+    - 确认已创建数据库并执行了 `schema.sql`，检查配置文件中 MySQL URL、账号与密码。
 - Redis/RabbitMQ/ElasticSearch 必须安装吗？
-    - 项目已集成相关依赖，功能上按需启用；开发阶段如未使用到相关模块，可在配置中先留空或关闭对应自动装配（视具体代码实现）。
+    - 项目已集成并使用相关依赖；若不安装则无法正常运行项目。
+    - 对于 ElasticSearch，目前仅在文章搜索功能中使用，可手动移除相关代码，换用数据库实现类
 - 文档打不开？
     - 确认服务已启动且访问路径为 `/doc.html`，同时检查安全配置是否允许访问。
 
@@ -206,3 +224,47 @@ java -jar target/WolfHouseBlog-1.2.1-SNAPSHOT.jar
 ## 致谢
 
 - Spring Boot、MyBatis-Flex、Knife4j、Hutool 等优秀开源项目。
+
+## 架构与模块
+
+- 参考根目录的设计图：
+    - 系统架构.drawio：整体技术与部署架构
+    - 文章模块.drawio：文章域模型与核心交互
+- 核心模块：
+    - 认证与安全（auth、security、filter、config）
+    - 内容域（article、partition、tag、favorites、comment、like）
+    - 管理与权限（admin、authority）
+    - 通用组件（common：constant、exceptions、http、utils）
+
+## API 路由速览（更多见 /doc.html）
+
+- 用户：/user/register、/user/login、/user/profile、/user/{username}
+- 文章：/article/create、/article/update、/article/delete/{id}、/article/{id}、/article/page
+- 点赞：/article/like/{id}、/article/unlike/{id}
+- 评论：/comment/create、/comment/delete/{id}、/comment/reply
+-
+
+收藏夹：/favorites/create、/favorites/update、/favorites/delete/{id}、/favorites/default、/favorites/list、/favorites/{id}/articles
+
+- 分区：/partition/create、/partition/update、/partition/delete/{id}、/partition/list、/partition/tree
+- 标签：/tag/list、/tag/{id}、/tag/create、/tag/update、/tag/delete/{id}
+- 关注：/follow/{userId}、/unfollow/{userId}、/follow/list
+- 管理：/admin/create、/admin/update、/admin/delete/{id}
+- 权限：/authority/list、/authority/assign、/authority/remove
+
+以 Swagger/Knife4j 文档为准，具体参数、请求体与响应详见 /doc.html。
+
+## 权限与角色说明
+
+- 匿名可访问：登录注册、Swagger 文档、部分文章检索接口（取决于可见性）
+- 需要认证：用户资料、互动行为（点赞/收藏/评论/关注）
+- 管理员专属：管理员管理、权限分配、用户禁用/删除
+
+## 检索与高亮（ElasticSearch）
+
+- 项目已集成 ElasticSearch Java Client（8.18.7），在搜索场景下可选择走 ES。
+- 高亮策略（见 common/utils/EsUtil）：
+    - 统一 preTags: <em class='highlight'>，postTags: </em>
+    - requireFieldMatch=false，fragmentSize=50
+- 排序字段白名单：通过 ArticleConstant.SORT_FIELD_ALLOWED 控制，避免任意字段排序导致性能或安全问题。
+- 日期范围查询：支持按发布时间范围过滤，格式遵循 application 配置。
