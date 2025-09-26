@@ -45,17 +45,17 @@ public class EsUtil {
                                                      Long login,
                                                      String vField,
                                                      String lField) {
-        b.should(s -> {
-            // 公开
-            s.term(sv -> sv.field(vField)
-                           .value(VisibilityEnum.PUBLIC.value));
-            // 私密且作者为登录用户
-            if (login != null) {
-                s.term(sv -> sv.field(lField)
-                               .value(login));
-            }
-            return s;
-        });
+        b.should(s ->
+                     // 公开
+                     s.term(sv -> sv.field(vField)
+                                    .value(VisibilityEnum.PUBLIC.value))
+                );
+        // 私密且作者为登录用户
+        if (login != null) {
+            b.should(s -> s.term(sv -> sv.field(lField)
+                                         .value(login)));
+        }
+
         return b;
     }
 
