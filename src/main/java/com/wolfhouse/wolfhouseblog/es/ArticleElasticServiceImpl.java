@@ -344,6 +344,21 @@ public class ArticleElasticServiceImpl implements ArticleService {
         return BeanUtil.isBlank(records) ? null : BeanUtil.copyProperties(records.getFirst(), ArticleVo.class);
     }
 
+    /**
+     * 根据给定的文章 ID 查询对应的文章数据。
+     *
+     * @param id 要查询的文章 ID，可以为 null。
+     * @return 如果存在对应 ID 的文章，则返回 Article 对象；否则返回 null。
+     * @throws Exception 如果在查询过程中发生任何异常，例如查询失败。
+     */
+    public Article getById(Long id) throws Exception {
+        ArticleQueryPageDto dto = new ArticleQueryPageDto();
+        dto.setId(JsonNullable.of(id));
+        List<Article> records = queryBy(dto).getRecords();
+        return BeanUtil.isBlank(records) ? null : records.getFirst();
+
+    }
+
     @Override
     public Article post(ArticleDto dto) {
         throw new ServiceException(EsExceptionConstant.TO_METHOD.formatted("saveOne"));
