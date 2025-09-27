@@ -221,7 +221,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         if (isLiked(articleId)) {
             throw new ServiceException(ArticleConstant.ALREADY_LIKED);
         }
-        return likeMapper.insert(new ArticleLike(null, login, articleId, null)) == 1;
+        return likeMapper.insert(new ArticleLike(null, login, articleId, null), true) == 1;
     }
 
     @Override
