@@ -1,10 +1,14 @@
 package com.wolfhouse.wolfhouseblog.mq.listener;
 
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleEsConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ArticleEsListener {
     private final ArticleElasticServiceImpl articleService;
+    private final ArticleRedisService redisService;
 
     @RabbitListener(bindings = @QueueBinding(
         value = @Queue(name = MqArticleEsConstant.POST_QUEUE),
@@ -48,8 +53,15 @@ public class ArticleEsListener {
     public void update(ArticleUpdateDto dto) {
         try {
             log.debug("监听到更新文章信息: {}", dto.getId());
-            articleService.update(dto);
+            Article update = articleService.update(dto);
+            if (update == null) {
+                throw new ServiceException(ArticleConstant.UPDATE_FAILED + dto.getId());
+            }
             log.debug("{} 文章更新完成", dto.getId());
+            log.debug("更新文章缓存: {}", dto.getId());
+            redisService.removeArticleCache(dto.getId());
+            redisService.cacheArticle(BeanUtil.copyProperties(update, ArticleVo.class));
+            log.debug("{} 文章缓存更新完成", dto.getId());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
@@ -69,6 +81,9 @@ public class ArticleEsListener {
             log.debug("监听到删除文章信息: {}", id);
             articleService.deleteById(id);
             log.debug("{} 文章删除成功", id);
+            log.debug("移除文章缓存: {}", id);
+            redisService.removeArticleCache(id);
+            log.debug("{} 文章缓存已移除", id);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);

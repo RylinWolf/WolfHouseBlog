@@ -4,7 +4,6 @@ import cn.hutool.core.collection.ConcurrentHashSet;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.InlineGet;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
@@ -14,6 +13,7 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.common.constant.EsExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.es.ElasticConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.es.EsConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
@@ -338,10 +338,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @Override
     public ArticleVo getVoById(Long id) throws Exception {
-        ArticleQueryPageDto dto = new ArticleQueryPageDto();
-        dto.setId(JsonNullable.of(id));
-        List<Article> records = queryBy(dto).getRecords();
-        return BeanUtil.isBlank(records) ? null : BeanUtil.copyProperties(records.getFirst(), ArticleVo.class);
+        Article article = getById(id);
+        return BeanUtil.isBlank(article) ? null : BeanUtil.copyProperties(article, ArticleVo.class);
     }
 
     /**
@@ -388,11 +386,12 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
         builder.doc(objectMapper.convertValue(dto, Map.class));
         UpdateResponse<Article> resp = client.update(builder.build(), Article.class);
-        InlineGet<Article> res = resp.get();
-        if (res == null) {
-            return null;
+        if (!EsConstant.UPDATED.equals(resp.result()
+                                           .jsonValue())) {
+            // 没有内容被更新
+            log.warn("文章未进行更新: {}", dto.getId());
         }
-        return res.source();
+        return getById(dto.getId());
     }
 
     @Override
