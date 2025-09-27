@@ -7,4 +7,5 @@ public class EsConstant {
 
     public static final String UPDATED = "updated";
     public static final String NOOP = "noop";
+    public static final String DELETED = "deleted";
 }

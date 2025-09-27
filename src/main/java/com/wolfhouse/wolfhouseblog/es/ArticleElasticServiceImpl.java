@@ -102,6 +102,10 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     }
 
+    public void saveBatchByDefault(List<Article> articles) throws IOException {
+        saveBatch(articles, 1000);
+    }
+
     public void saveBatch(List<Article> articles, final int batchSize) throws IOException {
         int size = articles.size();
         int index = 0;
@@ -400,8 +404,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
         reqBuilder.index(ElasticConstant.ARTICLE_INDEX);
         reqBuilder.id(id.toString());
         DeleteResponse resp = client.delete(reqBuilder.build());
-        return "deleted".equals(resp.result()
-                                    .jsonValue());
+        return EsConstant.DELETED.equals(resp.result()
+                                             .jsonValue());
     }
 
     @Override

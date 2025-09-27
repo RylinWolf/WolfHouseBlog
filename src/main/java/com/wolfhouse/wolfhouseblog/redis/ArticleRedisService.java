@@ -103,7 +103,15 @@ public class ArticleRedisService {
      */
     public void removeArticleCache(Long articleId) {
         String key = ArticleRedisConstant.VO.formatted(articleId);
+        String lock = ArticleRedisConstant.VO_LOCK.formatted(articleId);
+        // 尝试获取锁
+        if (!getLock(lock)) {
+            return;
+        }
         redisTemplate.delete(key);
+        // 释放锁
+        redisTemplate.opsForValue()
+                     .getAndDelete(lock);
     }
 
     /**
@@ -249,7 +257,7 @@ public class ArticleRedisService {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 获取块级锁
         String lock = ArticleRedisConstant.VIEWS_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-        if (!getVoLock(lock)) {
+        if (!getLock(lock)) {
             return false;
         }
         try {
@@ -275,14 +283,15 @@ public class ArticleRedisService {
     }
 
     /**
-     * 尝试为指定的文章 ID 设置浏览量更新锁。
+     * 尝试为指定的文章 ID 设置指定锁
      *
      * @param lock 要设置的锁 ID
      * @return 如果成功设置锁返回 true，否则返回 false
      */
-    private Boolean getVoLock(String lock) {
+    private Boolean getLock(String lock) {
         return Boolean.TRUE.equals(
             redisTemplate.opsForValue()
                          .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
     }
+
 }
