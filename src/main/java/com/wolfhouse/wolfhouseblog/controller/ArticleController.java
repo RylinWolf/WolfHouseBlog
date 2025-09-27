@@ -191,7 +191,7 @@ public class ArticleController {
     }
 
     @Operation(summary = "取消点赞")
-    @DeleteMapping("/unlike/{id}")
+    @DeleteMapping("/like/{id}")
     public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
