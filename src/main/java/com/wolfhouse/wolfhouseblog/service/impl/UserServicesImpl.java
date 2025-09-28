@@ -10,6 +10,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
+import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAnyBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotEqualsVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.SubscribeMapper;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.SubscribeTableDef.SUBSCRIBE;
@@ -157,6 +159,20 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             mapper.selectListByQuery(
                 QueryWrapper.create()
                             .where(USER.USERNAME.like(name))), UserVo.class);
+    }
+
+    @Override
+    public List<UserBriefVo> getUserBriefs(Set<Long> ids) throws Exception {
+        // 需要登录, ids 不得为空
+        VerifyTool.ofLoginExist(mediator,
+                                new NotAnyBlankVerifyNode(ids)
+                                    .exception(new ServiceException(ServiceExceptionConstant.ARG_FORMAT_ERROR)))
+                  .doVerify();
+        List<User> users = mapper.selectListByQuery(
+            QueryWrapper.create()
+                        .where(USER.ID.in(ids))
+                        .select(UserBriefVo.COLUMNS));
+        return BeanUtil.copyList(users, UserBriefVo.class);
     }
 
     @Override
