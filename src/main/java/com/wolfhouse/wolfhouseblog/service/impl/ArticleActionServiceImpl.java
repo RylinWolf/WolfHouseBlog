@@ -183,11 +183,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                 throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
             }
         }
-        // 移除本评论
-        int i = commentMapper.deleteById(commentId);
-        if (i != 1) {
-            throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
-        }
+
         try {
             return getArticleCommentVosByArticle(dto.getArticleId());
         } catch (Exception e) {
