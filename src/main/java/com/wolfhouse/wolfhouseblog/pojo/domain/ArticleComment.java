@@ -1,5 +1,7 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
 import com.mybatisflex.annotation.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ArticleComment {
+    @Id(keyType = KeyType.Auto)
     private Long id;
     private Long userId;
     private Long articleId;
