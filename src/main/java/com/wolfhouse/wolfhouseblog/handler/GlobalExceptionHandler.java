@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -33,6 +34,14 @@ public class GlobalExceptionHandler {
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             HttpCodeConstant.SERVER_ERROR,
             ServiceExceptionConstant.SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handleException(MissingServletRequestParameterException e) {
+        log.error("接口参数丢失: [{}]", e.getMessage(), e);
+        return HttpResult.failed(HttpStatus.BAD_REQUEST.value(),
+                                 HttpCodeConstant.BAD_REQUEST,
+                                 ServiceExceptionConstant.MISSING_PARAM);
     }
 
     @ExceptionHandler
@@ -109,6 +118,10 @@ public class GlobalExceptionHandler {
                 code = HttpCodeConstant.BAD_TOKEN;
                 status = HttpStatus.UNAUTHORIZED.value();
 
+            }
+            case ServiceExceptionConstant.ARG_FORMAT_ERROR -> {
+                code = HttpCodeConstant.BAD_REQUEST;
+                status = HttpStatus.BAD_REQUEST.value();
             }
             default -> {
                 code = HttpCodeConstant.SERVICE_ERROR;
