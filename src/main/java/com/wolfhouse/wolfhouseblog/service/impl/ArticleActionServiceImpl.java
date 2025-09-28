@@ -171,7 +171,8 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                              ArticleComment comment = commentMapper.selectOneById(commentId);
                                              return comment.getUserId()
                                                            .equals(t);
-                                         }))
+                                         })
+                                     .setCustomException(new ServiceException(ArticleConstant.NOT_ALLOWED)))
                   .doVerify();
 
         Set<Long> ids = getReplyIds(commentId);

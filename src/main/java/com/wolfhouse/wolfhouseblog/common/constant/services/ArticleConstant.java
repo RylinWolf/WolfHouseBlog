@@ -20,6 +20,7 @@ public class ArticleConstant {
         ArticleTableDef.ARTICLE.POST_TIME,
         ArticleTableDef.ARTICLE.VIEWS
     };
+    public static final String NOT_ALLOWED = "无操作权限！";
 
     public static final String POST_FAILED = "文章发布失败！";
     public static final String UPDATE_INCOMPLETE = "更新不完整！";
