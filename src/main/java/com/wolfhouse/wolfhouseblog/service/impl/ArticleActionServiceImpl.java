@@ -176,8 +176,16 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                   .doVerify();
 
         Set<Long> ids = getReplyIds(commentId);
-        int i = commentMapper.deleteBatchByIds(ids);
-        if (i != ids.size()) {
+        // 移除回复评论
+        if (!ids.isEmpty()) {
+            int i = commentMapper.deleteBatchByIds(ids);
+            if (i != ids.size()) {
+                throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
+            }
+        }
+        // 移除本评论
+        int i = commentMapper.deleteById(commentId);
+        if (i != 1) {
             throw new ServiceException(ArticleConstant.COMMENT_DELETE_FAILED);
         }
         try {
