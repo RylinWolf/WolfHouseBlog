@@ -31,6 +31,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -107,7 +108,8 @@ public class UserController {
 
     @Operation(summary = "批量获取用户简略信息")
     @GetMapping("/brief")
-    public HttpResult<List<UserBriefVo>> getBriefInfo(@RequestParam Set<Long> ids) throws Exception {
+    public HttpResult<List<UserBriefVo>> getBriefInfo(
+        @RequestParam @Validated @Size(max = 10) Set<Long> ids) throws Exception {
         return HttpResult.success(userService.getUserBriefs(ids));
     }
 
