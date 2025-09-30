@@ -15,9 +15,11 @@ public class ArticleVo {
     private String title;
     private String primary;
     private Long authorId;
+    private String authorName;
     private String content;
     private LocalDateTime postTime;
     private Long partitionId;
+    private String partitionName;
     private List<String> tags;
     private List<Long> comUseTags;
     private VisibilityEnum visibility;

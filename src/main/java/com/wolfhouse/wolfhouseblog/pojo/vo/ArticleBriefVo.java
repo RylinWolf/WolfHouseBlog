@@ -16,6 +16,7 @@ public class ArticleBriefVo {
     private String title;
     private String primary;
     private Long authorId;
+    private String authorName;
     private LocalDateTime postTime;
     private VisibilityEnum visibility;
     /** 浏览量 */
