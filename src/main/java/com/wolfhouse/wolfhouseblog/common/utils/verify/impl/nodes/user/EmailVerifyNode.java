@@ -22,8 +22,10 @@ public class EmailVerifyNode extends BaseVerifyNode<String> {
     @Override
     public boolean verify() {
         super.verify();
+        if (this.t == null) {
+            return allowNull;
+        }
         String email = this.t.toLowerCase();
-
         try {
             return service.getUserVoById(ServiceUtil.loginUser())
                           .getEmail()
