@@ -122,7 +122,10 @@ public class UserController {
     @GetMapping("/brief")
     public HttpResult<List<UserBriefVo>> getBriefInfo(
         @RequestParam @Validated @Size(max = 10) Set<Long> ids) throws Exception {
-        return HttpResult.success(userService.getUserBriefs(ids));
+        List<UserVo> userBriefs = userService.getUsers(ids);
+        // 缓存用户信息
+        userBriefs.forEach(redisService::userInfoCache);
+        return HttpResult.success(BeanUtil.copyList(userBriefs, UserBriefVo.class));
     }
 
     @Operation(summary = "获取当前登录账号信息")

@@ -162,7 +162,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public List<UserBriefVo> getUserBriefs(Set<Long> ids) throws Exception {
+    public List<UserVo> getUsers(Set<Long> ids) throws Exception {
         // 需要登录, ids 不得为空
         VerifyTool.ofLoginExist(mediator,
                                 new NotAnyBlankVerifyNode(ids)
@@ -172,7 +172,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             QueryWrapper.create()
                         .where(USER.ID.in(ids))
                         .select(UserBriefVo.COLUMNS));
-        return BeanUtil.copyList(users, UserBriefVo.class);
+        return BeanUtil.copyList(users, UserVo.class);
     }
 
     @Override

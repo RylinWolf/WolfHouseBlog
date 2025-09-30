@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 public class ArticleCommentVo {
     private Long id;
     private Long userId;
-    private String userName;
     private Long replyId;
     private String content;
     private LocalDateTime commentTime;

@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 @Data
 @Component
 public class ArticleBriefVo {
+    // TODO 在用得到的地方注入作者名
+
     private Long id;
     private String title;
     private String primary;

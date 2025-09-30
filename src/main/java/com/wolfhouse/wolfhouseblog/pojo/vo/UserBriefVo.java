@@ -17,9 +17,9 @@ public class UserBriefVo {
     private String personalStatus;
 
     public static final QueryColumn[] COLUMNS = {
-            USER.ID,
-            USER.ACCOUNT,
-            USER.NICKNAME,
-            USER.AVATAR,
-            USER.PERSONAL_STATUS};
+        USER.ID,
+        USER.ACCOUNT,
+        USER.NICKNAME,
+        USER.AVATAR,
+        USER.PERSONAL_STATUS};
 }

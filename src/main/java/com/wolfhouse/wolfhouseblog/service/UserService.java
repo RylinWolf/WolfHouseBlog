@@ -150,5 +150,5 @@ public interface UserService extends IService<User> {
      * @return 包含用户简要信息的列表
      * @throws Exception 查询过程中可能发生的异常
      */
-    List<UserBriefVo> getUserBriefs(Set<Long> ids) throws Exception;
+    List<UserVo> getUsers(Set<Long> ids) throws Exception;
 }
