@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,7 +142,10 @@ public class UserController {
         users.forEach(redisService::userInfoCache);
 
         // 合并结果集
-        users.addAll(cachedUser.values());
+        Collection<UserVo> cachedUserVo = cachedUser.values();
+        if (!cachedUserVo.isEmpty()) {
+            users.addAll(cachedUserVo);
+        }
         return HttpResult.success(BeanUtil.copyList(users, UserBriefVo.class));
     }
 
