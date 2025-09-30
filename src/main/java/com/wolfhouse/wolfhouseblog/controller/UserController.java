@@ -36,6 +36,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -122,10 +123,26 @@ public class UserController {
     @GetMapping("/brief")
     public HttpResult<List<UserBriefVo>> getBriefInfo(
         @RequestParam @Validated @Size(max = 10) Set<Long> ids) throws Exception {
-        List<UserVo> userBriefs = userService.getUsers(ids);
+        Map<Long, UserVo> cachedUser = redisService.getCachedUsers(ids);
+        if (!cachedUser.isEmpty() && ids.size() == cachedUser.size()) {
+            // 缓存全部命中
+            return HttpResult.success(
+                BeanUtil.copyList(
+                    cachedUser.values()
+                              .stream()
+                              .toList(),
+                    UserBriefVo.class));
+        }
+        // 移除已缓存的数据
+        ids.removeAll(cachedUser.keySet());
+
         // 缓存用户信息
-        userBriefs.forEach(redisService::userInfoCache);
-        return HttpResult.success(BeanUtil.copyList(userBriefs, UserBriefVo.class));
+        List<UserVo> users = userService.getUsers(ids);
+        users.forEach(redisService::userInfoCache);
+
+        // 合并结果集
+        users.addAll(cachedUser.values());
+        return HttpResult.success(BeanUtil.copyList(users, UserBriefVo.class));
     }
 
     @Operation(summary = "获取当前登录账号信息")

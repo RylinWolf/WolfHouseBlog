@@ -10,8 +10,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * @author linexsong
@@ -104,4 +106,23 @@ public class UserRedisService {
     }
 
 
+    /**
+     * 根据提供的用户 ID 集合，从缓存中获取对应的用户信息列表。
+     * 对于未在缓存中存在的用户 ID，不会包含在返回结果中。
+     *
+     * @param ids 用户 ID 集合，用于指定需要从缓存中获取信息的用户。
+     * @return 包含缓存中存在的用户信息的列表，如果所有 ID 均未命中缓存，则返回空列表。
+     */
+    public Map<Long, UserVo> getCachedUsers(Set<Long> ids) {
+        HashOperations<String, String, Object> ops = redisTemplate.opsForHash();
+        Map<Long, UserVo> users = new HashMap<>(ids.size());
+
+        for (Long id : ids) {
+            if (!redisTemplate.hasKey(getKey(id))) {
+                continue;
+            }
+            users.put(id, objectMapper.convertValue(ops.entries(getKey(id)), UserVo.class));
+        }
+        return users;
+    }
 }
