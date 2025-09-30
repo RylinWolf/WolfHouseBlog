@@ -16,6 +16,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import com.wolfhouse.wolfhouseblog.redis.UserRedisService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +51,7 @@ public class UserController {
     private final UserAuthService authService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final UserRedisService redisService;
 
     @Operation(summary = "登陆")
     @PostMapping("/login")
@@ -100,10 +102,20 @@ public class UserController {
     @Operation(summary = "获取用户信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
+        // 从缓存中获取用户信息
+        if (redisService.existsUserCache(id)) {
+            return HttpResult.success(redisService.getUserInfo(id));
+        }
+        // 无缓存
+        UserVo userVo = userService.getUserVoById(id);
+        if (!BeanUtil.isBlank(userVo)) {
+            // 缓存用户信息
+            redisService.userInfoCache(userVo);
+        }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.FAILED,
             UserConstant.USER_UNACCESSIBLE,
-            userService.getUserVoById(id));
+            userVo);
     }
 
     @Operation(summary = "批量获取用户简略信息")
