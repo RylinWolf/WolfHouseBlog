@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
@@ -27,13 +28,11 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.SubscribeTableDef.SUBSCRIBE;
@@ -49,6 +48,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     private final ServiceAuthMediator mediator;
     private final UserAuthService authService;
     private final JwtUtil jwtUtil;
+
+    @Resource(name = "defaultObjectMapper")
+    private ObjectMapper defaultMapper;
 
 
     @PostConstruct
@@ -98,25 +100,28 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public UserVo updateAuthedUser(UserUpdateDto dto) throws Exception {
         Long login = ServiceUtil.loginUserOrE();
         // 验证 DTO
         VerifyTool.of(
                       UserVerifyNode.id(mediator)
                                     .target(login),
-                      UserVerifyNode.BIRTH.target(dto.getBirth()),
+                      UserVerifyNode.BIRTH.target(dto.getBirth())
+                                          .allowNull(true),
                       UserVerifyNode.email(this)
                                     .target(dto.getEmail())
                                     .allowNull(false))
                   .doVerify();
 
-        User user = BeanUtil.copyProperties(dto, User.class);
-        user.setId(login);
-
-        if (mapper.update(user) != 1) {
+        // 合并已有用户和更新用户数据
+        Map<String, Object> userMap = defaultMapper.convertValue(getById(login), Map.class);
+        userMap.putAll(defaultMapper.convertValue(dto, Map.class));
+        User user = defaultMapper.convertValue(userMap, User.class);
+        
+        if (mapper.update(user, false) != 1) {
             throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
         }
-
         return BeanUtil.copyProperties(getUserVoById(user.getId()), UserVo.class);
     }
 
