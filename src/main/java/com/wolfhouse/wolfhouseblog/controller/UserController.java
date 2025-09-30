@@ -167,7 +167,9 @@ public class UserController {
     @Operation(summary = "修改")
     @PutMapping
     public HttpResult<UserVo> update(@RequestBody @Valid UserUpdateDto dto) throws Exception {
-
+        Long login = ServiceUtil.loginUserOrE();
+        // 移除缓存
+        redisService.deleteUserCache(login);
         return HttpResult.failedIfBlank(
             HttpCodeConstant.UPDATE_FAILED,
             UserConstant.USER_UPDATE_FAILED,
@@ -204,11 +206,13 @@ public class UserController {
     @Operation(summary = "删除账号")
     @DeleteMapping
     public HttpResult<?> deleteAccount() throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
         // TODO 删除账号设置缓冲期
+        redisService.deleteUserCache(login);
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             UserConstant.DELETE_FAILED,
-            userService.deleteAccount(ServiceUtil.loginUserOrE()));
+            userService.deleteAccount(login));
     }
 
 }
