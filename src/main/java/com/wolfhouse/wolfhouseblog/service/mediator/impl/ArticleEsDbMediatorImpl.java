@@ -3,6 +3,7 @@ package com.wolfhouse.wolfhouseblog.service.mediator.impl;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
@@ -67,23 +68,24 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     }
 
     @Override
-    public void syncArticle(Long articleId) {
-        Article article = articleService.getById(articleId);
-        esService.saveOne(article);
+    public void syncArticle(Long articleId) throws Exception {
+        ArticleVo article = articleService.getVoById(articleId);
+        esService.saveOne(BeanUtil.copyProperties(article, ArticleEsDto.class));
     }
 
     @Override
-    public ArticleVo getVoById(Long id) throws Exception {
+    public Article getArticleById(Long id) throws Exception {
         // 从 ES 获取 Vo
-        ArticleVo vo = esService.getVoById(id);
-        if (BeanUtil.isBlank(vo)) {
+        Article article = esService.getById(id);
+        if (BeanUtil.isBlank(article)) {
             // ES 的文章为空
-            if (BeanUtil.isBlank(vo = articleService.getVoById(id))) {
+            if (BeanUtil.isBlank(article = articleService.getById(id))) {
                 // 数据库中文章不存在
                 return null;
             }
+            // 同步文章至 ES
             syncArticle(id);
         }
-        return vo;
+        return article;
     }
 }

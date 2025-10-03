@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service.mediator;
 
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
-import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 
 import java.util.Map;
@@ -88,7 +88,7 @@ public interface ArticleEsDbMediator {
      *
      * @param id 文章的唯一标识符
      */
-    void syncArticle(Long id);
+    void syncArticle(Long id) throws Exception;
 
     /**
      * 根据文章ID获取对应的ArticleVo对象。
@@ -97,5 +97,5 @@ public interface ArticleEsDbMediator {
      * @return 对应的ArticleVo对象
      * @throws Exception 如果获取文章信息失败时抛出异常
      */
-    ArticleVo getVoById(Long id) throws Exception;
+    Article getArticleById(Long id) throws Exception;
 }

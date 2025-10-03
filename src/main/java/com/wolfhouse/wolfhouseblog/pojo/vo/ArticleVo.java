@@ -16,8 +16,7 @@ public class ArticleVo {
     private Long id;
     private String title;
     private String primary;
-    private Long authorId;
-    private String authorName;
+    private UserBriefVo author;
     private String content;
     private LocalDateTime postTime;
     private Long partitionId;

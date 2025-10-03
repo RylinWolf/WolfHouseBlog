@@ -36,6 +36,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
+import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
@@ -44,6 +45,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,8 @@ import java.util.*;
 
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleDraftTableDef.ARTICLE_DRAFT;
 import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTICLE;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.PartitionTableDef.PARTITION;
+import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
 
 /**
  * @author linexsong
@@ -59,6 +63,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Primary
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
     private final ArticleDraftMapper draftMapper;
 
@@ -179,8 +184,36 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     public ArticleVo getVoById(Long id) throws Exception {
         BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(mediator).target(id)
                                                                                  .setStrategy(VerifyStrategy.NORMAL));
+        if (!chain.doVerify()) {
+            return null;
+        }
 
-        return chain.doVerify() ? BeanUtil.copyProperties(mapper.selectOneById(id), ArticleVo.class) : null;
+        // 为 Vo 注入作者、分区名
+        QueryWrapper wrapper = QueryWrapper.create()
+                                           .where(ARTICLE.ID.eq(id))
+                                           .leftJoin(USER)
+                                           .on(USER.ID.eq(ARTICLE.AUTHOR_ID))
+                                           .leftJoin(PARTITION)
+                                           .on(PARTITION.ID.eq(ARTICLE.PARTITION_ID))
+                                           // 获取文章所有列、分区信息和作者信息
+                                           .select(ARTICLE.ALL_COLUMNS,
+                                                   PARTITION.ID.as(ArticleVo::getPartitionId),
+                                                   PARTITION.NAME.as(ArticleVo::getPartitionName));
+
+        Map<?, ?> map = mapper.selectOneByQueryAs(wrapper, Map.class);
+
+        // 提取作者 ID，根据 ID 获取用户
+        Object o = map.get(ARTICLE.AUTHOR_ID.getName());
+        if (BeanUtil.isBlank(o)) {
+            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+        }
+        // 将用户对象转换为简略信息，并注入给文章对象
+        UserBriefVo userBriefVo = BeanUtil.copyProperties(mediator.userService()
+                                                                  .getUserVoById(Long.parseLong(o.toString())),
+                                                          UserBriefVo.class);
+        ArticleVo articleVo = BeanUtil.copyProperties(map, ArticleVo.class);
+        articleVo.setAuthor(userBriefVo);
+        return articleVo;
     }
 
     @Override
@@ -394,26 +427,44 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                      .equals(login);
     }
 
+    /**
+     * 批量增加多篇文章的浏览量
+     *
+     * @param views Map<文章ID, 增加的浏览量>
+     * @return 成功更新浏览量的文章ID集合
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Set<Long> addViews(Map<String, Long> views) {
+        // 使用线程安全的HashSet存储更新成功的文章ID
         ConcurrentHashSet<Long> ids = new ConcurrentHashSet<>();
         views.forEach((k, v) -> {
+            // 构建更新链并设置原始SQL更新浏览量
             UpdateChain<Article> chain = UpdateChain.of(Article.class);
             chain.setRaw(ARTICLE.VIEWS, ARTICLE.VIEWS.getName() + "+" + v);
             chain.where(ARTICLE.ID.eq(Long.valueOf(k)));
+            // 更新成功则记录ID
             if (chain.update()) {
                 ids.add(Long.valueOf(k));
             }
         });
+        // 检查是否所有文章都更新成功
         if (ids.size() != views.size()) {
             throw new ServiceException(ArticleConstant.UPDATE_INCOMPLETE);
         }
         return new HashSet<>(ids);
     }
 
+    /**
+     * 增加单篇文章的浏览量
+     *
+     * @param articleId 文章ID
+     * @param views     要增加的浏览量
+     * @return 是否更新成功
+     */
     @Override
     public Boolean addViews(Long articleId, Long views) {
+        // 构建更新链并设置原始SQL更新浏览量
         UpdateChain<Article> chain = UpdateChain.of(Article.class);
         chain.setRaw(ARTICLE.VIEWS, ARTICLE.VIEWS.getName() + "+" + views);
         chain.where(ARTICLE.ID.eq(articleId));

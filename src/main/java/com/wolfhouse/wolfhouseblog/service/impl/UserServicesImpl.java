@@ -118,7 +118,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Map<String, Object> userMap = defaultMapper.convertValue(getById(login), Map.class);
         userMap.putAll(defaultMapper.convertValue(dto, Map.class));
         User user = defaultMapper.convertValue(userMap, User.class);
-        
+
         if (mapper.update(user, false) != 1) {
             throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
         }
@@ -175,8 +175,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                   .doVerify();
         List<User> users = mapper.selectListByQuery(
             QueryWrapper.create()
-                        .where(USER.ID.in(ids))
-                        .select(UserBriefVo.COLUMNS));
+                        .where(USER.ID.in(ids)));
         return BeanUtil.copyList(users, UserVo.class);
     }
 
@@ -287,5 +286,13 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             throw new ServiceException(UserConstant.UNSUBSCRIBE_FAILED);
         }
         return true;
+    }
+
+    @Override
+    public UserBriefVo getUserBriefById(Long authorId) {
+        return mapper.selectOneByQueryAs(
+            QueryWrapper.create()
+                        .select(UserBriefVo.COLUMNS)
+                        .where(USER.ID.eq(authorId)), UserBriefVo.class);
     }
 }

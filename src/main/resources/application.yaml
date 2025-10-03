@@ -57,3 +57,4 @@ logging:
   level:
     com.wolfhouse.wolfhouseblog.*: info
 
+

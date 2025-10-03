@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
+import com.wolfhouse.wolfhouseblog.application.ArticleApplicationService;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
@@ -11,6 +12,7 @@ import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
+import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
@@ -46,6 +48,7 @@ public class ArticleController {
     private final MqEsService mqEsService;
     private final ArticleRedisService redisService;
     private final ArticleEsDbMediator esDbMediator;
+    private final ArticleApplicationService applicationService;
 
     @Autowired
     @Qualifier("articleServiceImpl")
@@ -76,20 +79,17 @@ public class ArticleController {
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
         // 从 Redis 缓存中读取文章
-        ArticleVo vo = redisService.getCachedArticle(id);
-        // 缓存中没有文章，则从数据库获取并保存到缓存
+        ArticleVo vo = applicationService.getArticleVoById(id);
         if (BeanUtil.isBlank(vo)) {
-            // 缓存为空，从 ES 和数据库获取
-            if (BeanUtil.isBlank((vo = esDbMediator.getVoById(id)))) {
-                // 该文章不存在
-                return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
-                                         HttpCodeConstant.ACCESS_DENIED,
-                                         ArticleConstant.ACCESS_DENIED,
-                                         null);
-            }
-            // 缓存文章至 Redis
-            redisService.cacheArticle(vo);
+            // 该文章不存在
+            return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
+                                     HttpCodeConstant.ACCESS_DENIED,
+                                     ArticleConstant.ACCESS_DENIED,
+                                     null);
         }
+        // 缓存文章至 Redis
+        redisService.cacheArticle(vo);
+
         // 通过 Redis 存储浏览量，自增
         redisService.increaseView(id);
 
@@ -111,8 +111,11 @@ public class ArticleController {
     public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         Article article = articleService.post(dto);
         if (article != null) {
+            // 发布成功，获取 Vo，同步至 ES 并进行缓存
+            ArticleVo vo = articleService.getVoById(article.getId());
             // 前端暂未适配，使用阻塞式
-            elasticService.saveOne(article);
+            elasticService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+            redisService.cacheArticle(vo);
         }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.POST_FAILED,

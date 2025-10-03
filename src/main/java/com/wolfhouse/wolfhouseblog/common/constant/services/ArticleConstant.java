@@ -22,6 +22,7 @@ public class ArticleConstant {
     };
     public static final String NOT_ALLOWED = "无操作权限！";
 
+    public static final String ARTICLE_NOT_EXIST = "文章不存在！";
     public static final String POST_FAILED = "文章发布失败！";
     public static final String UPDATE_INCOMPLETE = "更新不完整！";
     public static final String UPDATE_FAILED = "文章修改失败！";

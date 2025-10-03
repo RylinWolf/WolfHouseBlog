@@ -28,6 +28,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDraftDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.queryorder.OrderField;
 import com.wolfhouse.wolfhouseblog.pojo.queryorder.QueryOrderField;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
@@ -140,17 +141,17 @@ public class ArticleElasticServiceImpl implements ArticleService {
         }
     }
 
-    public void saveOne(Article article) {
+    public void saveOne(ArticleEsDto dto) {
         try {
             client.create(c -> {
                 c.index(ElasticConstant.ARTICLE_INDEX);
-                c.id(article.getId()
-                            .toString());
-                c.document(article);
+                c.id(dto.getId()
+                        .toString());
+                c.document(dto);
                 return c;
             });
         } catch (IOException e) {
-            log.error("存储文章至 ES 失败！Article: {}", article, e);
+            log.error("存储文章至 ES 失败！Article: {}", dto, e);
             throw new ServiceException(e.getMessage(), e);
         }
     }
@@ -341,6 +342,15 @@ public class ArticleElasticServiceImpl implements ArticleService {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
 
+    /**
+     * 根据文章 ID 获取对应的文章视图对象。
+     * <br/>
+     * <b>注意，返回的 Vo 对象中不包含作者信息。若要获取带作者信息的 Vo，应使用文章 BFF 层接口</b>
+     *
+     * @param id 要查询的文章 ID。
+     * @return 如果存在对应 ID 的文章，则返回 ArticleVo 对象；否则返回 null。
+     * @throws Exception 如果在查询过程中发生任何异常，例如查询失败。
+     */
     @Override
     public ArticleVo getVoById(Long id) throws Exception {
         Article article = getById(id);

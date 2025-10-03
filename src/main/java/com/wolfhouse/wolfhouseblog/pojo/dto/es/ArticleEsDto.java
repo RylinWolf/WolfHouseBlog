@@ -1,24 +1,26 @@
-package com.wolfhouse.wolfhouseblog.pojo.vo;
+package com.wolfhouse.wolfhouseblog.pojo.dto.es;
 
 import com.wolfhouse.wolfhouseblog.common.enums.VisibilityEnum;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author linexsong
  */
 @Data
-@Component
-public class ArticleBriefVo {
-    // TODO 在用得到的地方注入作者名
-
+public class ArticleEsDto {
     private Long id;
     private String title;
     private String primary;
-    private UserBriefVo author;
+    private Long authorId;
+    private String content;
     private LocalDateTime postTime;
+    private Long partitionId;
+    private String partitionName;
+    private List<String> tags;
+    private List<Long> comUseTags;
     private VisibilityEnum visibility;
     /** 浏览量 */
     private Long views;

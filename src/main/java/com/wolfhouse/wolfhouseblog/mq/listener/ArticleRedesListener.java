@@ -7,6 +7,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
+import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,14 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 /**
+ * 文章 Redis、ES 监听器
+ *
  * @author linexsong
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ArticleEsListener {
+public class ArticleRedesListener {
     private final ArticleElasticServiceImpl articleService;
     private final ArticleRedisService redisService;
 
@@ -36,10 +39,10 @@ public class ArticleEsListener {
         ),
         key = {MqArticleEsConstant.POST_KEY}
     ))
-    public void post(Article article) {
-        log.debug("监听到发布文章信息: {}", article.getId());
-        articleService.saveOne(article);
-        log.debug("{} 文章发布完成", article.getId());
+    public void post(ArticleVo vo) {
+        log.debug("监听到发布文章信息: {}", vo.getId());
+        articleService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+        log.debug("{} 文章发布完成", vo.getId());
     }
 
     @RabbitListener(bindings = @QueueBinding(
