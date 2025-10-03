@@ -177,6 +177,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         wrapperVisibilityBuild(wrapper, login);
         wrapper.in(Article::getId, articleIds);
 
+        // 获取文章作者信息
         List<ArticleBriefVo> briefs = new ArrayList<>();
 
         mapper.selectListByQuery(wrapper)
