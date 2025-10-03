@@ -111,9 +111,9 @@ public class ArticleElasticServiceImpl implements ArticleService {
     public void saveBatch(List<Article> articles, final int batchSize) throws IOException {
         int size = articles.size();
         int index = 0;
-        int round = size / batchSize;
+        int round = (int) Math.ceil((double) size / batchSize);
 
-        log.info("正在执行批量插入: {}", size);
+        log.info("正在执行批量插入: {}, 轮数: {}", size, round);
 
         for (; index < round; index++) {
             var builder = new BulkRequest.Builder();
