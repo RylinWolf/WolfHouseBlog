@@ -164,10 +164,17 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         // 评论是否存在
         VerifyTool.of(ArticleVerifyNode.commentId(mediator)
                                        .target(commentId),
-                      // 删除目标评论的作者是否为登录用户
+                      // 删除目标评论的作者应为登录用户或文章作者
                       EmptyVerifyNode.of(login)
                                      .predicate(
                                          (t) -> {
+                                             // 文章作者验证
+                                             if (ArticleVerifyNode.idOwn(mediator)
+                                                                  .target(dto.getArticleId())
+                                                                  .verify()) {
+                                                 return true;
+                                             }
+                                             // 评论用户验证
                                              ArticleComment comment = commentMapper.selectOneById(commentId);
                                              return comment.getUserId()
                                                            .equals(t);
