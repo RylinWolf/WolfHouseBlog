@@ -20,7 +20,6 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
-import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -47,7 +46,6 @@ public class ArticleController {
     private ArticleElasticServiceImpl elasticService;
     private final MqEsService mqEsService;
     private final ArticleRedisService redisService;
-    private final ArticleEsDbMediator esDbMediator;
     private final ArticleApplicationService applicationService;
 
     @Autowired

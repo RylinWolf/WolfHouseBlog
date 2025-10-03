@@ -177,7 +177,16 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         wrapperVisibilityBuild(wrapper, login);
         wrapper.in(Article::getId, articleIds);
 
-        return mapper.selectListByQueryAs(wrapper, ArticleBriefVo.class);
+        List<ArticleBriefVo> briefs = new ArrayList<>();
+
+        mapper.selectListByQuery(wrapper)
+              .forEach(a -> {
+                  var brief = BeanUtil.copyProperties(a, ArticleBriefVo.class);
+                  brief.setAuthor(mediator.userService()
+                                          .getUserBriefById(a.getAuthorId()));
+                  briefs.add(brief);
+              });
+        return briefs;
     }
 
     @Override
