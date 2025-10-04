@@ -104,11 +104,11 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     }
 
-    public void saveBatchByDefault(List<Article> articles) throws IOException {
+    public void saveBatchByDefault(List<ArticleEsDto> articles) throws IOException {
         saveBatch(articles, 1000);
     }
 
-    public void saveBatch(List<Article> articles, final int batchSize) throws IOException {
+    public void saveBatch(List<ArticleEsDto> articles, final int batchSize) throws IOException {
         int size = articles.size();
         int index = 0;
         int round = (int) Math.ceil((double) size / batchSize);
@@ -307,12 +307,18 @@ public class ArticleElasticServiceImpl implements ArticleService {
         return mustList;
     }
 
+    public PageResult<Article> pageResultBy(ArticleQueryPageDto dto) throws Exception {
+        return PageResult.of(queryBy(dto));
+    }
+
     @Override
+    @Deprecated(since = "2.0.0")
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
         return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
     }
 
     @Override
+    @Deprecated(since = "2.0.0")
     public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws IOException {
         Long login = mediator.loginUserOrNull();
         var reqBuilder = new SearchRequest.Builder();
@@ -338,6 +344,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     }
 
     @Override
+    @Deprecated(since = "2.0.0")
     public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         return PageResult.of(queryBy(dto, columns), ArticleVo.class);
     }
@@ -352,6 +359,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
      * @throws Exception 如果在查询过程中发生任何异常，例如查询失败。
      */
     @Override
+    @Deprecated(since = "2.0.0")
     public ArticleVo getVoById(Long id) throws Exception {
         Article article = getById(id);
         return BeanUtil.isBlank(article) ? null : BeanUtil.copyProperties(article, ArticleVo.class);

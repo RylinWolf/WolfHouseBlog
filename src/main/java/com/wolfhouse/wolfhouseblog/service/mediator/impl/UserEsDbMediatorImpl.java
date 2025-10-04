@@ -16,7 +16,6 @@ public class UserEsDbMediatorImpl implements UserEsDbMediator {
     private final UserRedisService redisService;
     private final UserService userService;
 
-
     @Override
     public UserVo getUserVoById(Long id) throws Exception {
         // 从缓存中获取

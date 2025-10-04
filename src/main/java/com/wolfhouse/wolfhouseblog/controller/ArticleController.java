@@ -67,10 +67,10 @@ public class ArticleController {
         // 传递了文章内容字段，则查询完整的文章视图
         if (!BeanUtil.isBlank(JsonNullableUtil.getObjOrNull(dto.getContent()))) {
             // 检索文章内容
-            return HttpResult.success(elasticService.getQueryVo(dto));
+            return HttpResult.success(applicationService.queryArticleVo(dto));
         }
         // 不检索内容，仅缩略
-        return HttpResult.success(elasticService.getBriefQuery(dto));
+        return HttpResult.success(applicationService.queryArticleBriefVo(dto));
     }
 
     @Operation(summary = "获取详情")

@@ -87,6 +87,7 @@ public interface ArticleEsDbMediator {
      * 同步指定文章ID的相关数据。
      *
      * @param id 文章的唯一标识符
+     * @throws Exception 没有权限获取文章时抛出异常
      */
     void syncArticle(Long id) throws Exception;
 
