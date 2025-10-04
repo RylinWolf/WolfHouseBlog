@@ -37,6 +37,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
+import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.PartitionService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
@@ -66,7 +67,7 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
 @Primary
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
     private final ArticleDraftMapper draftMapper;
-
+    private final ArticleActionService actionService;
     private final PartitionService partitionService;
     private final ServiceAuthMediator mediator;
     private final ArticleEsDbMediator esDbMediator;
@@ -84,7 +85,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         this.mediator.registerArticle(this);
         this.esDbMediator.registerArticleService(this);
     }
-
 
     @Override
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
@@ -155,17 +155,27 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Override
     public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
-        return PageResult.of(queryBy(dto, columns), ArticleVo.class);
+        Page<Article> articlePage = queryBy(dto, ARTICLE.ID);
+        List<Long> ids = articlePage.getRecords()
+                                    .stream()
+                                    .map(Article::getId)
+                                    .toList();
+        List<ArticleVo> vos = getVoByIds(ids, columns);
+        return PageResult.of(new Page<>(vos, dto.getPageNumber(), dto.getPageSize(), vos.size()));
     }
 
     @Override
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
-
-        return PageResult.of(queryBy(dto, ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
+        List<Long> ids = queryBy(dto, ARTICLE.ID).getRecords()
+                                                 .stream()
+                                                 .map(Article::getId)
+                                                 .toList();
+        List<ArticleBriefVo> brief = getBriefByIds(ids);
+        return PageResult.of(new Page<>(brief, dto.getPageNumber(), dto.getPageSize(), brief.size()));
     }
 
     @Override
-    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) {
+    public List<ArticleBriefVo> getBriefByIds(Collection<Long> articleIds) throws Exception {
         // 根据登录用户构建查询条件
         Long login = ServiceUtil.loginUser();
 
@@ -177,53 +187,88 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         wrapperVisibilityBuild(wrapper, login);
         wrapper.in(Article::getId, articleIds);
 
-        // 获取文章作者信息
-        List<ArticleBriefVo> briefs = new ArrayList<>();
-
-        mapper.selectListByQuery(wrapper)
-              .forEach(a -> {
-                  var brief = BeanUtil.copyProperties(a, ArticleBriefVo.class);
-                  brief.setAuthor(mediator.userService()
-                                          .getUserBriefById(a.getAuthorId()));
-                  briefs.add(brief);
-              });
-        return briefs;
+        return BeanUtil.copyList(getVoByIds(articleIds), ArticleBriefVo.class);
     }
 
+    /**
+     * 根据给定的ID获取对应的ArticleVo对象。
+     *
+     * @param id 指定需要获取的ArticleVo的ID
+     * @return 返回与指定ID对应的ArticleVo对象
+     * @throws Exception 如果获取过程中发生异常
+     */
     @Override
     public ArticleVo getVoById(Long id) throws Exception {
-        BaseVerifyChain chain = VerifyTool.of(new IdReachableVerifyNode(mediator).target(id)
-                                                                                 .setStrategy(VerifyStrategy.NORMAL));
-        if (!chain.doVerify()) {
-            return null;
-        }
+        return getVoByIds(Set.of(id)).getFirst();
+    }
 
+    /**
+     * 根据指定的文章 ID 集合查询文章视图对象集合。
+     * 支持动态指定查询列，并注入作者信息、分区信息等数据。
+     *
+     * @param ids     文章 ID 的集合
+     * @param columns 指定查询的列，若未指定则默认查询所有文章列、分区信息和作者信息
+     * @return 包含所有符合条件的文章视图对象的列表
+     * @throws Exception 当查询过程中发生异常时抛出
+     */
+    public List<ArticleVo> getVoByIds(Collection<Long> ids, QueryColumn... columns) throws Exception {
         // 为 Vo 注入作者、分区名
         QueryWrapper wrapper = QueryWrapper.create()
-                                           .where(ARTICLE.ID.eq(id))
+                                           .where(ARTICLE.ID.in(ids))
                                            .leftJoin(USER)
                                            .on(USER.ID.eq(ARTICLE.AUTHOR_ID))
                                            .leftJoin(PARTITION)
-                                           .on(PARTITION.ID.eq(ARTICLE.PARTITION_ID))
-                                           // 获取文章所有列、分区信息和作者信息
-                                           .select(ARTICLE.ALL_COLUMNS,
-                                                   PARTITION.ID.as(ArticleVo::getPartitionId),
-                                                   PARTITION.NAME.as(ArticleVo::getPartitionName));
-
-        Map<?, ?> map = mapper.selectOneByQueryAs(wrapper, Map.class);
-
-        // 提取作者 ID，根据 ID 获取用户
-        Object o = map.get(ARTICLE.AUTHOR_ID.getName());
-        if (BeanUtil.isBlank(o)) {
-            throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+                                           .on(PARTITION.ID.eq(ARTICLE.PARTITION_ID));
+        // 指定检索字段
+        wrapper.select(columns);
+        if (columns.length == 0) {
+            // 获取文章所有列、分区信息和作者信息
+            wrapper.select(ARTICLE.ALL_COLUMNS,
+                           PARTITION.ID.as(ArticleVo::getPartitionId),
+                           PARTITION.NAME.as(ArticleVo::getPartitionName));
         }
-        // 将用户对象转换为简略信息，并注入给文章对象
-        UserBriefVo userBriefVo = BeanUtil.copyProperties(mediator.userService()
-                                                                  .getUserVoById(Long.parseLong(o.toString())),
-                                                          UserBriefVo.class);
-        ArticleVo articleVo = BeanUtil.copyProperties(map, ArticleVo.class);
-        articleVo.setAuthor(userBriefVo);
-        return articleVo;
+
+        @SuppressWarnings("unchecked")
+        List<Map<?, ?>> maps = (List<Map<?, ?>>) (List<?>) mapper.selectListByQueryAs(wrapper, Map.class);
+
+        ArrayList<ArticleVo> articleVos = new ArrayList<>();
+
+        for (Map<?, ?> map : maps) {
+            // 提取作者 ID，根据 ID 获取用户
+            Object o = map.get(ARTICLE.AUTHOR_ID.getName());
+            if (BeanUtil.isBlank(o)) {
+                throw new ServiceException(ServiceExceptionConstant.SERVICE_ERROR);
+            }
+            long userId = Long.parseLong(o.toString());
+            long articleId = Long.parseLong(map.get(ARTICLE.ID.getName())
+                                               .toString());
+
+
+            // 验证文章 ID 是否可达
+            BaseVerifyChain chain = VerifyTool.of(
+                new IdReachableVerifyNode(mediator).target(articleId)
+                                                   .setStrategy(VerifyStrategy.NORMAL));
+            if (!chain.doVerify()) {
+                continue;
+            }
+
+            // 将用户对象转换为简略信息，并注入给文章对象
+            UserBriefVo userBriefVo = BeanUtil.copyProperties(mediator.userService()
+                                                                      .getUserVoById(userId),
+                                                              UserBriefVo.class);
+            ArticleVo articleVo = BeanUtil.copyProperties(map, ArticleVo.class);
+            articleVo.setAuthor(userBriefVo);
+            // 注入点赞量
+            articleVo.setLikeCount(actionService.likeCount(articleId));
+            articleVos.add(articleVo);
+        }
+
+        return articleVos;
+    }
+
+    @Override
+    public List<ArticleVo> getVoByIds(Collection<Long> ids) throws Exception {
+        return getVoByIds(ids, new QueryColumn[]{});
     }
 
     @Override
@@ -326,7 +371,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public Article update(ArticleUpdateDto dto) throws Exception {
+    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
         String title = JsonNullableUtil.getObjOrNull(dto.getTitle());
         String content = JsonNullableUtil.getObjOrNull(dto.getContent());
         String primary = JsonNullableUtil.getObjOrNull(dto.getPrimary());
@@ -392,7 +437,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             throw new ServiceException(ArticleConstant.UPDATE_FAILED);
         }
 
-        return getById(dto.getId());
+        return getVoById(dto.getId());
     }
 
     @Override

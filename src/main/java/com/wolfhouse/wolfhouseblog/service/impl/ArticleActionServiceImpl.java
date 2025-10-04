@@ -24,13 +24,10 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
-import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,17 +48,10 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleLikeTableDef.
 @Service
 @RequiredArgsConstructor
 public class ArticleActionServiceImpl implements ArticleActionService {
-    private ArticleService articleService;
     private final ServiceAuthMediator mediator;
     private final ArticleCommentMapper commentMapper;
     private final ArticleFavoriteMapper favoriteMapper;
     private final ArticleLikeMapper likeMapper;
-
-    @Autowired
-    @Qualifier("articleServiceImpl")
-    public void setArticleService(ArticleService articleService) {
-        this.articleService = articleService;
-    }
 
     @PostConstruct
     private void init() {
@@ -294,7 +284,8 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                            .collect(Collectors.toSet());
 
         // 获取结果
-        List<ArticleBriefVo> brief = articleService.getBriefByIds(articleIds);
+        List<ArticleBriefVo> brief = mediator.articleService()
+                                             .getBriefByIds(articleIds);
         // 收藏记录分页结果的信息即为最终的分页结果信息
         Page<ArticleBriefVo> res = new Page<>(dto.getPageNumber(), dto.getPageSize(), favoritePage.getTotalRow());
         res.setRecords(brief);
@@ -366,5 +357,12 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                         .and(ARTICLE_FAVORITE.USER_ID.eq(login)));
         log.info("清空收藏夹 {}，共 {} 条结果", favoritesId, i);
         return true;
+    }
+
+    @Override
+    public Long likeCount(Long id) {
+        return likeMapper.selectCountByQuery(
+            QueryWrapper.create()
+                        .where(ARTICLE_LIKE.ARTICLE_ID.eq(id)));
     }
 }

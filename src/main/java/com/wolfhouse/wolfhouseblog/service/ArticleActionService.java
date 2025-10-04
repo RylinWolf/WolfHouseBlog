@@ -153,4 +153,11 @@ public interface ArticleActionService {
      */
     Boolean removeFavorites(Long favoritesId) throws Exception;
 
+    /**
+     * 获取指定文章的点赞数量。
+     *
+     * @param id 文章ID
+     * @return 指定文章的点赞数量
+     */
+    Long likeCount(Long id);
 }

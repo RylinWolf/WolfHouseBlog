@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserEsDbMediatorImpl implements UserEsDbMediator {
+public class UserRedDbMediatorImpl implements UserEsDbMediator {
     private final UserRedisService redisService;
     private final UserService userService;
 

@@ -46,12 +46,12 @@ public class ArticleTask {
                              .map(Long::valueOf)
                              .collect(Collectors.toSet());
         try {
-            mediator.addViewsRedisToDb(views);
+            mediator.addViewsToDb(views);
         } catch (Exception e) {
             log.warn("数据库浏览量同步错误");
             return;
         }
-        Set<Long> esRes = mediator.addViewsRedisToEs(views);
+        Set<Long> esRes = mediator.addViewsToEs(views);
         if (ids.size() != esRes.size()) {
             HashSet<Long> failed = new HashSet<>(esRes);
             log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);

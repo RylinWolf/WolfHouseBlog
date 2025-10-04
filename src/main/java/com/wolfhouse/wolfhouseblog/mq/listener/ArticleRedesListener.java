@@ -5,7 +5,6 @@ import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
-import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
@@ -56,14 +55,14 @@ public class ArticleRedesListener {
     public void update(ArticleUpdateDto dto) {
         try {
             log.debug("监听到更新文章信息: {}", dto.getId());
-            Article update = articleService.update(dto);
+            ArticleVo update = articleService.update(dto);
             if (update == null) {
                 throw new ServiceException(ArticleConstant.UPDATE_FAILED + dto.getId());
             }
             log.debug("{} 文章更新完成", dto.getId());
             log.debug("更新文章缓存: {}", dto.getId());
             redisService.removeArticleCache(dto.getId());
-            redisService.cacheArticle(BeanUtil.copyProperties(update, ArticleVo.class));
+            redisService.cacheArticle(update);
             log.debug("{} 文章缓存更新完成", dto.getId());
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -133,7 +133,7 @@ public class ArticleController {
     @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
-        Article update = articleService.update(dto);
+        ArticleVo update = articleService.update(dto);
         if (update != null) {
             mqEsService.updateArticle(dto);
         }

@@ -24,4 +24,6 @@ public class ArticleEsDto {
     private VisibilityEnum visibility;
     /** 浏览量 */
     private Long views;
+    /** 点赞量 */
+    private Long likeCount;
 }

@@ -70,8 +70,17 @@ public interface ArticleService extends IService<Article> {
      * 通过ID获取文章详情
      * 获取单篇文章的所有信息
      *
-     * @param id 文章的唯一标识ID
+     * @param ids 文章的唯一标识 ID 集合
      * @return 文章的详细信息视图对象
+     * @throws Exception 当文章不存在或查询失败时抛出异常
+     */
+    List<ArticleVo> getVoByIds(Collection<Long> ids) throws Exception;
+
+    /**
+     * 根据文章ID获取文章的详细信息。
+     *
+     * @param id 文章的唯一标识ID
+     * @return 对应ID的文章详细信息视图对象
      * @throws Exception 当文章不存在或查询失败时抛出异常
      */
     ArticleVo getVoById(Long id) throws Exception;
@@ -123,7 +132,7 @@ public interface ArticleService extends IService<Article> {
      * @return 更新后的文章详情视图对象
      * @throws Exception 当文章不存在或更新操作失败时抛出异常
      */
-    Article update(ArticleUpdateDto dto) throws Exception;
+    ArticleVo update(ArticleUpdateDto dto) throws Exception;
 
     /**
      * 通过ID删除文章

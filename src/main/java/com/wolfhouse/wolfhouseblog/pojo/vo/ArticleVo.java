@@ -11,12 +11,12 @@ import java.util.List;
  */
 @Data
 public class ArticleVo {
-    // TODO 在用到的地方注入作者名和分区名
-
     private Long id;
     private String title;
     private String primary;
     private UserBriefVo author;
+    private Long authorId;
+    private Long likeCount;
     private String content;
     private LocalDateTime postTime;
     private Long partitionId;

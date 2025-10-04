@@ -158,7 +158,15 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     @Override
     public Page<Article> queryBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
-        return queryBy(dto, dto.getHighlight(), columns);
+        Page<ArticleVo> page = queryVoBy(dto, dto.getHighlight(), columns);
+        return new Page<>(BeanUtil.copyList(page.getRecords(), Article.class),
+                          page.getPageNumber(),
+                          page.getPageSize(),
+                          page.getTotalRow());
+    }
+
+    public Page<ArticleVo> queryVoBy(ArticleQueryPageDto dto) throws Exception {
+        return queryVoBy(dto, dto.getHighlight());
     }
 
     /**
@@ -170,7 +178,9 @@ public class ArticleElasticServiceImpl implements ArticleService {
      * @return 包含查询结果的分页 Page 对象，其中包含文章数据以及分页信息。
      * @throws Exception 如果在查询过程中发生任何异常，例如 Elasticsearch 查询失败。
      */
-    public Page<Article> queryBy(ArticleQueryPageDto dto, Boolean highLight, QueryColumn... columns) throws Exception {
+    public Page<ArticleVo> queryVoBy(ArticleQueryPageDto dto,
+                                     Boolean highLight,
+                                     QueryColumn... columns) throws Exception {
         long pageSize = dto.getPageSize();
         Long login = mediator.loginUserOrNull();
 
@@ -203,7 +213,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
         // must 复合查询，若开启高亮，则自动构建 builder
         boolQuery.must(buildMustQueryListFromDto(dto, login, highLight, builder));
         builder.query(boolQuery.build());
-        SearchResponse<Article> response = client.search(builder.build(), Article.class);
+        SearchResponse<ArticleVo> response = client.search(builder.build(), ArticleVo.class);
 
         return EsUtil.responseToPage(response, dto.getPageNumber(), pageSize, highLight);
     }
@@ -307,10 +317,22 @@ public class ArticleElasticServiceImpl implements ArticleService {
         return mustList;
     }
 
-    public PageResult<Article> pageResultBy(ArticleQueryPageDto dto) throws Exception {
-        return PageResult.of(queryBy(dto));
+    public PageResult<ArticleVo> pageResultBy(ArticleQueryPageDto dto) throws Exception {
+        return PageResult.of(queryVoBy(dto));
     }
 
+    public PageResult<ArticleBriefVo> getBriefVoQuery(ArticleQueryPageDto dto) throws Exception {
+        return PageResult.of(queryVoBy(dto, dto.getHighlight(), ArticleConstant.BRIEF_COLUMNS), ArticleBriefVo.class);
+    }
+
+    /**
+     * 根据提供的查询条件，通过 Elasticsearch 获取文章简要信息的分页结果。
+     *
+     * @param dto 包含查询条件的 ArticleQueryPageDto 对象，指定文章筛选条件，例如文章 ID、标题、作者 ID、发布时间范围等。
+     * @return 包含文章简要信息的分页结果 PageResult<ArticleBriefVo> 对象，其中每条记录为 ArticleBriefVo。
+     * @throws Exception 如果在查询过程中发生异常，例如 Elasticsearch 查询失败。
+     * @deprecated 其获取到的 Vo 会数据丢失。移至 {@link #getBriefVoQuery(ArticleQueryPageDto)}
+     */
     @Override
     @Deprecated(since = "2.0.0")
     public PageResult<ArticleBriefVo> getBriefQuery(ArticleQueryPageDto dto) throws Exception {
@@ -359,10 +381,11 @@ public class ArticleElasticServiceImpl implements ArticleService {
      * @throws Exception 如果在查询过程中发生任何异常，例如查询失败。
      */
     @Override
-    @Deprecated(since = "2.0.0")
     public ArticleVo getVoById(Long id) throws Exception {
-        Article article = getById(id);
-        return BeanUtil.isBlank(article) ? null : BeanUtil.copyProperties(article, ArticleVo.class);
+        ArticleQueryPageDto dto = new ArticleQueryPageDto();
+        dto.setId(JsonNullable.of(id));
+        List<ArticleVo> records = queryVoBy(dto).getRecords();
+        return BeanUtil.isBlank(records) ? null : records.getFirst();
     }
 
     /**
@@ -373,11 +396,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
      * @throws Exception 如果在查询过程中发生任何异常，例如查询失败。
      */
     public Article getById(Long id) throws Exception {
-        ArticleQueryPageDto dto = new ArticleQueryPageDto();
-        dto.setId(JsonNullable.of(id));
-        List<Article> records = queryBy(dto).getRecords();
-        return BeanUtil.isBlank(records) ? null : records.getFirst();
-
+        return BeanUtil.copyProperties(getVoById(id), Article.class);
     }
 
     @Override
@@ -401,7 +420,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
     }
 
     @Override
-    public Article update(ArticleUpdateDto dto) throws Exception {
+    public ArticleVo update(ArticleUpdateDto dto) throws Exception {
         var builder = new UpdateRequest.Builder<Article, Map<?, ?>>();
         builder.index(ElasticConstant.ARTICLE_INDEX);
         builder.id(dto.getId()
@@ -416,7 +435,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
             // 没有内容被更新
             log.warn("文章未进行更新: {}", dto.getId());
         }
-        return getById(dto.getId());
+        return getVoById(dto.getId());
     }
 
     @Override
@@ -522,4 +541,10 @@ public class ArticleElasticServiceImpl implements ArticleService {
         }
         return true;
     }
+
+    @Override
+    public List<ArticleVo> getVoByIds(Collection<Long> ids) throws Exception {
+        throw new ServiceException(EsExceptionConstant.METHOD_NOT_SUPPORT);
+    }
+
 }

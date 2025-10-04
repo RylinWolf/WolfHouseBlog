@@ -16,6 +16,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.redis.UserRedisService;
+import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import com.wolfhouse.wolfhouseblog.service.mediator.UserEsDbMediator;
@@ -36,6 +37,7 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
     private final ArticleElasticServiceImpl elasticService;
     private final UserEsDbMediator userEsDbMediator;
     private final ArticleEsDbMediator esDbMediator;
+    private final ArticleActionService actionService;
 
     @Override
     public ArticleVo getArticleVoById(Long id) throws Exception {
@@ -55,29 +57,44 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
         vo = BeanUtil.copyProperties(article, ArticleVo.class);
         vo.setAuthor(BeanUtil.copyProperties(userEsDbMediator.getUserVoById(article.getAuthorId()), UserBriefVo.class));
 
+        // 获取点赞信息并注入
+        vo.setLikeCount(actionService.likeCount(article.getId()));
+
         // 保存文章至缓存
         redisService.cacheArticle(vo);
         return vo;
     }
 
+    /**
+     * 根据查询 Dto 查询指定的列，返回对应视图对象。
+     * 该方法负责执行文章查询并填充作者和点赞等相关信息。
+     *
+     * @param dto     查询参数封装对象，包含分页和过滤条件
+     * @param columns 需要查询的指定列，可选参数
+     * @return 包含完整文章信息的分页对象
+     * @throws Exception 当查询过程中出现数据库访问错误或其他异常时抛出
+     */
     private Page<ArticleVo> queryVoBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
-        Page<Article> queryVo = elasticService.queryBy(dto, columns);
+        Page<ArticleVo> queryVo = esDbMediator.queryBy(dto, columns);
         Page<ArticleVo> page = new Page<>(queryVo.getPageNumber(), queryVo.getPageSize(), queryVo.getTotalRow());
-        // 为 Vo 注入作者信息
+        // 为 Vo 注入信息
         page.setRecords(
             queryVo.getRecords()
                    .stream()
                    .map(a -> {
+                       // 注入作者信息
                        var vo = BeanUtil.copyProperties(a, ArticleVo.class);
                        Long authorId = a.getAuthorId();
                        try {
                            // 从缓存中获取，若缓存不存在则自动更新缓存
                            UserVo userInfo = userEsDbMediator.getUserVoById(authorId);
                            vo.setAuthor(BeanUtil.copyProperties(userInfo, UserBriefVo.class));
-                           return vo;
                        } catch (Exception e) {
                            throw new RuntimeException(e);
                        }
+                       // 注入点赞信息
+                       vo.setLikeCount(actionService.likeCount(a.getId()));
+                       return vo;
                    })
                    .toList());
         return page;
@@ -85,7 +102,7 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
 
     @Override
     public PageResult<ArticleVo> queryArticleVo(ArticleQueryPageDto dto) throws Exception {
-        return queryArticleVo(dto, new QueryColumn[]{});
+        return PageResult.of(queryVoBy(dto));
     }
 
     @Override

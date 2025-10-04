@@ -1,14 +1,19 @@
 package com.wolfhouse.wolfhouseblog.service.mediator.impl;
 
+import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
+import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +24,7 @@ import java.util.Set;
 public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     private ArticleElasticServiceImpl esService;
     private ArticleService articleService;
+
 
     @Override
     public void registerArticleService(ArticleService articleService) {
@@ -31,40 +37,40 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     }
 
     @Override
-    public Set<Long> addViewsRedisToEs(Map<String, Long> articleIdViews) {
+    public Set<Long> addViewsToEs(Map<String, Long> articleIdViews) {
         return esService.addViews(articleIdViews);
     }
 
     @Override
-    public Set<Long> addViewsRedisToDb(Map<String, Long> articleIdViews) {
+    public Set<Long> addViewsToDb(Map<String, Long> articleIdViews) {
         return articleService.addViews(articleIdViews);
     }
 
     @Override
-    public Set<Long> addViewsRedisToBoth(Map<String, Long> articleIdViews) {
-        Set<Long> dbs = addViewsRedisToDb(articleIdViews);
+    public Set<Long> addViewsToEsDb(Map<String, Long> articleIdViews) {
+        Set<Long> dbs = addViewsToDb(articleIdViews);
         // 数据库同步失败，则不往下进行
         if (dbs == null || dbs.size() != articleIdViews.size()) {
             return null;
         }
-        Set<Long> es = addViewsRedisToEs(articleIdViews);
+        Set<Long> es = addViewsToEs(articleIdViews);
         dbs.retainAll(es);
         return dbs;
     }
 
     @Override
-    public Boolean addViewsRedisToDb(Long articleId, Long views) {
+    public Boolean addViewsToDb(Long articleId, Long views) {
         return articleService.addViews(articleId, views);
     }
 
     @Override
-    public Boolean addViewsRedisToEs(Long articleId, Long views) {
+    public Boolean addViewsToEs(Long articleId, Long views) {
         return esService.addViews(articleId, views);
     }
 
     @Override
-    public Boolean addViewsRedisToBoth(Long articleId, Long views) {
-        return addViewsRedisToDb(articleId, views) && addViewsRedisToEs(articleId, views);
+    public Boolean addViewsToEsDb(Long articleId, Long views) {
+        return addViewsToDb(articleId, views) && addViewsToEs(articleId, views);
     }
 
     @Override
@@ -74,8 +80,13 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     }
 
     @Override
+    public void syncArticle(ArticleEsDto dto) {
+        esService.saveOne(dto);
+    }
+
+    @Override
     public Article getArticleById(Long id) throws Exception {
-        // 从 ES 获取 Vo
+        // 从 ES 获取文章
         Article article = esService.getById(id);
         if (BeanUtil.isBlank(article)) {
             // ES 的文章为空
@@ -87,5 +98,30 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
             syncArticle(id);
         }
         return article;
+    }
+
+    @Override
+    public ArticleVo getArticleVoById(Long id) throws Exception {
+        ArticleVo vo = esService.getVoById(id);
+        if (BeanUtil.isBlank(vo)) {
+            // ES 的 Vo 为空
+            vo = articleService.getVoById(id);
+            // 保存至 ES
+            esService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+        }
+        return vo;
+    }
+
+    @Override
+    public Page<ArticleVo> queryBy(ArticleQueryPageDto dto, QueryColumn[] columns) throws Exception {
+        Page<ArticleVo> articlePage = esService.queryVoBy(dto, dto.getHighlight(), columns);
+        if (BeanUtil.isBlank(articlePage.getRecords())) {
+            PageResult<ArticleVo> vos = articleService.getQueryVo(dto, columns);
+            List<ArticleVo> records = vos.getRecords();
+            articlePage = new Page<>(records, vos.getCurrentPage(), records.size(), vos.getTotalRow());
+            // 导入 ES 数据
+            esService.saveBatchByDefault(BeanUtil.copyList(records, ArticleEsDto.class));
+        }
+        return articlePage;
     }
 }
