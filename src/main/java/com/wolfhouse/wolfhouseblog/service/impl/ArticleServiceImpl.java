@@ -160,6 +160,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                                     .stream()
                                     .map(Article::getId)
                                     .toList();
+        // 无结果
+        if (ids.isEmpty()) {
+            return PageResult.of(new Page<>(Collections.emptyList(), dto.getPageNumber(), dto.getPageSize(), 0));
+        }
         List<ArticleVo> vos = getVoByIds(ids, columns);
         return PageResult.of(new Page<>(vos, dto.getPageNumber(), dto.getPageSize(), vos.size()));
     }

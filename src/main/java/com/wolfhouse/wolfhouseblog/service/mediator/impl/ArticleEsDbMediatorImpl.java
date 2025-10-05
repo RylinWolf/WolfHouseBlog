@@ -118,6 +118,9 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
         if (BeanUtil.isBlank(articlePage.getRecords())) {
             PageResult<ArticleVo> vos = articleService.getQueryVo(dto, columns);
             List<ArticleVo> records = vos.getRecords();
+            if (records.isEmpty()) {
+                return new Page<>();
+            }
             articlePage = new Page<>(records, vos.getCurrentPage(), records.size(), vos.getTotalRow());
             // 导入 ES 数据
             esService.saveBatchByDefault(BeanUtil.copyList(records, ArticleEsDto.class));
