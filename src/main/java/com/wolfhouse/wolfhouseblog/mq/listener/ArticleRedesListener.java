@@ -41,6 +41,7 @@ public class ArticleRedesListener {
     public void post(ArticleVo vo) {
         log.debug("监听到发布文章信息: {}", vo.getId());
         articleService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+        redisService.cacheArticle(vo);
         log.debug("{} 文章发布完成", vo.getId());
     }
 

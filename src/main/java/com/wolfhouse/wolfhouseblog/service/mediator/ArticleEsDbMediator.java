@@ -94,9 +94,28 @@ public interface ArticleEsDbMediator {
      * @param id 文章的唯一标识符
      * @throws Exception 没有权限获取文章时抛出异常
      */
-    void syncArticle(Long id) throws Exception;
+    void syncArticleFromDb(Long id) throws Exception;
 
-    void syncArticle(ArticleEsDto article);
+    /**
+     * 从数据库同步文章数据到指定的数据模型。
+     *
+     * @param dto 包含文章信息的传输对象，包含文章ID、标题、作者ID、内容、浏览量等信息
+     */
+    void syncArticleFromDb(ArticleEsDto dto);
+
+    /**
+     * 将指定ID的文章数据同步到数据库。
+     *
+     * @param id 文章的唯一标识符
+     */
+    void syncArticleToDb(Long id) throws Exception;
+
+    /**
+     * 将文章数据同步到数据库。
+     *
+     * @param dto 包含文章信息的传输对象，包含文章ID、标题、作者ID、内容、浏览量等信息
+     */
+    void syncArticleToDb(ArticleEsDto dto);
 
     /**
      * 根据文章ID获取对应的ArticleVo对象。
@@ -107,7 +126,24 @@ public interface ArticleEsDbMediator {
      */
     Article getArticleById(Long id) throws Exception;
 
+    /**
+     * 根据文章ID获取对应的ArticleVo对象。
+     *
+     * @param id 文章的唯一标识符
+     * @return 对应的ArticleVo对象，包含文章的详细信息
+     * @throws Exception 如果获取文章信息失败时抛出异常
+     */
     ArticleVo getArticleVoById(Long id) throws Exception;
 
+    /**
+     * 分页查询文章数据，根据查询条件返回符合要求的文章信息。
+     *
+     * @param dto     包含文章分页查询条件的传输对象，包括文章ID、标题、作者ID、发布时间范围、分区ID等筛选参数。
+     * @param columns 指定查询时需要返回的列信息，用于控制查询结果的字段内容。
+     * @return 返回包含查询结果的分页对象，每个分页项为ArticleVo对象，包含文章的详细信息。
+     * @throws Exception 当查询过程中发生异常时抛出，如数据库连接问题或查询逻辑错误。
+     */
     Page<ArticleVo> queryBy(ArticleQueryPageDto dto, QueryColumn[] columns) throws Exception;
+
+
 }

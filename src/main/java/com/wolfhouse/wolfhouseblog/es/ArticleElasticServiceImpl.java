@@ -62,6 +62,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
     private final ArticleEsDbMediator esDbMediator;
     private final DateProperties dateProperties;
 
+    // TODO 使用 search_after 解决深度分页问题
+
     @Resource(name = "esObjectMapper")
     private ObjectMapper objectMapper;
 

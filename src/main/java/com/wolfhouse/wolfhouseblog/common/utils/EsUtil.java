@@ -175,7 +175,7 @@ public class EsUtil {
         page.setTotalRow(total == null ? 0 : total.value());
         page.setPageNumber(pageNum);
         page.setPageSize(pageSize);
-        page.setTotalPage(page.getTotalRow() / page.getPageSize());
+        page.setTotalPage((int) Math.ceil((double) page.getTotalRow() / page.getPageSize()));
         return page;
     }
 

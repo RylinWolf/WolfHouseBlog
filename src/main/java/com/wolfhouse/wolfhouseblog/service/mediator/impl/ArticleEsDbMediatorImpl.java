@@ -74,13 +74,13 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     }
 
     @Override
-    public void syncArticle(Long articleId) throws Exception {
+    public void syncArticleFromDb(Long articleId) throws Exception {
         ArticleVo article = articleService.getVoById(articleId);
         esService.saveOne(BeanUtil.copyProperties(article, ArticleEsDto.class));
     }
 
     @Override
-    public void syncArticle(ArticleEsDto dto) {
+    public void syncArticleFromDb(ArticleEsDto dto) {
         esService.saveOne(dto);
     }
 
@@ -95,7 +95,7 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
                 return null;
             }
             // 同步文章至 ES
-            syncArticle(id);
+            syncArticleFromDb(id);
         }
         return article;
     }
@@ -123,5 +123,17 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
             esService.saveBatchByDefault(BeanUtil.copyList(records, ArticleEsDto.class));
         }
         return articlePage;
+    }
+
+    @Override
+    public void syncArticleToDb(Long id) throws Exception {
+        articleService.getMapper()
+                      .insertWithPk(esService.getById(id));
+    }
+
+    @Override
+    public void syncArticleToDb(ArticleEsDto dto) {
+        articleService.getMapper()
+                      .insertWithPk(BeanUtil.copyProperties(dto, Article.class));
     }
 }
