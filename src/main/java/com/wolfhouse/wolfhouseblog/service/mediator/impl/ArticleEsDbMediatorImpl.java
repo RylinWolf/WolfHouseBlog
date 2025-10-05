@@ -13,6 +13,7 @@ import com.wolfhouse.wolfhouseblog.service.ArticleService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,13 +114,17 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     }
 
     @Override
+    @Nullable
     public Page<ArticleVo> queryBy(ArticleQueryPageDto dto, QueryColumn[] columns) throws Exception {
         Page<ArticleVo> articlePage = esService.queryVoBy(dto, dto.getHighlight(), columns);
         if (BeanUtil.isBlank(articlePage.getRecords())) {
             PageResult<ArticleVo> vos = articleService.getQueryVo(dto, columns);
+            if (vos == null) {
+                return null;
+            }
             List<ArticleVo> records = vos.getRecords();
             if (records.isEmpty()) {
-                return new Page<>();
+                return null;
             }
             articlePage = new Page<>(records, vos.getCurrentPage(), records.size(), vos.getTotalRow());
             // 导入 ES 数据

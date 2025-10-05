@@ -23,6 +23,8 @@ import com.wolfhouse.wolfhouseblog.service.mediator.UserEsDbMediator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
+
 /**
  * @author linexsong
  */
@@ -74,9 +76,13 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
      * @return 包含完整文章信息的分页对象
      * @throws Exception 当查询过程中出现数据库访问错误或其他异常时抛出
      */
+    @Nullable
     private Page<ArticleVo> queryVoBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         Page<ArticleVo> queryVo = esDbMediator.queryBy(dto, columns);
         Page<ArticleVo> page = new Page<>(queryVo.getPageNumber(), queryVo.getPageSize(), queryVo.getTotalRow());
+        if (BeanUtil.isBlank(queryVo.getRecords())) {
+            return null;
+        }
         // 为 Vo 注入信息
         page.setRecords(
             queryVo.getRecords()
@@ -100,16 +106,28 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
 
     @Override
     public PageResult<ArticleVo> queryArticleVo(ArticleQueryPageDto dto) throws Exception {
-        return PageResult.of(queryVoBy(dto));
+        Page<ArticleVo> page = queryVoBy(dto);
+        if (page == null) {
+            return null;
+        }
+        return PageResult.of(page);
     }
 
     @Override
     public PageResult<ArticleVo> queryArticleVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
-        return PageResult.of(queryVoBy(dto, columns));
+        Page<ArticleVo> page = queryVoBy(dto, columns);
+        if (page == null) {
+            return null;
+        }
+        return PageResult.of(page);
     }
 
     @Override
     public PageResult<ArticleBriefVo> queryArticleBriefVo(ArticleQueryPageDto dto) throws Exception {
-        return PageResult.of(queryVoBy(dto), ArticleBriefVo.class);
+        Page<ArticleVo> page = queryVoBy(dto);
+        if (page == null) {
+            return null;
+        }
+        return PageResult.of(page, ArticleBriefVo.class);
     }
 }

@@ -50,6 +50,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -154,6 +155,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    @Nullable
     public PageResult<ArticleVo> getQueryVo(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         Page<Article> articlePage = queryBy(dto, ARTICLE.ID);
         List<Long> ids = articlePage.getRecords()
@@ -162,7 +164,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                                     .toList();
         // 无结果
         if (ids.isEmpty()) {
-            return PageResult.of(new Page<>(Collections.emptyList(), dto.getPageNumber(), dto.getPageSize(), 0));
+            return null;
         }
         List<ArticleVo> vos = getVoByIds(ids, columns);
         return PageResult.of(new Page<>(vos, dto.getPageNumber(), dto.getPageSize(), vos.size()));
