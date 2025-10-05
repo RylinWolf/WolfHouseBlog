@@ -9,6 +9,7 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -143,6 +144,7 @@ public interface ArticleEsDbMediator {
      * @return 返回包含查询结果的分页对象，每个分页项为ArticleVo对象，包含文章的详细信息。
      * @throws Exception 当查询过程中发生异常时抛出，如数据库连接问题或查询逻辑错误。
      */
+    @Nullable
     Page<ArticleVo> queryBy(ArticleQueryPageDto dto, QueryColumn[] columns) throws Exception;
 
 

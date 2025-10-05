@@ -79,10 +79,10 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
     @Nullable
     private Page<ArticleVo> queryVoBy(ArticleQueryPageDto dto, QueryColumn... columns) throws Exception {
         Page<ArticleVo> queryVo = esDbMediator.queryBy(dto, columns);
-        Page<ArticleVo> page = new Page<>(queryVo.getPageNumber(), queryVo.getPageSize(), queryVo.getTotalRow());
-        if (BeanUtil.isBlank(queryVo.getRecords())) {
+        if (queryVo == null || BeanUtil.isBlank(queryVo.getRecords())) {
             return null;
         }
+        Page<ArticleVo> page = new Page<>(queryVo.getPageNumber(), queryVo.getPageSize(), queryVo.getTotalRow());
         // 为 Vo 注入信息
         page.setRecords(
             queryVo.getRecords()
