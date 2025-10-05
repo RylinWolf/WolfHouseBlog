@@ -185,6 +185,7 @@ public class ArticleController {
     @Operation(summary = "点赞")
     @PostMapping("/like/{id}")
     public HttpResult<?> like(@PathVariable Long id) throws Exception {
+        // TODO 更新 ES、Redis 点赞信息
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.LIKE_FAILED,
@@ -194,6 +195,7 @@ public class ArticleController {
     @Operation(summary = "取消点赞")
     @DeleteMapping("/like/{id}")
     public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
+        // TODO 更新 ES、Redis 点赞信息
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.UNLIKE_FAILED,

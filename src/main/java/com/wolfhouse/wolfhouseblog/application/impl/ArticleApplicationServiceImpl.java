@@ -92,8 +92,6 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
                        } catch (Exception e) {
                            throw new RuntimeException(e);
                        }
-                       // 注入点赞信息
-                       vo.setLikeCount(actionService.likeCount(a.getId()));
                        return vo;
                    })
                    .toList());
