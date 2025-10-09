@@ -3,6 +3,8 @@ package com.wolfhouse.wolfhouseblog.application.impl;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.application.ArticleApplicationService;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.exceptions.UserAuthException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
@@ -95,8 +97,11 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
                            // 从缓存中获取，若缓存不存在则自动更新缓存
                            UserVo userInfo = userEsDbMediator.getUserVoById(authorId);
                            vo.setAuthor(BeanUtil.copyProperties(userInfo, UserBriefVo.class));
+                       } catch (UserAuthException e) {
+                           // 作者用户已不存在
+                           vo.setAuthor(null);
                        } catch (Exception e) {
-                           throw new RuntimeException(e);
+                           throw new ServiceException(e);
                        }
                        return vo;
                    })
