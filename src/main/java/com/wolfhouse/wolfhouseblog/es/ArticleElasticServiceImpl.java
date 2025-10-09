@@ -375,8 +375,6 @@ public class ArticleElasticServiceImpl implements ArticleService {
 
     /**
      * 根据文章 ID 获取对应的文章视图对象。
-     * <br/>
-     * <b>注意，返回的 Vo 对象中不包含作者信息。若要获取带作者信息的 Vo，应使用文章 BFF 层接口</b>
      *
      * @param id 要查询的文章 ID。
      * @return 如果存在对应 ID 的文章，则返回 ArticleVo 对象；否则返回 null。

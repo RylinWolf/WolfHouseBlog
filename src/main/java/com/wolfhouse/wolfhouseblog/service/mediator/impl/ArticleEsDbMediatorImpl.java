@@ -88,15 +88,15 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
     @Override
     public Article getArticleById(Long id) throws Exception {
         // 从 ES 获取文章
-        Article article = esService.getById(id);
+        ArticleVo vo = esService.getVoById(id);
+        var article = BeanUtil.copyProperties(vo, Article.class);
         if (BeanUtil.isBlank(article)) {
             // ES 的文章为空
             if (BeanUtil.isBlank(article = articleService.getById(id))) {
                 // 数据库中文章不存在
                 return null;
             }
-            // 同步文章至 ES
-            syncArticleFromDb(id);
+            syncArticleFromDb(BeanUtil.copyProperties(article, ArticleEsDto.class));
         }
         return article;
     }
@@ -106,9 +106,12 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
         ArticleVo vo = esService.getVoById(id);
         if (BeanUtil.isBlank(vo)) {
             // ES 的 Vo 为空
-            vo = articleService.getVoById(id);
+            if ((vo = articleService.getVoById(id)) == null) {
+                // 数据库文章不存在
+                return null;
+            }
             // 保存至 ES
-            esService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+            syncArticleFromDb(BeanUtil.copyProperties(vo, ArticleEsDto.class));
         }
         return vo;
     }

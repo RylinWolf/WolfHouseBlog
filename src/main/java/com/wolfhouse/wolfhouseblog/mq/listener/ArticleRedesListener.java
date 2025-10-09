@@ -62,7 +62,7 @@ public class ArticleRedesListener {
             if (update == null) {
                 throw new ServiceException(ArticleConstant.UPDATE_FAILED + dto.getId());
             }
-            ArticleVo vo = applicationService.getArticleVoById(update.getId());
+            ArticleVo vo = applicationService.getArtVoSync(update.getId());
             log.debug("{} 文章更新完成", vo.getId());
             log.debug("更新文章缓存: {}", vo.getId());
             redisService.removeArticleCache(vo.getId());

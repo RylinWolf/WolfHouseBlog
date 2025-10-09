@@ -10,7 +10,6 @@ import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
 import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
-import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
@@ -44,25 +43,24 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
     private final ArticleActionService actionService;
 
     @Override
-    public ArticleVo getArticleVoById(Long id) throws Exception {
+    public ArticleVo getArtVoSync(Long id) throws Exception {
         // 从缓存中获取
         ArticleVo vo = redisService.getCachedArticle(id);
         if (!BeanUtil.isBlank(vo)) {
             return vo;
         }
         // 从 ES 或数据库中获取
-        Article article = esDbMediator.getArticleById(id);
-        if (BeanUtil.isBlank(article)) {
+        vo = esDbMediator.getArticleVoById(id);
+        if (BeanUtil.isBlank(vo)) {
             // 无该文章
             return null;
         }
 
         // 获取作者信息并注入
-        vo = BeanUtil.copyProperties(article, ArticleVo.class);
-        vo.setAuthor(BeanUtil.copyProperties(userEsDbMediator.getUserVoById(article.getAuthorId()), UserBriefVo.class));
+        vo.setAuthor(BeanUtil.copyProperties(userEsDbMediator.getUserVoById(vo.getAuthorId()), UserBriefVo.class));
 
         // 获取点赞信息并注入
-        vo.setLikeCount(actionService.likeCount(article.getId()));
+        vo.setLikeCount(actionService.likeCount(vo.getId()));
 
         // 保存文章至缓存
         redisService.cacheArticle(vo);

@@ -12,7 +12,6 @@ import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
-import com.wolfhouse.wolfhouseblog.pojo.dto.es.ArticleEsDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleCommentVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleFavoriteVo;
@@ -77,7 +76,7 @@ public class ArticleController {
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
         // 从 Redis 缓存中读取文章
-        ArticleVo vo = applicationService.getArticleVoById(id);
+        ArticleVo vo = applicationService.getArtVoSync(id);
         if (BeanUtil.isBlank(vo)) {
             // 该文章不存在
             return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
@@ -108,17 +107,17 @@ public class ArticleController {
     @PostMapping
     public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         Article article = articleService.post(dto);
-        if (article != null) {
-            // 发布成功，获取 Vo，同步至 ES 并进行缓存
-            ArticleVo vo = articleService.getVoById(article.getId());
-            // 前端暂未适配，使用阻塞式
-            elasticService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
-            redisService.cacheArticle(vo);
+        if (BeanUtil.isBlank(article)) {
+            return HttpResult.failed(
+                HttpCodeConstant.POST_FAILED,
+                ArticleConstant.POST_FAILED);
         }
+        // 发布成功，获取 Vo，该方法会确保同步至 ES 并缓存至 Redis
+        ArticleVo vo = applicationService.getArtVoSync(article.getId());
         return HttpResult.failedIfBlank(
-            HttpCodeConstant.POST_FAILED,
-            ArticleConstant.POST_FAILED,
-            BeanUtil.copyProperties(article, ArticleVo.class));
+            HttpCodeConstant.SERVER_ERROR,
+            ArticleConstant.FAILED_TO_LOAD,
+            vo);
     }
 
     @Operation(summary = "暂存")
