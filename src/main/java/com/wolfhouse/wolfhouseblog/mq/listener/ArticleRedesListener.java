@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.mq.listener;
 
+import com.wolfhouse.wolfhouseblog.application.ArticleApplicationService;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleEsConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class ArticleRedesListener {
     private final ArticleElasticServiceImpl articleService;
     private final ArticleRedisService redisService;
+    private final ArticleApplicationService applicationService;
 
     @RabbitListener(bindings = @QueueBinding(
         value = @Queue(name = MqArticleEsConstant.POST_QUEUE),
@@ -60,11 +62,12 @@ public class ArticleRedesListener {
             if (update == null) {
                 throw new ServiceException(ArticleConstant.UPDATE_FAILED + dto.getId());
             }
-            log.debug("{} 文章更新完成", dto.getId());
-            log.debug("更新文章缓存: {}", dto.getId());
-            redisService.removeArticleCache(dto.getId());
-            redisService.cacheArticle(update);
-            log.debug("{} 文章缓存更新完成", dto.getId());
+            ArticleVo vo = applicationService.getArticleVoById(update.getId());
+            log.debug("{} 文章更新完成", vo.getId());
+            log.debug("更新文章缓存: {}", vo.getId());
+            redisService.removeArticleCache(vo.getId());
+            redisService.cacheArticle(vo);
+            log.debug("{} 文章缓存更新完成", vo.getId());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
