@@ -125,7 +125,10 @@ public class ArticleRedisService {
 
     public ArticleVo getCachedArticle(Long id) {
         return objectMapper.convertValue(redisTemplate.opsForValue()
-                                                      .get(ArticleRedisConstant.VO.formatted(id)), ArticleVo.class);
+                                                      .getAndExpire(ArticleRedisConstant.VO.formatted(id),
+                                                                    randTimeout(),
+                                                                    TimeUnit.MINUTES),
+                                         ArticleVo.class);
     }
 
     /**
