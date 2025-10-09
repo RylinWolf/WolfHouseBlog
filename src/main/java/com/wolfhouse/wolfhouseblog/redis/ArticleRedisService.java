@@ -259,6 +259,7 @@ public class ArticleRedisService {
     public Boolean addViews(Map<String, Long> views) {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 获取块级锁
+        // TODO 锁面临其他异步问题
         String lock = ArticleRedisConstant.VIEWS_LOCK.formatted(RedisConstant.BLOCK_LOCK);
         if (!getLock(lock)) {
             return false;
@@ -296,5 +297,4 @@ public class ArticleRedisService {
             redisTemplate.opsForValue()
                          .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
     }
-
 }

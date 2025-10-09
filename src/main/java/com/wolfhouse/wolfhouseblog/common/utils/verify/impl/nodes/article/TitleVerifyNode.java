@@ -20,7 +20,7 @@ public class TitleVerifyNode extends BaseVerifyNode<String> {
 
     @Override
     public boolean verify() {
-        return super.verify() && new StringVerifyNode(1L, 20L, allowNull).target(t)
+        return super.verify() && new StringVerifyNode(1L, 50L, allowNull).target(t)
                                                                          .verify();
     }
 }
