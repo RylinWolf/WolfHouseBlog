@@ -75,6 +75,7 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
                                          .target(favorites.getTitle()))
                   .doVerify();
 
+        favorites.setUserId(login);
         int i = mapper.insert(favorites);
         if (i == 1) {
             return getFavoritesList(login);
