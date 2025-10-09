@@ -90,12 +90,15 @@ public class ArticleRedisService {
      * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
      */
     @Nullable
-    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) {
+    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) throws InterruptedException {
         String lock = ArticleRedisConstant.VO_LOCK.formatted(articleVo.getId());
         String key = ArticleRedisConstant.VO.formatted(articleVo.getId());
+        int retry = 1;
         // 上锁
-        if (!getLock(lock)) {
-            return null;
+        while (!getLock(lock)) {
+            // 阻塞线程
+            lock.wait(100);
+            if (retry++ > 3) {return null;}
         }
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         if (redisTemplate.hasKey(key)) {
@@ -108,6 +111,8 @@ public class ArticleRedisService {
         // 解锁
         redisTemplate.opsForValue()
                      .getAndDelete(lock);
+        // 唤醒线程
+        lock.notifyAll();
         return true;
     }
 

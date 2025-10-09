@@ -41,7 +41,7 @@ public class ArticleRedesListener {
         ),
         key = {MqArticleEsConstant.POST_KEY}
     ))
-    public void post(ArticleVo vo) {
+    public void post(ArticleVo vo) throws InterruptedException {
         log.debug("监听到发布文章信息: {}", vo.getId());
         articleService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
         redisService.cacheOrUpdateArticle(vo);
