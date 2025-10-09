@@ -75,7 +75,7 @@ public class ArticleController {
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
-        // 从 Redis 缓存中读取文章
+        // 读取文章
         ArticleVo vo = applicationService.getArtVoSync(id);
         if (BeanUtil.isBlank(vo)) {
             // 该文章不存在
