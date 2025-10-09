@@ -2,6 +2,7 @@ package com.wolfhouse.wolfhouseblog.mq.listener;
 
 import com.wolfhouse.wolfhouseblog.application.ArticleApplicationService;
 import com.wolfhouse.wolfhouseblog.common.constant.mq.MqArticleEsConstant;
+import com.wolfhouse.wolfhouseblog.common.constant.redis.RedisConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
@@ -43,7 +44,7 @@ public class ArticleRedesListener {
     public void post(ArticleVo vo) {
         log.debug("监听到发布文章信息: {}", vo.getId());
         articleService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
-        redisService.cacheArticle(vo);
+        redisService.cacheOrUpdateArticle(vo);
         log.debug("{} 文章发布完成", vo.getId());
     }
 
@@ -65,8 +66,13 @@ public class ArticleRedesListener {
             ArticleVo vo = applicationService.getArtVoSync(update.getId());
             log.debug("{} 文章更新完成", vo.getId());
             log.debug("更新文章缓存: {}", vo.getId());
-            redisService.removeArticleCache(vo.getId());
-            redisService.cacheArticle(vo);
+            int retry = 1;
+            while (Boolean.FALSE.equals(redisService.cacheOrUpdateArticle(vo))) {
+                log.warn("文章缓存更新失败，正在重试...");
+                if (retry++ > 3) {
+                    throw new ServiceException(RedisConstant.INSERT_FAILED + dto.getId());
+                }
+            }
             log.debug("{} 文章缓存更新完成", vo.getId());
         } catch (Exception e) {
             log.error(e.getMessage(), e);

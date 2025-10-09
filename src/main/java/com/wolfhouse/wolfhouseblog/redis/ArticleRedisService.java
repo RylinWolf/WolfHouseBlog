@@ -19,6 +19,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -88,12 +89,26 @@ public class ArticleRedisService {
      *
      * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
      */
-    public void cacheArticle(ArticleVo articleVo) {
+    @Nullable
+    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) {
+        String lock = ArticleRedisConstant.VO_LOCK.formatted(articleVo.getId());
+        String key = ArticleRedisConstant.VO.formatted(articleVo.getId());
+        // 上锁
+        if (!getLock(lock)) {
+            return null;
+        }
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        if (redisTemplate.hasKey(key)) {
+            redisTemplate.delete(key);
+        }
+        ops.set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
+                articleVo,
+                randTimeout(),
+                TimeUnit.MINUTES);
+        // 解锁
         redisTemplate.opsForValue()
-                     .set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
-                          articleVo,
-                          randTimeout(),
-                          TimeUnit.MINUTES);
+                     .getAndDelete(lock);
+        return true;
     }
 
     /**
@@ -101,17 +116,19 @@ public class ArticleRedisService {
      *
      * @param articleId 要删除缓存的文章 ID
      */
-    public void removeArticleCache(Long articleId) {
+    @Nullable
+    public Boolean removeArticleCache(Long articleId) {
         String key = ArticleRedisConstant.VO.formatted(articleId);
         String lock = ArticleRedisConstant.VO_LOCK.formatted(articleId);
         // 尝试获取锁
         if (!getLock(lock)) {
-            return;
+            return null;
         }
-        redisTemplate.delete(key);
+        Boolean delete = redisTemplate.delete(key);
         // 释放锁
         redisTemplate.opsForValue()
                      .getAndDelete(lock);
+        return delete;
     }
 
     /**

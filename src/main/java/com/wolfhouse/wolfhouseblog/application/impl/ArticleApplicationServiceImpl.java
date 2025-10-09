@@ -63,7 +63,7 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
         vo.setLikeCount(actionService.likeCount(vo.getId()));
 
         // 保存文章至缓存
-        redisService.cacheArticle(vo);
+        redisService.cacheOrUpdateArticle(vo);
         return vo;
     }
 

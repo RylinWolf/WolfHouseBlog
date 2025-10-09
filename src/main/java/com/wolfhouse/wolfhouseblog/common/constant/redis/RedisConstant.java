@@ -13,6 +13,8 @@ public class RedisConstant {
     public static final String LOCK = "lock";
     public static final Object BLOCK_LOCK = "block-lock";
 
+    public static final String INSERT_FAILED = "缓存添加失败！";
+
     public static String format(String... path) {
         return format(true, path);
     }

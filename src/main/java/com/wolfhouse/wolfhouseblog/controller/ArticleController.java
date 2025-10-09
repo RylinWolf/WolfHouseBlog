@@ -85,7 +85,7 @@ public class ArticleController {
                                      null);
         }
         // 缓存文章至 Redis
-        redisService.cacheArticle(vo);
+        redisService.cacheOrUpdateArticle(vo);
 
         // 通过 Redis 存储浏览量，自增
         redisService.increaseView(id);
