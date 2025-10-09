@@ -17,5 +17,4 @@ public class WolfHouseBlogApplication {
     public static void main(String[] args) {
         SpringApplication.run(WolfHouseBlogApplication.class, args);
     }
-
 }

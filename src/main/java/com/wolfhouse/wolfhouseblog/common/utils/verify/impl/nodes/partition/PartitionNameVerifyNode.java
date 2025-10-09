@@ -51,7 +51,7 @@ public class PartitionNameVerifyNode extends BaseVerifyNode<String> {
         }
         this.exception(VerifyConstant.VERIFY_FAILED + "[name]");
         return super.verify() &&
-               new StringVerifyNode(1L, 10L, allowNull)
+               new StringVerifyNode(1L, 20L, allowNull)
                    .target(this.t)
                    .verify();
     }
