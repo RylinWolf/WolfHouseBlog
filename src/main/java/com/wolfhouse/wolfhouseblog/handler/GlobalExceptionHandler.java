@@ -4,6 +4,7 @@ import com.wolfhouse.wolfhouseblog.common.constant.AuthExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.*;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.exceptions.UserAuthException;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyConstant;
@@ -147,5 +148,13 @@ public class GlobalExceptionHandler {
             HttpStatus.FORBIDDEN.value(),
             HttpCodeConstant.NO_PERMISSION,
             AuthExceptionConstant.NO_PERMISSION);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<HttpResult<?>> handlerException(UserAuthException e) {
+        return HttpResult.failed(
+            HttpStatus.UNAUTHORIZED.value(),
+            HttpCodeConstant.VERIFY_FAILED,
+            AuthExceptionConstant.USER_NOT_EXIST);
     }
 }
