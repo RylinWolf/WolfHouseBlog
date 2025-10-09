@@ -12,6 +12,8 @@ public class RedisConstant {
     public static final String SEPARATOR = ":";
     public static final String LOCK = "lock";
     public static final Object BLOCK_LOCK = "block-lock";
+    
+    public static final Long LOCK_MAX_RETRY = 3L;
 
     public static final String INSERT_FAILED = "缓存添加失败！";
 

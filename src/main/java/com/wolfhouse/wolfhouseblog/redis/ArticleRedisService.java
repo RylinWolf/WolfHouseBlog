@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.constant.redis.ArticleRedisConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.redis.RedisConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
@@ -90,30 +91,43 @@ public class ArticleRedisService {
      * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
      */
     @Nullable
-    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) throws InterruptedException {
+    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) {
         String lock = ArticleRedisConstant.VO_LOCK.formatted(articleVo.getId());
         String key = ArticleRedisConstant.VO.formatted(articleVo.getId());
-        int retry = 1;
         // 上锁
-        while (!getLock(lock)) {
-            // 阻塞线程
-            lock.wait(100);
-            if (retry++ > 3) {return null;}
+        for (int i = 0; i < RedisConstant.LOCK_MAX_RETRY; i++) {
+            // 获取锁
+            if (!getLock(lock)) {
+                try {
+                    Thread.sleep(100);
+                    continue;
+                } catch (InterruptedException e) {
+                    Thread.currentThread()
+                          .interrupt();
+                    log.warn("线程在等待锁时被中断");
+                    return null;
+                }
+            }
+            try {
+                ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+                if (redisTemplate.hasKey(key)) {
+                    redisTemplate.delete(key);
+                }
+                ops.set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
+                        articleVo,
+                        randTimeout(),
+                        TimeUnit.MINUTES);
+            } catch (Exception e) {
+                throw new ServiceException(e.getMessage(), e);
+            } finally {
+                // 解锁
+                redisTemplate.opsForValue()
+                             .getAndDelete(lock);
+            }
+            return true;
         }
-        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        if (redisTemplate.hasKey(key)) {
-            redisTemplate.delete(key);
-        }
-        ops.set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
-                articleVo,
-                randTimeout(),
-                TimeUnit.MINUTES);
-        // 解锁
-        redisTemplate.opsForValue()
-                     .getAndDelete(lock);
-        // 唤醒线程
-        lock.notifyAll();
-        return true;
+        // 未成功获得锁
+        return null;
     }
 
     /**
@@ -163,14 +177,14 @@ public class ArticleRedisService {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 文章 key 不存在
         if (!redisTemplate.hasKey(key)) {
+            boolean lockAcquired = false;
             try {
                 // 获得锁
-                if (Boolean
-                    .TRUE
-                    .equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
-                                            0,
-                                            ArticleRedisConstant.LOCK_TIME_SECONDS,
-                                            TimeUnit.SECONDS))) {
+                lockAcquired = Boolean.TRUE.equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
+                                                                   0,
+                                                                   ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                                                   TimeUnit.SECONDS));
+                if (lockAcquired) {
                     // 双重检查锁定
                     if (!redisTemplate.hasKey(key)) {
                         ops.set(key, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
@@ -182,13 +196,15 @@ public class ArticleRedisService {
                 }
             } catch (Exception ignored) {} finally {
                 // 移除锁
-                ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
+                if (lockAcquired) {
+                    ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
+                }
             }
         }
         // 自增
         ops.increment(key);
         // 刷新过期时间
-        ops.set(key, Objects.requireNonNull(ops.get(key)), ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
+        redisTemplate.expire(key, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
     }
 
 
