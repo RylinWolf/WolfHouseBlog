@@ -9,6 +9,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.BaseMapper;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryColumn;
@@ -306,7 +307,8 @@ public class ArticleElasticServiceImpl implements ArticleService {
                                    .orElse(new QueryOrderField());
         if (BeanUtil.isBlank(order)) {
             // 默认按照发布时间排序
-            order.add(new OrderField(ARTICLE.POST_TIME.getName(), false));
+            order.add(new OrderField(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
+                                                                    ARTICLE.POST_TIME.getName()), false));
         }
         builder.sort(EsUtil.sortOptions(order));
 
