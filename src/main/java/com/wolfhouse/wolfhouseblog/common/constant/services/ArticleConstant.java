@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.constant.services;
 
+import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.query.QueryColumn;
 import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef;
 
@@ -47,7 +48,10 @@ public class ArticleConstant {
     public static final String FAILED_TO_LOAD = "加载失败！";
 
     /** 允许排序的字段 */
-    public static final Set<String> SORT_FIELD_ALLOWED = Set.of(ARTICLE.POST_TIME.getName(),
+    public static final Set<String> SORT_FIELD_ALLOWED = Set.of(CaseFormat
+                                                                    .LOWER_UNDERSCORE
+                                                                    .to(CaseFormat.LOWER_CAMEL,
+                                                                        ARTICLE.POST_TIME.getName()),
                                                                 ARTICLE.VIEWS.getName(),
                                                                 "likeCount");
 }
