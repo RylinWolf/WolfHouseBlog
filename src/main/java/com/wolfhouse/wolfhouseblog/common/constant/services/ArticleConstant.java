@@ -2,7 +2,6 @@ package com.wolfhouse.wolfhouseblog.common.constant.services;
 
 import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.query.QueryColumn;
-import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef;
 
 import java.util.Set;
 
@@ -13,13 +12,14 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
  */
 public class ArticleConstant {
     public static final QueryColumn[] BRIEF_COLUMNS = {
-        ArticleTableDef.ARTICLE.ID,
-        ArticleTableDef.ARTICLE.TITLE,
-        ArticleTableDef.ARTICLE.VISIBILITY,
-        ArticleTableDef.ARTICLE.PRIMARY,
-        ArticleTableDef.ARTICLE.AUTHOR_ID,
-        ArticleTableDef.ARTICLE.POST_TIME,
-        ArticleTableDef.ARTICLE.VIEWS
+        ARTICLE.ID,
+        ARTICLE.TITLE,
+        ARTICLE.VISIBILITY,
+        ARTICLE.PRIMARY,
+        ARTICLE.AUTHOR_ID,
+        ARTICLE.POST_TIME,
+        ARTICLE.VIEWS,
+        ARTICLE.EDIT_TIME
     };
     public static final String NOT_ALLOWED = "无操作权限！";
 

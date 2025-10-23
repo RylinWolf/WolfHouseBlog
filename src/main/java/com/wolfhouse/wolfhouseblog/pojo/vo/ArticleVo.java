@@ -19,6 +19,7 @@ public class ArticleVo {
     private Long likeCount;
     private String content;
     private LocalDateTime postTime;
+    private LocalDateTime editTime;
     private Long partitionId;
     private String partitionName;
     private List<String> tags;
