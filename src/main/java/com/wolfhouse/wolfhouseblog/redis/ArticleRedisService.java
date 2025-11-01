@@ -383,18 +383,23 @@ public class ArticleRedisService {
         int retries = 0;
         while (!redisTemplate.hasKey(key)) {
             String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-            if (Boolean.FALSE.equals(ops.setIfAbsent(lock, 0))) {
+            if (Boolean.FALSE.equals(ops.setIfAbsent(lock,
+                                                     0,
+                                                     ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                                     TimeUnit.SECONDS))) {
                 // 未抢到锁
                 if (retries >= maxRetries) {
                     // 超过最大重试次数
                     return false;
                 }
                 retries++;
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 continue;
             }
             // 抢到锁，初始化点赞
             ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
+            // 移除锁
+            redisTemplate.delete(lock);
             break;
         }
         // 自增点赞量
@@ -408,26 +413,25 @@ public class ArticleRedisService {
      * @param articleId 文章的唯一标识 ID
      * @return 文章的点赞数，如果未找到对应的缓存数据，返回 0
      */
-    public Long getLikes(Long articleId) {
+    public Long getLikesAndRemove(Long articleId) {
         String key = ArticleRedisConstant.LIKE.formatted(articleId);
         if (!redisTemplate.hasKey(key)) {
             return 0L;
         }
 
-        return (Long) redisTemplate.opsForValue()
-                                   .get(key);
+        String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        if (Boolean.FALSE.equals(ops.setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS))) {
+            // 未抢到锁
+            return 0L;
+        }
+        // 获得锁
+        Long likes = (Long) ops.getAndDelete(key);
+        // 移除锁
+        redisTemplate.delete(lock);
+        return likes;
     }
 
-    /**
-     * 删除指定文章的点赞记录缓存。
-     *
-     * @param articleId 文章的唯一标识 ID
-     * @return 如果缓存删除成功返回 true；否则返回 false
-     */
-    public Boolean deleteLike(Long articleId) {
-        String key = ArticleRedisConstant.LIKE.formatted(articleId);
-        return redisTemplate.hasKey(key) && redisTemplate.delete(key);
-    }
 
     /**
      * 尝试为指定的文章 ID 设置指定锁
