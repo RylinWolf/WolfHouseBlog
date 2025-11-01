@@ -86,9 +86,11 @@ public class ArticleRedisService {
     }
 
     /**
-     * 将文章数据缓存到 Redis 中。
+     * 将文章数据缓存到 Redis 中，如果文章已存在则更新缓存。
+     * 使用分布式锁确保并发安全。
      *
      * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
+     * @return 操作是否成功，获取锁失败时返回 null
      */
     @Nullable
     public Boolean cacheOrUpdateArticle(ArticleVo articleVo) {
@@ -208,6 +210,11 @@ public class ArticleRedisService {
     }
 
 
+    /**
+     * 获取并删除所有文章的浏览量缓存。
+     *
+     * @return 包含文章ID和对应浏览量的Map，如果没有缓存数据则返回null
+     */
     public Map<String, Long> getViewsAndDelete() {
         // 获取所有缓存的浏览量键
         Set<String> keys = redisTemplate.keys(ArticleRedisConstant.VIEWS.formatted("*"));
@@ -230,6 +237,12 @@ public class ArticleRedisService {
         return views;
     }
 
+    /**
+     * 获取并删除指定文章的浏览量缓存。
+     *
+     * @param articleId 文章ID
+     * @return 文章的浏览量，如果缓存不存在则返回null
+     */
     public Long getViewsAndDelete(Long articleId) {
         String key = ArticleRedisConstant.VIEWS.formatted(articleId);
         Object o = redisTemplate.opsForValue()
@@ -240,6 +253,12 @@ public class ArticleRedisService {
         return Long.parseLong(o.toString());
     }
 
+    /**
+     * 获取指定文章的浏览量缓存。
+     *
+     * @param articleId 文章ID
+     * @return 文章的浏览量，如果缓存不存在则返回null
+     */
     public Long getViews(Long articleId) {
         Object o = redisTemplate.opsForValue()
                                 .get(ArticleRedisConstant.VIEWS.formatted(articleId));
@@ -279,21 +298,46 @@ public class ArticleRedisService {
     }
 
 
+    /**
+     * 缓存文章简要信息的分页查询结果。
+     *
+     * @param dto    查询条件数据传输对象
+     * @param briefs 文章简要信息的分页结果
+     */
     public void cacheBriefs(ArticleQueryPageDto dto, PageResult<ArticleBriefVo> briefs) {
         pageOps.set(ArticleRedisConstant.QUERY_BRIEF.formatted(dto), briefs, randTimeout(), TimeUnit.MINUTES);
     }
 
+    /**
+     * 获取已缓存的文章简要信息分页查询结果。
+     *
+     * @param dto 查询条件数据传输对象
+     * @return 文章简要信息的分页结果
+     */
     public PageResult<ArticleBriefVo> getCachedBrief(ArticleQueryPageDto dto) {
         return pageOps.getAndExpire(ArticleRedisConstant.QUERY_BRIEF.formatted(dto),
                                     randTimeout(),
                                     TimeUnit.MINUTES);
     }
 
+    /**
+     * 生成随机的缓存过期时间。
+     * 在基础过期时间上增加0-60分钟的随机值，避免缓存同时失效。
+     *
+     * @return 随机生成的过期时间（分钟）
+     */
     private Long randTimeout() {
         return BASE_TIME_OUT + new Random().nextLong(60);
     }
 
 
+    /**
+     * 批量增加文章的浏览量。
+     * 使用分布式锁确保并发安全。
+     *
+     * @param views 文章ID和需要增加的浏览量的映射
+     * @return 操作是否成功
+     */
     public Boolean addViews(Map<String, Long> views) {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 获取块级锁
@@ -322,6 +366,67 @@ public class ArticleRedisService {
             ops.getAndDelete(lock);
         }
         return true;
+    }
+
+    /**
+     * 为文章增加一个点赞。
+     * 如果点赞记录不存在，将尝试通过加锁的方式初始化点赞记录。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @return 执行结果，如果成功增加点赞则返回 true；否则返回 false
+     * @throws InterruptedException 在尝试获取锁或初始化点赞数据时，线程被中断
+     */
+    public Boolean like(Long articleId) throws InterruptedException {
+        String key = ArticleRedisConstant.LIKE.formatted(articleId);
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        int maxRetries = 3;
+        int retries = 0;
+        while (!redisTemplate.hasKey(key)) {
+            String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
+            if (Boolean.FALSE.equals(ops.setIfAbsent(lock, 0))) {
+                // 未抢到锁
+                if (retries >= maxRetries) {
+                    // 超过最大重试次数
+                    return false;
+                }
+                retries++;
+                Thread.sleep(1000);
+                continue;
+            }
+            // 抢到锁，初始化点赞
+            ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
+            break;
+        }
+        // 自增点赞量
+        ops.increment(key);
+        return true;
+    }
+
+    /**
+     * 获取指定文章的点赞数。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @return 文章的点赞数，如果未找到对应的缓存数据，返回 0
+     */
+    public Long getLikes(Long articleId) {
+        String key = ArticleRedisConstant.LIKE.formatted(articleId);
+        if (!redisTemplate.hasKey(key)) {
+            return 0L;
+        }
+
+        return (Long) redisTemplate.opsForValue()
+                                   .get(key);
+    }
+
+    /**
+     * 删除指定文章的点赞记录缓存。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @return 如果缓存删除成功返回 true；否则返回 false
+     */
+    public Boolean deleteLike(Long articleId) {
+        String key = ArticleRedisConstant.LIKE.formatted(articleId);
+        return redisTemplate.hasKey(key) && redisTemplate.delete(key);
     }
 
     /**
