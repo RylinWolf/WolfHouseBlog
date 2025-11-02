@@ -16,7 +16,7 @@ import java.util.Set;
 @Component
 public class ArticleDto {
     @NotNull
-    @Size(min = 1, max = 20)
+    @Size(min = 1, max = 50)
     private String title;
 
     @Size(max = 200)

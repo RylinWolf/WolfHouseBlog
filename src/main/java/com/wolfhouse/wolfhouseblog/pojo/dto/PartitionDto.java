@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class PartitionDto {
     @NotNull
-    @Size(min = 1, max = 10)
+    @Size(min = 1, max = 20)
     private String name;
     private Long parentId;
     private VisibilityEnum visibility;

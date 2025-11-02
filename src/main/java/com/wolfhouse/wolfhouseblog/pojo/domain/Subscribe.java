@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.pojo.domain;
 
 import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
 import com.mybatisflex.annotation.Table;
 import lombok.Data;
 
@@ -10,7 +11,7 @@ import lombok.Data;
 @Data
 @Table("subscribe")
 public class Subscribe {
-    @Id
+    @Id(keyType = KeyType.Auto)
     private Long id;
     private Long fromUser;
     private Long toUser;

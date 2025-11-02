@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.controller;
 
+import com.wolfhouse.wolfhouseblog.application.ArticleApplicationService;
 import com.wolfhouse.wolfhouseblog.common.constant.services.ArticleConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpCodeConstant;
 import com.wolfhouse.wolfhouseblog.common.http.HttpMediaTypeConstant;
@@ -8,7 +9,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
-import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
+import com.wolfhouse.wolfhouseblog.mq.service.MqRedesService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
@@ -18,7 +19,6 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.service.ArticleActionService;
 import com.wolfhouse.wolfhouseblog.service.ArticleService;
-import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,9 +43,9 @@ public class ArticleController {
     private final ArticleActionService actionService;
     private ArticleService articleService;
     private ArticleElasticServiceImpl elasticService;
-    private final MqEsService mqEsService;
+    private final MqRedesService mqRedesService;
     private final ArticleRedisService redisService;
-    private final ArticleEsDbMediator esDbMediator;
+    private final ArticleApplicationService applicationService;
 
     @Autowired
     @Qualifier("articleServiceImpl")
@@ -66,30 +66,27 @@ public class ArticleController {
         // 传递了文章内容字段，则查询完整的文章视图
         if (!BeanUtil.isBlank(JsonNullableUtil.getObjOrNull(dto.getContent()))) {
             // 检索文章内容
-            return HttpResult.success(elasticService.getQueryVo(dto));
+            return HttpResult.success(applicationService.queryArticleVo(dto));
         }
         // 不检索内容，仅缩略
-        return HttpResult.success(elasticService.getBriefQuery(dto));
+        return HttpResult.success(applicationService.queryArticleBriefVo(dto));
     }
 
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
-        // 从 Redis 缓存中读取文章
-        ArticleVo vo = redisService.getCachedArticle(id);
-        // 缓存中没有文章，则从数据库获取并保存到缓存
+        // 读取文章
+        ArticleVo vo = applicationService.getArtVoSync(id);
         if (BeanUtil.isBlank(vo)) {
-            // 缓存为空，从 ES 和数据库获取
-            if (BeanUtil.isBlank((vo = esDbMediator.getVoById(id)))) {
-                // 该文章不存在
-                return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
-                                         HttpCodeConstant.ACCESS_DENIED,
-                                         ArticleConstant.ACCESS_DENIED,
-                                         null);
-            }
-            // 缓存文章至 Redis
-            redisService.cacheArticle(vo);
+            // 该文章不存在
+            return HttpResult.failed(HttpStatus.FORBIDDEN.value(),
+                                     HttpCodeConstant.ACCESS_DENIED,
+                                     ArticleConstant.ACCESS_DENIED,
+                                     null);
         }
+        // 缓存文章至 Redis
+        redisService.cacheOrUpdateArticle(vo);
+
         // 通过 Redis 存储浏览量，自增
         redisService.increaseView(id);
 
@@ -110,14 +107,17 @@ public class ArticleController {
     @PostMapping
     public HttpResult<ArticleVo> post(@RequestBody @Valid ArticleDto dto) throws Exception {
         Article article = articleService.post(dto);
-        if (article != null) {
-            // 前端暂未适配，使用阻塞式
-            elasticService.saveOne(article);
+        if (BeanUtil.isBlank(article)) {
+            return HttpResult.failed(
+                HttpCodeConstant.POST_FAILED,
+                ArticleConstant.POST_FAILED);
         }
+        // 发布成功，获取 Vo，该方法会确保同步至 ES 并缓存至 Redis
+        ArticleVo vo = applicationService.getArtVoSync(article.getId());
         return HttpResult.failedIfBlank(
-            HttpCodeConstant.POST_FAILED,
-            ArticleConstant.POST_FAILED,
-            BeanUtil.copyProperties(article, ArticleVo.class));
+            HttpCodeConstant.SERVER_ERROR,
+            ArticleConstant.FAILED_TO_LOAD,
+            vo);
     }
 
     @Operation(summary = "暂存")
@@ -132,9 +132,9 @@ public class ArticleController {
     @Operation(summary = "更新")
     @PatchMapping
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
-        Article update = articleService.update(dto);
+        ArticleVo update = articleService.update(dto);
         if (update != null) {
-            mqEsService.updateArticle(dto);
+            mqRedesService.updateArticle(dto);
         }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.UPDATE_FAILED,
@@ -147,7 +147,7 @@ public class ArticleController {
     public HttpResult<?> delete(@PathVariable Long id) throws Exception {
         Boolean b = articleService.deleteById(id);
         if (b) {
-            mqEsService.deleteArticle(id);
+            mqRedesService.deleteArticle(id);
         }
         return HttpResult.onCondition(HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED, b);
     }
@@ -184,19 +184,30 @@ public class ArticleController {
     @Operation(summary = "点赞")
     @PostMapping("/like/{id}")
     public HttpResult<?> like(@PathVariable Long id) throws Exception {
+        // 数据库更新点赞信息
+        Boolean isLiked = actionService.like(id);
+        if (isLiked) {
+            // 同步至 ES 与 Redis
+            mqRedesService.like(id);
+        }
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.LIKE_FAILED,
-            actionService.like(id));
+            isLiked);
     }
 
     @Operation(summary = "取消点赞")
-    @DeleteMapping("/unlike/{id}")
+    @DeleteMapping("/like/{id}")
     public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
+        Boolean unlike = actionService.unlike(id);
+        if (unlike) {
+            // 同步至 ES 与 Redis
+            mqRedesService.unlike(id);
+        }
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.UNLIKE_FAILED,
-            actionService.unlike(id));
+            unlike);
     }
 
     @Operation(summary = "收藏文章")

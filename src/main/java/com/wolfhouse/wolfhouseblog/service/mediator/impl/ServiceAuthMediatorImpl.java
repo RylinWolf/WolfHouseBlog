@@ -53,6 +53,21 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
     }
 
     @Override
+    public UserService userService() {
+        return this.userService;
+    }
+
+    @Override
+    public UserAuthService userAuthService() {
+        return this.authService;
+    }
+
+    @Override
+    public ArticleService articleService() {
+        return this.articleService;
+    }
+
+    @Override
     public void registerAction(ArticleActionService articleActionService) {
         this.actionService = articleActionService;
     }

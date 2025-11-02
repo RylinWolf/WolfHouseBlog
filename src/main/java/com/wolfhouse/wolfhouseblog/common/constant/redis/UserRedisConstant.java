@@ -15,4 +15,8 @@ public class UserRedisConstant {
     public static final String TOKEN =
         RedisConstant.format(false, BASE, "token") + RedisConstant.SEPARATOR + "%s";
 
+    /** 用户信息 */
+    public static final String INFO = RedisConstant.format(false, BASE, "info") + RedisConstant.SEPARATOR + "%s";
+    /** 用户信息缓存时间 */
+    public static final Long INFO_TIMEOUT_MINUTES = 3 * 24 * 60L;
 }

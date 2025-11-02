@@ -14,10 +14,14 @@ public class ArticleVo {
     private Long id;
     private String title;
     private String primary;
+    private UserBriefVo author;
     private Long authorId;
+    private Long likeCount;
     private String content;
     private LocalDateTime postTime;
+    private LocalDateTime editTime;
     private Long partitionId;
+    private String partitionName;
     private List<String> tags;
     private List<Long> comUseTags;
     private VisibilityEnum visibility;

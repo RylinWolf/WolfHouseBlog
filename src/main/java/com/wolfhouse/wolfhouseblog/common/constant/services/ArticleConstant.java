@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.constant.services;
 
+import com.google.common.base.CaseFormat;
 import com.mybatisflex.core.query.QueryColumn;
-import com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef;
 
 import java.util.Set;
 
@@ -12,15 +12,18 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.ArticleTableDef.ARTI
  */
 public class ArticleConstant {
     public static final QueryColumn[] BRIEF_COLUMNS = {
-        ArticleTableDef.ARTICLE.ID,
-        ArticleTableDef.ARTICLE.TITLE,
-        ArticleTableDef.ARTICLE.VISIBILITY,
-        ArticleTableDef.ARTICLE.PRIMARY,
-        ArticleTableDef.ARTICLE.AUTHOR_ID,
-        ArticleTableDef.ARTICLE.POST_TIME,
-        ArticleTableDef.ARTICLE.VIEWS
+        ARTICLE.ID,
+        ARTICLE.TITLE,
+        ARTICLE.VISIBILITY,
+        ARTICLE.PRIMARY,
+        ARTICLE.AUTHOR_ID,
+        ARTICLE.POST_TIME,
+        ARTICLE.VIEWS,
+        ARTICLE.EDIT_TIME
     };
+    public static final String NOT_ALLOWED = "无操作权限！";
 
+    public static final String ARTICLE_NOT_EXIST = "文章不存在！";
     public static final String POST_FAILED = "文章发布失败！";
     public static final String UPDATE_INCOMPLETE = "更新不完整！";
     public static final String UPDATE_FAILED = "文章修改失败！";
@@ -42,7 +45,13 @@ public class ArticleConstant {
     public static final String UNFAVORITE_FAILED = "取消收藏失败！";
     public static final String ALREADY_FAVORITE = "文章已收藏！";
     public static final String FAVORITE_NOT_EXIST = "文章不在该收藏夹中！";
+    public static final String FAILED_TO_LOAD = "加载失败！";
+
     /** 允许排序的字段 */
-    public static final Set<String> SORT_FIELD_ALLOWED = Set.of(ARTICLE.POST_TIME.getName(),
-                                                                ARTICLE.VIEWS.getName());
+    public static final Set<String> SORT_FIELD_ALLOWED = Set.of(CaseFormat
+                                                                    .LOWER_UNDERSCORE
+                                                                    .to(CaseFormat.LOWER_CAMEL,
+                                                                        ARTICLE.POST_TIME.getName()),
+                                                                ARTICLE.VIEWS.getName(),
+                                                                "likeCount");
 }

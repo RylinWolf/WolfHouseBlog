@@ -1,9 +1,6 @@
 package com.wolfhouse.wolfhouseblog.common.constant.es;
 
-import co.elastic.clients.elasticsearch._types.mapping.DateProperty;
-import co.elastic.clients.elasticsearch._types.mapping.KeywordProperty;
-import co.elastic.clients.elasticsearch._types.mapping.Property;
-import co.elastic.clients.elasticsearch._types.mapping.TextProperty;
+import co.elastic.clients.elasticsearch._types.mapping.*;
 
 import java.util.Map;
 
@@ -23,7 +20,9 @@ public class ElasticConstant {
         Map.entry("visibility", ofProperty("keyword", true, null)),
         Map.entry("partition_id", ofProperty("keyword", false, null)),
         Map.entry("tags", ofProperty("text", true, "ik_smart")),
-        Map.entry("com_use_tags", ofProperty("keyword", false, null)));
+        Map.entry("com_use_tags", ofProperty("keyword", false, null)),
+        Map.entry("views", ofProperty("int", true, null)),
+        Map.entry("like_count", ofProperty("int", true, null)));
 
 
     private static Property ofProperty(String type, boolean index, String analyzer) {
@@ -47,6 +46,11 @@ public class ElasticConstant {
                                            return v;
                                        })
                                        ._toProperty();
+            case "int" -> IntegerNumberProperty.of(v -> {
+                                                   v.index(index);
+                                                   return v;
+                                               })
+                                               ._toProperty();
             case null, default -> Property.of(v -> v);
         };
     }

@@ -1,7 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user;
 
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
-import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
+import com.wolfhouse.wolfhouseblog.common.exceptions.UserAuthException;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.BaseVerifyNode;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 
@@ -33,13 +33,13 @@ public class UserIdVerifyNode extends BaseVerifyNode<Long> {
 
         // 用户不存在或已删除
         if (!mediator.isAuthExist(this.t) || mediator.isUserDeleted(this.t)) {
-            this.customException = new ServiceException(UserConstant.USER_NOT_EXIST);
+            this.customException = new UserAuthException(UserConstant.USER_NOT_EXIST, this.t);
             return false;
         }
 
         // 用户被禁用
         if (!mediator.isUserEnabled(this.t)) {
-            this.customException = new ServiceException(UserConstant.USER_HAS_BEEN_BANNED);
+            this.customException = new UserAuthException(UserConstant.USER_HAS_BEEN_BANNED, this.t);
             return false;
         }
 

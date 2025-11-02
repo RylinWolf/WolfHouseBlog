@@ -37,6 +37,27 @@ public interface ServiceAuthMediator {
     void registerArticle(ArticleService articleService);
 
     /**
+     * 获取用户服务实现
+     *
+     * @return 用户服务实现
+     */
+    UserService userService();
+
+    /**
+     * 获取用户认证服务实现
+     *
+     * @return 用户认证服务实现
+     */
+    UserAuthService userAuthService();
+
+    /**
+     * 获取文章服务实现
+     *
+     * @return 文章服务实现
+     */
+    ArticleService articleService();
+
+    /**
      * 注册文章操作服务实现
      *
      * @param articleActionService 要注册的文章操作服务

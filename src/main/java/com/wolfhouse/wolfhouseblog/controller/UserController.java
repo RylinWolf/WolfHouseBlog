@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.mail.MailService;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
@@ -16,6 +17,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserLoginVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import com.wolfhouse.wolfhouseblog.redis.UserRedisService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,9 +33,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author linexsong
@@ -48,24 +54,26 @@ public class UserController {
     private final UserAuthService authService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final UserRedisService redisService;
+    private final MailService mailService;
 
     @Operation(summary = "登陆")
     @PostMapping("/login")
     public ResponseEntity<HttpResult<UserLoginVo>> login(@RequestBody UserLoginDto dto) {
         try {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
-                 dto.getAccount(),
-                 dto.getPassword()));
+                dto.getAccount(),
+                dto.getPassword()));
             log.info("用户[{}]登陆", auth.getPrincipal());
             return HttpResult.ok(UserLoginVo.token(jwtUtil.getToken(auth)), null);
 
         } catch (AuthenticationException e) {
             // 验证失败
             return HttpResult.failed(
-                 HttpStatus.UNAUTHORIZED.value(),
-                 HttpCodeConstant.AUTH_FAILED,
-                 AuthExceptionConstant.AUTHENTIC_FAILED,
-                 null);
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpCodeConstant.AUTH_FAILED,
+                AuthExceptionConstant.AUTHENTIC_FAILED,
+                null);
         }
     }
 
@@ -73,43 +81,91 @@ public class UserController {
     @PostMapping("/register")
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<HttpResult<UserRegisterVo>> register(@RequestBody @Valid UserRegisterDto dto)
-         throws Exception {
+        throws Exception {
         log.info("用户注册: {}", dto);
         // 检查用户是否存在
         if (userService.hasAccountOrEmail(dto.getEmail())) {
             return HttpResult.failed(
-                 HttpStatus.CONFLICT.value(),
-                 HttpCodeConstant.USER_ALREADY_EXIST,
-                 UserConstant.USER_ALREADY_EXIST,
-                 null);
+                HttpStatus.CONFLICT.value(),
+                HttpCodeConstant.USER_ALREADY_EXIST,
+                UserConstant.USER_ALREADY_EXIST,
+                null);
         }
+        // 验证邮箱验证码
+        if (!mailService.verifyCode(dto.getEmail(), dto.getEmailVerifyCode())) {
+            // 验证不通过
+            return HttpResult.failed(HttpStatus.BAD_REQUEST.value(),
+                                     HttpCodeConstant.BAD_REQUEST,
+                                     UserConstant.MAIL_CODE_UNVERIFIED,
+                                     null);
+        }
+
         // 设置用户 ID
         dto.setUserId(authService.createAuth(dto.getPassword())
                                  .getUserId());
 
         // 注册用户
         return HttpResult.failedIfBlank(
-             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-             HttpCodeConstant.FAILED,
-             UserConstant.USER_AUTH_CREATE_FAILED,
-             userService.createUser(dto));
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpCodeConstant.FAILED,
+            UserConstant.USER_AUTH_CREATE_FAILED,
+            userService.createUser(dto));
     }
 
     @Operation(summary = "获取用户信息")
     @GetMapping("/{id}")
     public HttpResult<UserVo> getInfo(@PathVariable Long id) throws Exception {
+        // 从缓存中获取用户信息
+        if (redisService.existsUserCache(id)) {
+            return HttpResult.success(redisService.getUserInfo(id));
+        }
+        // 无缓存
+        UserVo userVo = userService.getUserVoById(id);
+        if (!BeanUtil.isBlank(userVo)) {
+            // 缓存用户信息
+            redisService.userInfoCache(userVo);
+        }
         return HttpResult.failedIfBlank(
-             HttpCodeConstant.FAILED,
-             UserConstant.USER_UNACCESSIBLE,
-             userService.getUserVoById(id));
+            HttpCodeConstant.FAILED,
+            UserConstant.USER_UNACCESSIBLE,
+            userVo);
+    }
+
+    @Operation(summary = "批量获取用户简略信息")
+    @GetMapping("/brief")
+    public HttpResult<List<UserBriefVo>> getBriefInfo(
+        @RequestParam @Validated @Size(max = 10) Set<Long> ids) throws Exception {
+        Map<Long, UserVo> cachedUser = redisService.getCachedUsers(ids);
+        if (!cachedUser.isEmpty() && ids.size() == cachedUser.size()) {
+            // 缓存全部命中
+            return HttpResult.success(
+                BeanUtil.copyList(
+                    cachedUser.values()
+                              .stream()
+                              .toList(),
+                    UserBriefVo.class));
+        }
+        // 移除已缓存的数据
+        ids.removeAll(cachedUser.keySet());
+
+        // 缓存用户信息
+        List<UserVo> users = userService.getUsers(ids);
+        users.forEach(redisService::userInfoCache);
+
+        // 合并结果集
+        Collection<UserVo> cachedUserVo = cachedUser.values();
+        if (!cachedUserVo.isEmpty()) {
+            users.addAll(cachedUserVo);
+        }
+        return HttpResult.success(BeanUtil.copyList(users, UserBriefVo.class));
     }
 
     @Operation(summary = "获取当前登录账号信息")
     @GetMapping
     public HttpResult<UserVo> getSelf() throws Exception {
         return HttpResult.failedIfBlank(HttpCodeConstant.FAILED,
-                UserConstant.USER_UNACCESSIBLE,
-                userService.getUserVoById(ServiceUtil.loginUserOrE()));
+                                        UserConstant.USER_UNACCESSIBLE,
+                                        userService.getUserVoById(ServiceUtil.loginUserOrE()));
 
     }
 
@@ -122,29 +178,31 @@ public class UserController {
     @Operation(summary = "修改")
     @PutMapping
     public HttpResult<UserVo> update(@RequestBody @Valid UserUpdateDto dto) throws Exception {
-
+        Long login = ServiceUtil.loginUserOrE();
+        // 移除缓存
+        redisService.deleteUserCache(login);
         return HttpResult.failedIfBlank(
-             HttpCodeConstant.UPDATE_FAILED,
-             UserConstant.USER_UPDATE_FAILED,
-             userService.updateAuthedUser(dto));
+            HttpCodeConstant.UPDATE_FAILED,
+            UserConstant.USER_UPDATE_FAILED,
+            userService.updateAuthedUser(dto));
     }
 
     @Operation(summary = "关注")
     @PutMapping("/subscribe")
     public HttpResult<?> subscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
         return HttpResult.onCondition(
-             HttpCodeConstant.FAILED,
-             UserConstant.SUBSCRIBE_FAILED,
-             userService.subscribe(dto));
+            HttpCodeConstant.FAILED,
+            UserConstant.SUBSCRIBE_FAILED,
+            userService.subscribe(dto));
     }
 
     @Operation(summary = "取消关注")
     @DeleteMapping("/subscribe")
     public HttpResult<?> unSubscribe(@RequestBody @Valid UserSubDto dto) throws Exception {
         return HttpResult.onCondition(
-             HttpCodeConstant.FAILED,
-             UserConstant.UNSUBSCRIBE_FAILED,
-             userService.unsubscribe(dto));
+            HttpCodeConstant.FAILED,
+            UserConstant.UNSUBSCRIBE_FAILED,
+            userService.unsubscribe(dto));
     }
 
     @Operation(summary = "获取关注列表")
@@ -159,11 +217,13 @@ public class UserController {
     @Operation(summary = "删除账号")
     @DeleteMapping
     public HttpResult<?> deleteAccount() throws Exception {
+        Long login = ServiceUtil.loginUserOrE();
         // TODO 删除账号设置缓冲期
+        redisService.deleteUserCache(login);
         return HttpResult.onCondition(
-             HttpCodeConstant.FAILED,
-             UserConstant.DELETE_FAILED,
-             userService.deleteAccount(ServiceUtil.loginUserOrE()));
+            HttpCodeConstant.FAILED,
+            UserConstant.DELETE_FAILED,
+            userService.deleteAccount(login));
     }
 
 }

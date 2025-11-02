@@ -53,7 +53,17 @@ custom:
     host: ${custom.elasticsearch.host}
     max-result-window: ${custom.elasticsearch.max-result-window}
 
+  # 数据库备份配置（可选）
+  backup:
+    enable: ${custom.backup.enable}                  # 是否启用备份
+    cron: ${custom.backup.cron}             # 调度表达式：每天 03:00 执行
+    output-dir: ${custom.backup.output-dir}    # 备份输出目录（相对项目根目录或绝对路径）
+    mysqldump-cmd: ${custom.backup.mysqldump-cmd}      # mysqldump 可执行命令（或绝对路径）
+    database: ${custom.backup.database}            # 需要备份的数据库名
+
+
 logging:
   level:
     com.wolfhouse.wolfhouseblog.*: info
+
 

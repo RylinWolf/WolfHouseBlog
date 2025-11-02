@@ -50,7 +50,8 @@ public class ErrorListener {
             name = MqConstant.ERROR_EXCHANGE,
             type = ExchangeTypes.TOPIC
         ),
-        key = {MqConstant.ERROR + MqConstant.SEPARATOR + MqArticleEsConstant.ES + MqConstant.MULTI_WILDCARD}
+        key = {MqConstant.ERROR + MqConstant.SEPARATOR + MqConstant.SERVICE + MqConstant.SEPARATOR +
+               MqArticleEsConstant.ES + MqConstant.MULTI_WILDCARD}
     ))
     public void articleEsErrorListener(Object object) {
         log.error("监听到 ES 业务错误信息：【{}】", object);

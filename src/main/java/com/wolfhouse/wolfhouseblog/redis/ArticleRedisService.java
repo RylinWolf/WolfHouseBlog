@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfhouse.wolfhouseblog.common.constant.redis.ArticleRedisConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.redis.RedisConstant;
+import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
@@ -19,9 +20,11 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 文章 Redis 服务
@@ -70,7 +73,7 @@ public class ArticleRedisService {
                 }
             }
         });
-
+        // 使配置项生效
         pageTemplate.afterPropertiesSet();
 
         pageOps = pageTemplate.opsForValue();
@@ -84,16 +87,50 @@ public class ArticleRedisService {
     }
 
     /**
-     * 将文章数据缓存到 Redis 中。
+     * 将文章数据缓存到 Redis 中，如果文章已存在则更新缓存。
+     * 使用分布式锁确保并发安全。
      *
      * @param articleVo 需要缓存的文章数据，包含文章 ID、标题、内容等信息
+     * @return 操作是否成功，获取锁失败时返回 null
      */
-    public void cacheArticle(ArticleVo articleVo) {
-        redisTemplate.opsForValue()
-                     .set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
-                          articleVo,
-                          randTimeout(),
-                          TimeUnit.MINUTES);
+    @Nullable
+    public Boolean cacheOrUpdateArticle(ArticleVo articleVo) {
+        String lock = ArticleRedisConstant.VO_LOCK.formatted(articleVo.getId());
+        String key = ArticleRedisConstant.VO.formatted(articleVo.getId());
+        // 上锁
+        for (int i = 0; i < RedisConstant.LOCK_MAX_RETRY; i++) {
+            // 获取锁
+            if (!getLock(lock)) {
+                try {
+                    Thread.sleep(100);
+                    continue;
+                } catch (InterruptedException e) {
+                    Thread.currentThread()
+                          .interrupt();
+                    log.warn("线程在等待锁时被中断");
+                    return null;
+                }
+            }
+            try {
+                ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+                if (redisTemplate.hasKey(key)) {
+                    redisTemplate.delete(key);
+                }
+                ops.set(ArticleRedisConstant.VO.formatted(articleVo.getId()),
+                        articleVo,
+                        randTimeout(),
+                        TimeUnit.MINUTES);
+            } catch (Exception e) {
+                throw new ServiceException(e.getMessage(), e);
+            } finally {
+                // 解锁
+                redisTemplate.opsForValue()
+                             .getAndDelete(lock);
+            }
+            return true;
+        }
+        // 未成功获得锁
+        return null;
     }
 
     /**
@@ -101,9 +138,19 @@ public class ArticleRedisService {
      *
      * @param articleId 要删除缓存的文章 ID
      */
-    public void removeArticleCache(Long articleId) {
+    @Nullable
+    public Boolean removeArticleCache(Long articleId) {
         String key = ArticleRedisConstant.VO.formatted(articleId);
-        redisTemplate.delete(key);
+        String lock = ArticleRedisConstant.VO_LOCK.formatted(articleId);
+        // 尝试获取锁
+        if (!getLock(lock)) {
+            return null;
+        }
+        Boolean delete = redisTemplate.delete(key);
+        // 释放锁
+        redisTemplate.opsForValue()
+                     .getAndDelete(lock);
+        return delete;
     }
 
     /**
@@ -117,7 +164,10 @@ public class ArticleRedisService {
 
     public ArticleVo getCachedArticle(Long id) {
         return objectMapper.convertValue(redisTemplate.opsForValue()
-                                                      .get(ArticleRedisConstant.VO.formatted(id)), ArticleVo.class);
+                                                      .getAndExpire(ArticleRedisConstant.VO.formatted(id),
+                                                                    randTimeout(),
+                                                                    TimeUnit.MINUTES),
+                                         ArticleVo.class);
     }
 
     /**
@@ -130,14 +180,14 @@ public class ArticleRedisService {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 文章 key 不存在
         if (!redisTemplate.hasKey(key)) {
+            boolean lockAcquired = false;
             try {
                 // 获得锁
-                if (Boolean
-                    .TRUE
-                    .equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
-                                            0,
-                                            ArticleRedisConstant.LOCK_TIME_SECONDS,
-                                            TimeUnit.SECONDS))) {
+                lockAcquired = Boolean.TRUE.equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
+                                                                   0,
+                                                                   ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                                                   TimeUnit.SECONDS));
+                if (lockAcquired) {
                     // 双重检查锁定
                     if (!redisTemplate.hasKey(key)) {
                         ops.set(key, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
@@ -149,16 +199,23 @@ public class ArticleRedisService {
                 }
             } catch (Exception ignored) {} finally {
                 // 移除锁
-                ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
+                if (lockAcquired) {
+                    ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
+                }
             }
         }
         // 自增
         ops.increment(key);
         // 刷新过期时间
-        ops.set(key, Objects.requireNonNull(ops.get(key)), ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
+        redisTemplate.expire(key, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
     }
 
 
+    /**
+     * 获取并删除所有文章的浏览量缓存。
+     *
+     * @return 包含文章ID和对应浏览量的Map，如果没有缓存数据则返回null
+     */
     public Map<String, Long> getViewsAndDelete() {
         // 获取所有缓存的浏览量键
         Set<String> keys = redisTemplate.keys(ArticleRedisConstant.VIEWS.formatted("*"));
@@ -181,6 +238,12 @@ public class ArticleRedisService {
         return views;
     }
 
+    /**
+     * 获取并删除指定文章的浏览量缓存。
+     *
+     * @param articleId 文章ID
+     * @return 文章的浏览量，如果缓存不存在则返回null
+     */
     public Long getViewsAndDelete(Long articleId) {
         String key = ArticleRedisConstant.VIEWS.formatted(articleId);
         Object o = redisTemplate.opsForValue()
@@ -191,6 +254,12 @@ public class ArticleRedisService {
         return Long.parseLong(o.toString());
     }
 
+    /**
+     * 获取指定文章的浏览量缓存。
+     *
+     * @param articleId 文章ID
+     * @return 文章的浏览量，如果缓存不存在则返回null
+     */
     public Long getViews(Long articleId) {
         Object o = redisTemplate.opsForValue()
                                 .get(ArticleRedisConstant.VIEWS.formatted(articleId));
@@ -213,8 +282,7 @@ public class ArticleRedisService {
             if (o == null) {
                 return;
             }
-            redisTemplate.opsForValue()
-                         .decrement(ArticleRedisConstant.VIEWS.formatted(k), v);
+            decreaseViews(Long.valueOf(k), v);
         });
     }
 
@@ -230,59 +298,140 @@ public class ArticleRedisService {
     }
 
 
+    /**
+     * 缓存文章简要信息的分页查询结果。
+     *
+     * @param dto    查询条件数据传输对象
+     * @param briefs 文章简要信息的分页结果
+     */
     public void cacheBriefs(ArticleQueryPageDto dto, PageResult<ArticleBriefVo> briefs) {
         pageOps.set(ArticleRedisConstant.QUERY_BRIEF.formatted(dto), briefs, randTimeout(), TimeUnit.MINUTES);
     }
 
+    /**
+     * 获取已缓存的文章简要信息分页查询结果。
+     *
+     * @param dto 查询条件数据传输对象
+     * @return 文章简要信息的分页结果
+     */
     public PageResult<ArticleBriefVo> getCachedBrief(ArticleQueryPageDto dto) {
         return pageOps.getAndExpire(ArticleRedisConstant.QUERY_BRIEF.formatted(dto),
                                     randTimeout(),
                                     TimeUnit.MINUTES);
     }
 
+    /**
+     * 生成随机的缓存过期时间。
+     * 在基础过期时间上增加0-60分钟的随机值，避免缓存同时失效。
+     *
+     * @return 随机生成的过期时间（分钟）
+     */
     private Long randTimeout() {
         return BASE_TIME_OUT + new Random().nextLong(60);
     }
 
-
-    public Boolean addViews(Map<String, Long> views) {
+    /**
+     * 为文章增加一个点赞。
+     * 如果点赞记录不存在，将尝试通过加锁的方式初始化点赞记录。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @return 执行结果，如果成功增加点赞则返回 true；否则返回 false
+     * @throws InterruptedException 在尝试获取锁或初始化点赞数据时，线程被中断
+     */
+    public Boolean like(Long articleId, Boolean isIcr) throws InterruptedException {
+        String key = ArticleRedisConstant.LIKE.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        // 获取块级锁
-        String lock = ArticleRedisConstant.VIEWS_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-        if (!getVoLock(lock)) {
-            return false;
-        }
-        try {
-            // 获取每一个需要更新浏览量的文章
-            views.forEach((k, v) -> {
-                var key = ArticleRedisConstant.VO.formatted(k);
-                Object o = ops.get(key);
-                if (o == null) {
-                    return;
+        int maxRetries = 3;
+        int retries = 0;
+        // TODO 释放锁时的锁线程检查
+        while (!redisTemplate.hasKey(key)) {
+            String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
+            try {
+
+                if (Boolean.FALSE.equals(ops.setIfAbsent(lock,
+                                                         0,
+                                                         ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                                         TimeUnit.SECONDS))) {
+                    // 未抢到锁
+                    if (retries >= maxRetries) {
+                        // 超过最大重试次数
+                        return false;
+                    }
+                    retries++;
+                    Thread.sleep(500);
+                    continue;
                 }
-                ArticleVo articleVo = objectMapper.convertValue(o, ArticleVo.class);
-                // 更新浏览量
-                articleVo.setViews(articleVo.getViews() + v);
-                ops.set(key, articleVo, randTimeout(), TimeUnit.MINUTES);
-            });
-        } catch (Exception ignored) {
-            return false;
-        } finally {
-            // 释放锁
-            ops.getAndDelete(lock);
+                // 双重检查锁定
+                if (redisTemplate.hasKey(key)) {
+                    break;
+                }
+                // 抢到锁，初始化点赞
+                ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
+                break;
+            } finally {
+                // 移除锁
+                redisTemplate.delete(lock);
+            }
         }
+        // 自增点赞量
+        if (isIcr) {
+            ops.increment(key);
+            return true;
+        }
+        ops.decrement(key);
         return true;
+
+    }
+
+    public Boolean like(Long id) throws InterruptedException {
+        return like(id, true);
+    }
+
+    public Boolean unlike(Long id) throws InterruptedException {
+        return like(id, false);
     }
 
     /**
-     * 尝试为指定的文章 ID 设置浏览量更新锁。
+     * 获取并移除所有缓存文章的点赞数。
+     *
+     * @return 包含文章 ID 和其对应被移除点赞数的映射表，如果某文章未找到点赞数据，则映射值为 0
+     */
+    public Map<String, Long> getLikesAndRemove() {
+        Set<String> articleIds = redisTemplate.keys(ArticleRedisConstant.LIKE.formatted("*"));
+        return articleIds.stream()
+                         .map(id -> {
+                             Long likes = getLikesAndRemove(Long.parseLong(id));
+                             return Map.entry(id, likes);
+                         })
+                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * 获取并移除指定文章的点赞数。
+     *
+     * @param articleId 文章的唯一标识 ID
+     * @return 文章的点赞数，如果未找到对应的缓存数据，返回 0
+     */
+    public Long getLikesAndRemove(Long articleId) {
+        String key = ArticleRedisConstant.LIKE.formatted(articleId);
+        if (!redisTemplate.hasKey(key)) {
+            return 0L;
+        }
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        return (Long) ops.getAndDelete(key);
+    }
+
+
+    /**
+     * 尝试为指定的文章 ID 设置指定锁
      *
      * @param lock 要设置的锁 ID
      * @return 如果成功设置锁返回 true，否则返回 false
      */
-    private Boolean getVoLock(String lock) {
+    private Boolean getLock(String lock) {
         return Boolean.TRUE.equals(
             redisTemplate.opsForValue()
                          .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
     }
+
 }

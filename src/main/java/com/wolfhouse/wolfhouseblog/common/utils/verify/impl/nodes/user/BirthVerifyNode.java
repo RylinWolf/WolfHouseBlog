@@ -14,15 +14,17 @@ public class BirthVerifyNode extends BaseVerifyNode<LocalDate> {
     {
         this.strategy = VerifyStrategy.WITH_CUSTOM_EXCEPTION;
         this.customException = new VerifyException(String.format(
-             "%s: 【%s】",
-             UserConstant.VERIFY_FAILED,
-             UserConstant.BIRTH));
+            "%s: 【%s】",
+            UserConstant.VERIFY_FAILED,
+            UserConstant.BIRTH));
     }
 
     @Override
     public boolean verify() {
         super.verify();
-
+        if (this.t == null) {
+            return allowNull;
+        }
         return !this.t.isAfter(LocalDate.now());
     }
 }
