@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Builder
 public class UserRegisterDto {
     private Long userId;
-    
+
     @NotBlank
     @Size(min = 6, max = 20, message = ServiceExceptionConstant.ARG_FORMAT_ERROR)
     private String password;
@@ -34,4 +34,7 @@ public class UserRegisterDto {
     @NotBlank
     @Email
     private String email;
+
+    /** 注册邮箱验证码 */
+    private String emailVerifyCode;
 }

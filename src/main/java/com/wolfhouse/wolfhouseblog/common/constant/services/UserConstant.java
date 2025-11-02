@@ -30,4 +30,5 @@ public class UserConstant {
     public static final String SUBSCRIBE_CANNOT_BE_SELF = "不能关注自己！";
     public static final String NOT_SUBSCRIBED = "未关注该用户！";
     public static final String EMAIL_FORMAT_NOT_SUPPORT = "邮箱格式不正确！";
+    public static final String MAIL_CODE_UNVERIFIED = "邮箱验证码不正确";
 }

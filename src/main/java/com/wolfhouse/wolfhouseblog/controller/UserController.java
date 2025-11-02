@@ -8,6 +8,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.mail.MailService;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserSubDto;
@@ -54,6 +55,7 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final UserRedisService redisService;
+    private final MailService mailService;
 
     @Operation(summary = "登陆")
     @PostMapping("/login")
@@ -89,6 +91,15 @@ public class UserController {
                 UserConstant.USER_ALREADY_EXIST,
                 null);
         }
+        // 验证邮箱验证码
+        if (!mailService.verifyCode(dto.getEmail(), dto.getEmailVerifyCode())) {
+            // 验证不通过
+            return HttpResult.failed(HttpStatus.BAD_REQUEST.value(),
+                                     HttpCodeConstant.BAD_REQUEST,
+                                     UserConstant.MAIL_CODE_UNVERIFIED,
+                                     null);
+        }
+
         // 设置用户 ID
         dto.setUserId(authService.createAuth(dto.getPassword())
                                  .getUserId());
