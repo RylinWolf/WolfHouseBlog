@@ -43,7 +43,7 @@ public class ArticleTask {
      */
     @Scheduled(cron = "0 0 0/1 * * ?")
     public void viewRedisToDb() {
-        log.info("文章定时任务启动，同步浏览量至数据库与 ES...");
+        log.info("文章定时任务启动，从 Redis 同步浏览量至数据库与 ES...");
         Map<String, Long> views = redisService.getViewsAndDelete();
         if (views == null) {
             return;
@@ -55,6 +55,7 @@ public class ArticleTask {
         try {
             mediator.addViewsToDb(views);
         } catch (Exception e) {
+            // TODO 通过日志记录未同步的数据
             log.warn("数据库浏览量同步错误");
             return;
         }
@@ -64,8 +65,6 @@ public class ArticleTask {
             log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);
         }
         log.info("浏览量同步完成");
-        // 减少本次更新的浏览量
-        redisService.decreaseViews(views);
     }
 
     /**

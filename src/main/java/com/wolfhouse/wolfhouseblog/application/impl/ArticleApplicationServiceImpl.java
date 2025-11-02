@@ -9,7 +9,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
 import com.wolfhouse.wolfhouseblog.mq.service.MqArticleService;
-import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
+import com.wolfhouse.wolfhouseblog.mq.service.MqRedesService;
 import com.wolfhouse.wolfhouseblog.pojo.dto.ArticleQueryPageDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleVo;
@@ -36,7 +36,7 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
     private final ArticleRedisService redisService;
     private final UserRedisService userRedisService;
     private final MqArticleService mqArticleService;
-    private final MqEsService mqEsService;
+    private final MqRedesService mqRedesService;
     private final ArticleElasticServiceImpl elasticService;
     private final UserEsDbMediator userEsDbMediator;
     private final ArticleEsDbMediator esDbMediator;
@@ -60,7 +60,9 @@ public class ArticleApplicationServiceImpl implements ArticleApplicationService 
         vo.setAuthor(BeanUtil.copyProperties(userEsDbMediator.getUserVoById(vo.getAuthorId()), UserBriefVo.class));
 
         // 获取点赞信息并注入
-        vo.setLikeCount(actionService.likeCount(vo.getId()));
+        Long likeCount = vo.getLikeCount();
+        likeCount += redisService.getLikesAndRemove(vo.getId());
+        vo.setLikeCount(likeCount);
 
         // 保存文章至缓存
         redisService.cacheOrUpdateArticle(vo);

@@ -338,7 +338,7 @@ public class ArticleRedisService {
      * @return 执行结果，如果成功增加点赞则返回 true；否则返回 false
      * @throws InterruptedException 在尝试获取锁或初始化点赞数据时，线程被中断
      */
-    public Boolean like(Long articleId) throws InterruptedException {
+    public Boolean like(Long articleId, Boolean isIcr) throws InterruptedException {
         String key = ArticleRedisConstant.LIKE.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         int maxRetries = 3;
@@ -374,17 +374,30 @@ public class ArticleRedisService {
             }
         }
         // 自增点赞量
-        ops.increment(key);
+        if (isIcr) {
+            ops.increment(key);
+            return true;
+        }
+        ops.decrement(key);
         return true;
+
+    }
+
+    public Boolean like(Long id) throws InterruptedException {
+        return like(id, true);
+    }
+
+    public Boolean unlike(Long id) throws InterruptedException {
+        return like(id, false);
     }
 
     /**
-     * 根据文章 ID 集合获取并移除对应的点赞数。
+     * 获取并移除所有缓存文章的点赞数。
      *
-     * @param articleIds 包含文章标识符 ID 的集合，每个 ID 为字符串类型
      * @return 包含文章 ID 和其对应被移除点赞数的映射表，如果某文章未找到点赞数据，则映射值为 0
      */
-    public Map<String, Long> getLikesAndRemove(Collection<String> articleIds) {
+    public Map<String, Long> getLikesAndRemove() {
+        Set<String> articleIds = redisTemplate.keys(ArticleRedisConstant.LIKE.formatted("*"));
         return articleIds.stream()
                          .map(id -> {
                              Long likes = getLikesAndRemove(Long.parseLong(id));
@@ -420,4 +433,5 @@ public class ArticleRedisService {
             redisTemplate.opsForValue()
                          .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
     }
+
 }

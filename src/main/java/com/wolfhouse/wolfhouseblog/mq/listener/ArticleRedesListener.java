@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ArticleRedesListener {
-    private final ArticleElasticServiceImpl articleService;
+    private final ArticleElasticServiceImpl esService;
     private final ArticleRedisService redisService;
     private final ArticleApplicationService applicationService;
 
@@ -42,7 +42,7 @@ public class ArticleRedesListener {
     ))
     public void post(ArticleVo vo) throws InterruptedException {
         log.debug("监听到发布文章信息: {}", vo.getId());
-        articleService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
+        esService.saveOne(BeanUtil.copyProperties(vo, ArticleEsDto.class));
         redisService.cacheOrUpdateArticle(vo);
         log.debug("{} 文章发布完成", vo.getId());
     }
@@ -58,7 +58,7 @@ public class ArticleRedesListener {
     public void update(ArticleUpdateDto dto) {
         try {
             log.debug("监听到更新文章信息: {}", dto.getId());
-            ArticleVo update = articleService.update(dto);
+            ArticleVo update = esService.update(dto);
             if (update == null) {
                 throw new ServiceException(ArticleConstant.UPDATE_FAILED + dto.getId());
             }
@@ -86,12 +86,50 @@ public class ArticleRedesListener {
     public void delete(Long id) {
         try {
             log.debug("监听到删除文章信息: {}", id);
-            articleService.deleteById(id);
+            esService.deleteById(id);
             log.debug("{} 文章删除成功", id);
             log.debug("移除文章缓存: {}", id);
             redisService.removeArticleCache(id);
             log.debug("{} 文章缓存已移除", id);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+        value = @Queue(name = MqArticleEsConstant.LIKE_QUEUE),
+        exchange = @Exchange(name = MqArticleEsConstant.LIKE_EXCHANGE,
+                             type = ExchangeTypes.TOPIC),
+        key = {MqArticleEsConstant.LIKE_KEY}
+    ))
+    public void like(Long id) {
+        try {
+            log.debug("监听到文章点赞: {}", id);
+            esService.addLikes(id, 1L);
+            log.debug("{} 文章点赞成功", id);
+            redisService.like(id);
+            log.debug("{} 文章点赞信息已缓存", id);
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+        value = @Queue(name = MqArticleEsConstant.LIKE_QUEUE),
+        exchange = @Exchange(name = MqArticleEsConstant.LIKE_EXCHANGE,
+                             type = ExchangeTypes.TOPIC),
+        key = {MqArticleEsConstant.UNLIKE_KEY}
+    ))
+    public void unlike(Long id) {
+        try {
+            log.debug("监听到文章取消点赞: {}", id);
+            esService.addLikes(id, -1L);
+            log.debug("{} 文章点赞取消成功", id);
+            redisService.unlike(id);
+            log.debug("{} 文章取消点赞信息已缓存", id);
+        } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
         }

@@ -146,6 +146,6 @@ public interface ArticleEsDbMediator {
      */
     @Nullable
     Page<ArticleVo> queryBy(ArticleQueryPageDto dto, QueryColumn[] columns) throws Exception;
-
-
+    
+    Set<Long> addLikesToEs(Map<String, Long> likes);
 }

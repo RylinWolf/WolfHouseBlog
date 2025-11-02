@@ -549,4 +549,40 @@ public class ArticleElasticServiceImpl implements ArticleService {
         throw new ServiceException(EsExceptionConstant.METHOD_NOT_SUPPORT);
     }
 
+    /**
+     * 根据提供的点赞数据，批量为文章添加点赞量，并返回添加成功的文章 ID 集合。
+     *
+     * @param likes 包含文章 ID 和对应增加的点赞数的映射关系，其中键为文章 ID 的字符串表示，值为需要增加的点赞数。
+     * @return 一个包含所有点赞添加成功的文章 ID 的集合。
+     */
+    public Set<Long> addLikes(Map<String, Long> likes) {
+        Set<Long> ids = new HashSet<>();
+        likes.forEach((k, v) -> {
+            if (addLikes(Long.parseLong(k), v)) {
+                ids.add(Long.parseLong(k));
+            }
+        });
+        return ids;
+    }
+
+    /**
+     * 向指定文章中添加点赞量。
+     *
+     * @param articleId 文章的唯一标识 ID。
+     * @param likes     增加的点赞数。
+     * @return 如果点赞添加成功，则返回 true；否则返回 false。
+     */
+    public Boolean addLikes(Long articleId, Long likes) {
+        UpdateRequest.Builder<ArticleEsDto, Map<String, Long>> builder = new UpdateRequest.Builder<>();
+        builder.index(ElasticConstant.ARTICLE_INDEX);
+        builder.id(articleId.toString());
+        builder.script(s -> s.source("ctx._source.%s += %s".formatted("like_count", likes)));
+        try {
+            client.update(builder.build(), ArticleEsDto.class);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
 }

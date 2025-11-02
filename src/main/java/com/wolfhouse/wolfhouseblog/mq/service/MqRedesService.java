@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MqEsService {
+public class MqRedesService {
     private final RabbitTemplate template;
 
     /**
@@ -48,5 +48,21 @@ public class MqEsService {
     public void deleteArticle(Long id) {
         log.debug("删除文章: {}", id);
         template.convertAndSend(MqArticleEsConstant.DELETE_EXCHANGE, MqArticleEsConstant.DELETE_KEY, id);
+    }
+
+    /**
+     * 点赞文章
+     * 将文章ID发送到消息队列，用于处理文章点赞操作
+     *
+     * @param id 文章ID
+     */
+    public void like(Long id) {
+        log.debug("点赞文章: {}", id);
+        template.convertAndSend(MqArticleEsConstant.LIKE_EXCHANGE, MqArticleEsConstant.LIKE_KEY, id);
+    }
+
+    public void unlike(Long id) {
+        log.debug("取消点赞文章: {}", id);
+        template.convertAndSend(MqArticleEsConstant.LIKE_EXCHANGE, MqArticleEsConstant.UNLIKE_KEY, id);
     }
 }

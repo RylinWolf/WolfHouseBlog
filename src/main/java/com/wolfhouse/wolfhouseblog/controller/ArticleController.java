@@ -9,7 +9,7 @@ import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JsonNullableUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.es.ArticleElasticServiceImpl;
-import com.wolfhouse.wolfhouseblog.mq.service.MqEsService;
+import com.wolfhouse.wolfhouseblog.mq.service.MqRedesService;
 import com.wolfhouse.wolfhouseblog.pojo.domain.Article;
 import com.wolfhouse.wolfhouseblog.pojo.dto.*;
 import com.wolfhouse.wolfhouseblog.pojo.vo.ArticleBriefVo;
@@ -43,7 +43,7 @@ public class ArticleController {
     private final ArticleActionService actionService;
     private ArticleService articleService;
     private ArticleElasticServiceImpl elasticService;
-    private final MqEsService mqEsService;
+    private final MqRedesService mqRedesService;
     private final ArticleRedisService redisService;
     private final ArticleApplicationService applicationService;
 
@@ -134,7 +134,7 @@ public class ArticleController {
     public HttpResult<ArticleVo> update(@RequestBody ArticleUpdateDto dto) throws Exception {
         ArticleVo update = articleService.update(dto);
         if (update != null) {
-            mqEsService.updateArticle(dto);
+            mqRedesService.updateArticle(dto);
         }
         return HttpResult.failedIfBlank(
             HttpCodeConstant.UPDATE_FAILED,
@@ -147,7 +147,7 @@ public class ArticleController {
     public HttpResult<?> delete(@PathVariable Long id) throws Exception {
         Boolean b = articleService.deleteById(id);
         if (b) {
-            mqEsService.deleteArticle(id);
+            mqRedesService.deleteArticle(id);
         }
         return HttpResult.onCondition(HttpCodeConstant.FAILED, ArticleConstant.DELETE_FAILED, b);
     }
@@ -184,21 +184,30 @@ public class ArticleController {
     @Operation(summary = "点赞")
     @PostMapping("/like/{id}")
     public HttpResult<?> like(@PathVariable Long id) throws Exception {
-        // TODO 更新 ES、Redis 点赞信息
+        // 数据库更新点赞信息
+        Boolean isLiked = actionService.like(id);
+        if (isLiked) {
+            // 同步至 ES 与 Redis
+            mqRedesService.like(id);
+        }
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.LIKE_FAILED,
-            actionService.like(id));
+            isLiked);
     }
 
     @Operation(summary = "取消点赞")
     @DeleteMapping("/like/{id}")
     public HttpResult<?> unLike(@PathVariable Long id) throws Exception {
-        // TODO 更新 ES、Redis 点赞信息
+        Boolean unlike = actionService.unlike(id);
+        if (unlike) {
+            // 同步至 ES 与 Redis
+            mqRedesService.unlike(id);
+        }
         return HttpResult.onCondition(
             HttpCodeConstant.FAILED,
             ArticleConstant.UNLIKE_FAILED,
-            actionService.unlike(id));
+            unlike);
     }
 
     @Operation(summary = "收藏文章")

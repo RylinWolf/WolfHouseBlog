@@ -135,6 +135,12 @@ public class ArticleEsDbMediatorImpl implements ArticleEsDbMediator {
         }
         return articlePage;
     }
+    
+    @Override
+    public Set<Long> addLikesToEs(Map<String, Long> likes) {
+        return esService.addLikes(likes);
+    }
+
 
     @Override
     public void syncArticleToDb(Long id) throws Exception {

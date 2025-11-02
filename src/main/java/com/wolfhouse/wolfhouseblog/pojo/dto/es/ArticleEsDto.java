@@ -17,6 +17,7 @@ public class ArticleEsDto {
     private Long authorId;
     private String content;
     private LocalDateTime postTime;
+    private LocalDateTime editTime;
     private Long partitionId;
     private String partitionName;
     private List<String> tags;
