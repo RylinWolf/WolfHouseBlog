@@ -10,20 +10,22 @@ import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Rylin Wolf
  */
 @Slf4j
-@RestController("/mail")
+@RestController
+@RequestMapping("/mail")
 @RequiredArgsConstructor
 @Tag(name = "邮件接口")
 public class MailController {
     private final MailService mailService;
 
-    @GetMapping("/send")
-    @Operation(description = "发送验证码")
+    @GetMapping("/register")
+    @Operation(description = "发送注册验证码")
     public HttpResult<?> sendCode(@Email String email) {
         try {
             mailService.sendCode(email);
