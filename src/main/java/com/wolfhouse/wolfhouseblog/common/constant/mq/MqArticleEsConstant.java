@@ -31,6 +31,7 @@ public class MqArticleEsConstant {
 
     public static final String LIKE_EXCHANGE = BASE + LIKE + MqConstant.SEPARATOR + MqConstant.EXCHANGE;
     public static final String LIKE_QUEUE = BASE + LIKE + MqConstant.SEPARATOR + MqConstant.QUEUE;
+    public static final String UNLIKE_QUEUE = BASE + UNLIKE + MqConstant.SEPARATOR + MqConstant.QUEUE;
     public static final String LIKE_KEY = BASE + LIKE + MqConstant.SEPARATOR + MqConstant.KEY;
     public static final String UNLIKE_KEY = BASE + UNLIKE + MqConstant.SEPARATOR + MqConstant.KEY;
 }
