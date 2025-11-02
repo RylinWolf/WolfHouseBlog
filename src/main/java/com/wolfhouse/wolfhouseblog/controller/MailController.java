@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Rylin Wolf
  */
 @Slf4j
-@RestController
+@RestController("/mail")
 @RequiredArgsConstructor
 @Tag(name = "邮件接口")
 public class MailController {
     private final MailService mailService;
 
-    @GetMapping
+    @GetMapping("/send")
     @Operation(description = "发送验证码")
     public HttpResult<?> sendCode(@Email String email) {
         try {
