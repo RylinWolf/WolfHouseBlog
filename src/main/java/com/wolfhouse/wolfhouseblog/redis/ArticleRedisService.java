@@ -72,7 +72,7 @@ public class ArticleRedisService {
                 }
             }
         });
-
+        // 使配置项生效
         pageTemplate.afterPropertiesSet();
 
         pageOps = pageTemplate.opsForValue();
@@ -281,8 +281,7 @@ public class ArticleRedisService {
             if (o == null) {
                 return;
             }
-            redisTemplate.opsForValue()
-                         .decrement(ArticleRedisConstant.VIEWS.formatted(k), v);
+            decreaseViews(Long.valueOf(k), v);
         });
     }
 
@@ -330,44 +329,6 @@ public class ArticleRedisService {
         return BASE_TIME_OUT + new Random().nextLong(60);
     }
 
-
-    /**
-     * 批量增加文章的浏览量。
-     * 使用分布式锁确保并发安全。
-     *
-     * @param views 文章ID和需要增加的浏览量的映射
-     * @return 操作是否成功
-     */
-    public Boolean addViews(Map<String, Long> views) {
-        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        // 获取块级锁
-        // TODO 锁面临其他异步问题
-        String lock = ArticleRedisConstant.VIEWS_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-        if (!getLock(lock)) {
-            return false;
-        }
-        try {
-            // 获取每一个需要更新浏览量的文章
-            views.forEach((k, v) -> {
-                var key = ArticleRedisConstant.VO.formatted(k);
-                Object o = ops.get(key);
-                if (o == null) {
-                    return;
-                }
-                ArticleVo articleVo = objectMapper.convertValue(o, ArticleVo.class);
-                // 更新浏览量
-                articleVo.setViews(articleVo.getViews() + v);
-                ops.set(key, articleVo, randTimeout(), TimeUnit.MINUTES);
-            });
-        } catch (Exception ignored) {
-            return false;
-        } finally {
-            // 释放锁
-            ops.getAndDelete(lock);
-        }
-        return true;
-    }
-
     /**
      * 为文章增加一个点赞。
      * 如果点赞记录不存在，将尝试通过加锁的方式初始化点赞记录。
@@ -381,26 +342,35 @@ public class ArticleRedisService {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         int maxRetries = 3;
         int retries = 0;
+        // TODO 释放锁时的锁线程检查
         while (!redisTemplate.hasKey(key)) {
             String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-            if (Boolean.FALSE.equals(ops.setIfAbsent(lock,
-                                                     0,
-                                                     ArticleRedisConstant.LOCK_TIME_SECONDS,
-                                                     TimeUnit.SECONDS))) {
-                // 未抢到锁
-                if (retries >= maxRetries) {
-                    // 超过最大重试次数
-                    return false;
+            try {
+
+                if (Boolean.FALSE.equals(ops.setIfAbsent(lock,
+                                                         0,
+                                                         ArticleRedisConstant.LOCK_TIME_SECONDS,
+                                                         TimeUnit.SECONDS))) {
+                    // 未抢到锁
+                    if (retries >= maxRetries) {
+                        // 超过最大重试次数
+                        return false;
+                    }
+                    retries++;
+                    Thread.sleep(500);
+                    continue;
                 }
-                retries++;
-                Thread.sleep(500);
-                continue;
+                // 双重检查锁定
+                if (redisTemplate.hasKey(key)) {
+                    break;
+                }
+                // 抢到锁，初始化点赞
+                ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
+                break;
+            } finally {
+                // 移除锁
+                redisTemplate.delete(lock);
             }
-            // 抢到锁，初始化点赞
-            ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
-            // 移除锁
-            redisTemplate.delete(lock);
-            break;
         }
         // 自增点赞量
         ops.increment(key);
@@ -408,7 +378,7 @@ public class ArticleRedisService {
     }
 
     /**
-     * 获取指定文章的点赞数。
+     * 获取并移除指定文章的点赞数。
      *
      * @param articleId 文章的唯一标识 ID
      * @return 文章的点赞数，如果未找到对应的缓存数据，返回 0
@@ -418,18 +388,8 @@ public class ArticleRedisService {
         if (!redisTemplate.hasKey(key)) {
             return 0L;
         }
-
-        String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        if (Boolean.FALSE.equals(ops.setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS))) {
-            // 未抢到锁
-            return 0L;
-        }
-        // 获得锁
-        Long likes = (Long) ops.getAndDelete(key);
-        // 移除锁
-        redisTemplate.delete(lock);
-        return likes;
+        return (Long) ops.getAndDelete(key);
     }
 
 

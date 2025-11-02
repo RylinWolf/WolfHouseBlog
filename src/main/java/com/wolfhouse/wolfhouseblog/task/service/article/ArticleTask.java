@@ -64,12 +64,8 @@ public class ArticleTask {
             log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);
         }
         log.info("浏览量同步完成");
-        // 移除浏览量 ID
+        // 减少本次更新的浏览量
         redisService.decreaseViews(views);
-        // 更新 redis 的浏览量
-        if (!redisService.addViews(views)) {
-            redisService.removeArticleCache(views.keySet());
-        }
     }
 
     /**
