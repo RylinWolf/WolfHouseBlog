@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 文章 Redis 服务
@@ -375,6 +376,21 @@ public class ArticleRedisService {
         // 自增点赞量
         ops.increment(key);
         return true;
+    }
+
+    /**
+     * 根据文章 ID 集合获取并移除对应的点赞数。
+     *
+     * @param articleIds 包含文章标识符 ID 的集合，每个 ID 为字符串类型
+     * @return 包含文章 ID 和其对应被移除点赞数的映射表，如果某文章未找到点赞数据，则映射值为 0
+     */
+    public Map<String, Long> getLikesAndRemove(Collection<String> articleIds) {
+        return articleIds.stream()
+                         .map(id -> {
+                             Long likes = getLikesAndRemove(Long.parseLong(id));
+                             return Map.entry(id, likes);
+                         })
+                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**
