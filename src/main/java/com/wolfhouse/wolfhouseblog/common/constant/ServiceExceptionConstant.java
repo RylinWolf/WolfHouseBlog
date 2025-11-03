@@ -11,4 +11,5 @@ public class ServiceExceptionConstant {
     public static final String SERVICE_ERROR = "业务异常";
     public static final String UNSUPPORTED_MEDIA_TYPE = "不支持的媒体类型";
     public static final String MISSING_PARAM = "未传递参数";
+    public static final String PARAM_ERROR = "参数错误";
 }

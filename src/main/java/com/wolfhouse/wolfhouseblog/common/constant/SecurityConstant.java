@@ -31,7 +31,6 @@ public class SecurityConstant {
         "/user/register",
         "/article/query",
         "/article/*",
-        "/mail/register",
-        "/mail/register/*"
+        "/mail/register"
     };
 }
