@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Data
 public class UserUpdateDto {
     private String avatar;
-    @Size(max = 50)
+    @Size(max = 200)
     private String personalStatus;
     @Size(max = 20)
     private String nickname;
