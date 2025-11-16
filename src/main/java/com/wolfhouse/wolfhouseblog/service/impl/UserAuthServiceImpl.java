@@ -15,6 +15,7 @@ import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +48,8 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     }
 
     @Override
-    public Long loginUserOrE() throws Exception {
+    @SneakyThrows
+    public Long loginUserOrE() {
         Long login = ServiceUtil.loginUserOrE();
         VerifyNode<Long> node = new UserIdVerifyNode(mediator).target(login);
         if (node.verify()) {
