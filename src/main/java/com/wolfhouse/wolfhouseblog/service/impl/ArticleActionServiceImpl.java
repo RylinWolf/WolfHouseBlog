@@ -247,14 +247,14 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) throws Exception {
+    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) {
         Long login = mediator.loginUserOrE();
-        return favoriteMapper
-            .selectListByQueryAs(QueryWrapper.create()
-                                             .where(ARTICLE_FAVORITE.USER_ID.eq(
-                                                 login))
-                                             .and(ARTICLE_FAVORITE.ARTICLE_ID.eq(
-                                                 articleId)), ArticleFavoriteVo.class);
+        return favoriteMapper.selectListByQueryAs(
+            QueryWrapper.create()
+                        .where(ARTICLE_FAVORITE.USER_ID.eq(
+                            login))
+                        .and(ARTICLE_FAVORITE.ARTICLE_ID.eq(
+                            articleId)), ArticleFavoriteVo.class);
 
     }
 
