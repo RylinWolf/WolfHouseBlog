@@ -315,7 +315,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                 dto.getFavoritesId(),
                                 dto.getArticleId(),
                                 login,
-                                null)) > 0;
+                                null), true) > 0;
     }
 
     @Override
