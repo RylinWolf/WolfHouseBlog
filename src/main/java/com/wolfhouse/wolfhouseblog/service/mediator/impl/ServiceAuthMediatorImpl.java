@@ -120,7 +120,7 @@ public class ServiceAuthMediatorImpl implements ServiceAuthMediator {
 
     @Override
     @NonNull
-    public Long loginUserOrE() throws Exception {
+    public Long loginUserOrE() {
         return authService.loginUserOrE();
     }
 

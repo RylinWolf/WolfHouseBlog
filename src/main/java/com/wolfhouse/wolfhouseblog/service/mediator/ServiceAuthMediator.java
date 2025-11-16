@@ -156,10 +156,9 @@ public interface ServiceAuthMediator {
      * 获取当前登录用户ID，如果未登录则抛出异常
      *
      * @return 当前登录用户ID
-     * @throws Exception 未登录或登录用户不可达
      */
     @NonNull
-    Long loginUserOrE() throws Exception;
+    Long loginUserOrE();
 
     /**
      * 获取当前登录用户ID，如果用户未登录则返回null。
