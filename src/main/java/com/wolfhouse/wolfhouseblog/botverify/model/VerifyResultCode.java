@@ -30,7 +30,7 @@ public enum VerifyResultCode {
     FORBIDDEN("F017", "疑似攻击，协议或参数异常"),
     V3_REPEATED_VERIFY_PARAM("F018", "V3 架构，验证参数重复使用"),
     V3_REQUEST_TIMEOUT("F019", "V3 架构，行为验证请求和业务验签请求间隔超出90秒"),
-    V3_INCONSISTENT_SCENE_ID("F018", "V3 架构，场景 ID 不匹配"),
+    V3_INCONSISTENT_SCENE_ID("F020", "V3 架构，场景 ID 不匹配"),
 
     /** 未知问题 */
     UNKNOWN(null, "未知错误");
