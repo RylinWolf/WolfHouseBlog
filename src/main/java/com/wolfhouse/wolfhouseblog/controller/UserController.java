@@ -193,16 +193,14 @@ public class UserController {
     @PostMapping("/avatar")
     @Operation(summary = "上传头像")
     public ResponseEntity<? extends HttpResult<?>> uploadAvatar(@RequestParam("avatar") MultipartFile avatar) {
-        String fingerprint;
         try {
-            List<String> info = userService.uploadAvatar(avatar);
-            fingerprint = info.getFirst();
-            // 缓存指纹
-            redisService.avatarFingerprintCache(fingerprint, info.getLast());
+            // 缓存地址
+            redisService.avatarFingerprintCache(authService.loginUserOrE(), userService.uploadAvatar(avatar));
         } catch (ImgValidException e) {
             return HttpResult.failed(HttpStatus.BAD_REQUEST.value(), HttpCode.PARAM_ERROR.message, e.getMessage());
         }
-        return HttpResult.ok(null, fingerprint);
+        return HttpResult.ok(null, HttpResult.success()
+                                             .getMessage());
     }
 
     @Operation(summary = "关注")

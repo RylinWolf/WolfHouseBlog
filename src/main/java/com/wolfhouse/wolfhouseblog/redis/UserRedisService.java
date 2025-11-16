@@ -126,19 +126,19 @@ public class UserRedisService {
         return users;
     }
 
-    public void avatarFingerprintCache(String fingerprint, String filepath) {
+    public void avatarFingerprintCache(Long userId, String filepath) {
         // 指纹有效期 15 分钟
         redisTemplate.opsForValue()
-                     .set(UserRedisConstant.AVATAR_FINGERPRINT.formatted(fingerprint),
+                     .set(UserRedisConstant.AVATAR_FINGERPRINT.formatted(userId),
                           filepath,
                           Duration.ofMinutes(15));
     }
 
-    public String getAvatarByFingerPrint(String avatar) {
-        if (avatar == null || avatar.isBlank()) {
+    public String getUserAvatar(Long loginUser) {
+        if (loginUser == null) {
             return null;
         }
         return String.valueOf(redisTemplate.opsForValue()
-                                           .getAndDelete(UserRedisConstant.AVATAR_FINGERPRINT.formatted(avatar)));
+                                           .getAndDelete(UserRedisConstant.AVATAR_FINGERPRINT.formatted(loginUser)));
     }
 }

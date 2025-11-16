@@ -1,7 +1,6 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.aliyun.oss.model.CannedAccessControlList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -138,11 +137,9 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         Map<String, Object> userMap = defaultMapper.convertValue(getById(login), Map.class);
         Map<String, Object> updateMap = defaultMapper.convertValue(dto, Map.class);
 
-        // 验证头像
-        String avatar = dto.getAvatar();
-        // 更新头像
-        avatar = redisService.getAvatarByFingerPrint(avatar);
-        if (avatar == null || avatar.isBlank()) {
+        // 获取头像
+        String avatar = dto.getAvatar() == null ? null : redisService.getUserAvatar(login);
+        if (avatar == null) {
             // 不覆盖更新头像
             updateMap.remove(USER.AVATAR.getName());
         }
@@ -352,7 +349,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
     }
 
     @Override
-    public List<String> uploadAvatar(MultipartFile file) throws ImgValidException {
+    public String uploadAvatar(MultipartFile file) throws ImgValidException {
         // 0. 校验登录信息
         Long userId = mediator.loginUserOrE();
         // 1. 校验文件
@@ -412,7 +409,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         }
 
 
-        // 4. 返回指纹
-        return List.of(DigestUtil.md5Hex(filepath), filepath);
+        // 4. 返回地址
+        return filepath;
     }
 }

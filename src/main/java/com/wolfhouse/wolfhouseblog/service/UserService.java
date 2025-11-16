@@ -166,8 +166,8 @@ public interface UserService extends IService<User> {
      * 上传用户头像。
      *
      * @param file 需要上传的头像文件，文件类型应为支持的图片格式（如 JPEG、PNG 等）
-     * @return 上传成功后返回获取头像的指纹
+     * @return 上传成功后返回地址
      * @throws ImgValidException 图像校验失败异常
      */
-    List<String> uploadAvatar(MultipartFile file) throws ImgValidException;
+    String uploadAvatar(MultipartFile file) throws ImgValidException;
 }
