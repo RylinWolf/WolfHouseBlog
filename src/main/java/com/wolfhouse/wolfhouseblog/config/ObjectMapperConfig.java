@@ -1,9 +1,11 @@
 package com.wolfhouse.wolfhouseblog.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.wolfhouse.wolfhouseblog.common.properties.DateProperties;
 import com.wolfhouse.wolfhouseblog.common.utils.JacksonObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,16 @@ public class ObjectMapperConfig {
         var mapper = getDefault();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.registerModule(new JsonNullableModule());
+        return mapper;
+    }
+
+    @Bean(name = "redisObjectMapper")
+    public ObjectMapper redisObjectMapper() {
+        var mapper = getDefault();
+        mapper.activateDefaultTyping(
+            LaissezFaireSubTypeValidator.instance,
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY);
         return mapper;
     }
 
