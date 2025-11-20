@@ -427,8 +427,12 @@ public class ArticleElasticServiceImpl implements ArticleService {
         builder.index(ElasticConstant.ARTICLE_INDEX);
         builder.id(dto.getId()
                       .toString());
-
-        builder.doc(objectMapper.convertValue(dto, Map.class));
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> updateDoc = objectMapper.convertValue(dto, Map.class);
+        // 同时要更新修改日期
+        updateDoc.put(ARTICLE.EDIT_TIME.getName(), LocalDateTime.now());
+        builder.doc(updateDoc);
         // 立刻刷新 ES
         builder.refresh(Refresh.True);
         UpdateResponse<Article> resp = client.update(builder.build(), Article.class);
