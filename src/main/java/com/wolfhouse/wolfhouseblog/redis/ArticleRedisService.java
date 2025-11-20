@@ -13,7 +13,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -24,6 +26,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -170,6 +173,48 @@ public class ArticleRedisService {
                                          ArticleVo.class);
     }
 
+    // region 浏览量相关
+
+    /**
+     * 计算文章浏览量的批处理方法。
+     * 扫描 Redis 数据库中的键值，按批次将匹配的键集合交给消费者进行处理。
+     *
+     * @param consumer  处理键集合的消费者
+     * @param batchSize 每批次处理的键数量上限
+     * @return 返回处理的总浏览量计数，如果无法执行返回 null
+     */
+    public Long viewsCountBatch(Consumer<Set<String>> consumer, int batchSize) {
+        try (Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions()
+                                                                   .match(ArticleRedisConstant.VIEWS.formatted("*"))
+                                                                   .count(100)
+                                                                   .build())) {
+            long count = 0;
+            // 初始化键集合
+            Set<String> keys = new HashSet<>();
+            // 当游标有值时持续循环
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+                // 达到分块大小
+                if (keys.size() % batchSize == 0) {
+                    // 执行消费者方法
+                    consumer.accept(new HashSet<>(keys));
+                    // 更新总记录数
+                    count += keys.size();
+                    // 清空临时键缓存
+                    keys.clear();
+                }
+            }
+            // 游标无值，若缓存集合中仍有内容，则执行
+            if (!keys.isEmpty()) {
+                consumer.accept(new HashSet<>(keys));
+                count += keys.size();
+            }
+            // 总执行记录数
+            return count;
+        }
+    }
+
+
     /**
      * 增加指定文章的浏览量。
      *
@@ -180,6 +225,7 @@ public class ArticleRedisService {
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
         // 文章 key 不存在
         if (!redisTemplate.hasKey(key)) {
+            // TODO 用 setIfAbsent 优化
             boolean lockAcquired = false;
             try {
                 // 获得锁
@@ -297,6 +343,8 @@ public class ArticleRedisService {
                      .decrement(ArticleRedisConstant.VIEWS.formatted(articleId), views);
     }
 
+    // endregion
+
 
     /**
      * 缓存文章简要信息的分页查询结果。
@@ -320,15 +368,8 @@ public class ArticleRedisService {
                                     TimeUnit.MINUTES);
     }
 
-    /**
-     * 生成随机的缓存过期时间。
-     * 在基础过期时间上增加0-60分钟的随机值，避免缓存同时失效。
-     *
-     * @return 随机生成的过期时间（分钟）
-     */
-    private Long randTimeout() {
-        return BASE_TIME_OUT + new Random().nextLong(60);
-    }
+
+    // region 点赞相关
 
     /**
      * 为文章增加一个点赞。
@@ -421,6 +462,17 @@ public class ArticleRedisService {
         return (Long) ops.getAndDelete(key);
     }
 
+    // endregion
+
+    /**
+     * 生成随机的缓存过期时间。
+     * 在基础过期时间上增加0-60分钟的随机值，避免缓存同时失效。
+     *
+     * @return 随机生成的过期时间（分钟）
+     */
+    private Long randTimeout() {
+        return BASE_TIME_OUT + new Random().nextLong(60);
+    }
 
     /**
      * 尝试为指定的文章 ID 设置指定锁
@@ -434,4 +486,22 @@ public class ArticleRedisService {
                          .setIfAbsent(lock, 0, ArticleRedisConstant.LOCK_TIME_SECONDS, TimeUnit.SECONDS));
     }
 
+
+    /**
+     * 增加指定文章的浏览量。
+     * 当 Redis 键不存在时，初始化键并设置默认过期时间；
+     * 如果键已存在，则通过增量更新浏览量。
+     *
+     * @param partViews 包含文章 ID 和对应需要增加的浏览量的映射。键为文章 ID 的字符串表示，值为增加的浏览量。
+     */
+    public void increaseViews(Map<String, Long> partViews) {
+        for (String key : partViews.keySet()) {
+            String redisKey = ArticleRedisConstant.VIEWS.formatted(Long.parseLong(key));
+            ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+            // 若键不存在则初始化键
+            ops.setIfAbsent(redisKey, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            // 自增
+            ops.increment(redisKey, partViews.get(key));
+        }
+    }
 }
