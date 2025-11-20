@@ -422,7 +422,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         UpdateChain<Article> updateChain = UpdateChain.of(Article.class)
                                                       .where(ARTICLE.ID.eq(dto.getId()))
                                                       .set(ARTICLE.TITLE, title, title != null)
-                                                      .set(ARTICLE.CONTENT, content, content != null);
+                                                      .set(ARTICLE.CONTENT, content, content != null)
+                                                      .set(ARTICLE.EDIT_TIME, LocalDateTime.now());
+            
         // 可见性
         dto.getVisibility()
            .ifPresent(v -> updateChain.set(ARTICLE.VISIBILITY, v));
