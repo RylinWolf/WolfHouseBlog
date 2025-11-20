@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS article
     author_id    BIGINT       NOT NULL COMMENT '作者用户 ID',
     content      TEXT         NOT NULL COMMENT '内容',
     post_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布日期',
-    edit_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '编辑日期',
+    edit_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '编辑日期',
     visibility   TINYINT      NOT NULL DEFAULT 0 COMMENT '可见权限\n0 - 公开\n1 - 私人',
     partition_id BIGINT COMMENT '分区 ID',
     tags         JSON COMMENT '文章标签',
