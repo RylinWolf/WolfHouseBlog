@@ -167,7 +167,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return null;
         }
         List<ArticleVo> vos = getVoByIds(ids, columns);
-        return PageResult.of(new Page<>(vos, dto.getPageNumber(), dto.getPageSize(), vos.size()));
+        return PageResult.of(new Page<>(vos, dto.getPageNumber(), dto.getPageSize(), articlePage.getTotalRow()));
     }
 
     @Override
@@ -424,7 +424,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                                                       .set(ARTICLE.TITLE, title, title != null)
                                                       .set(ARTICLE.CONTENT, content, content != null)
                                                       .set(ARTICLE.EDIT_TIME, LocalDateTime.now());
-            
+
         // 可见性
         dto.getVisibility()
            .ifPresent(v -> updateChain.set(ARTICLE.VISIBILITY, v));
