@@ -223,33 +223,8 @@ public class ArticleRedisService {
     public void increaseView(Long articleId) {
         String key = ArticleRedisConstant.VIEWS.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        // 文章 key 不存在
-        if (!redisTemplate.hasKey(key)) {
-            // TODO 用 setIfAbsent 优化
-            boolean lockAcquired = false;
-            try {
-                // 获得锁
-                lockAcquired = Boolean.TRUE.equals(ops.setIfAbsent(ArticleRedisConstant.VIEWS_LOCK,
-                                                                   0,
-                                                                   ArticleRedisConstant.LOCK_TIME_SECONDS,
-                                                                   TimeUnit.SECONDS));
-                if (lockAcquired) {
-                    // 双重检查锁定
-                    if (!redisTemplate.hasKey(key)) {
-                        ops.set(key, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
-
-                    }
-                } else {
-                    // 未获取到锁，等待一会儿确保可以正常获取到 key
-                    Thread.sleep(100);
-                }
-            } catch (Exception ignored) {} finally {
-                // 移除锁
-                if (lockAcquired) {
-                    ops.getAndDelete(ArticleRedisConstant.VIEWS_LOCK);
-                }
-            }
-        }
+        // 若键不存在则初始化
+        ops.setIfAbsent(key, 0, ArticleRedisConstant.VIEWS_EXPIRE_MINUTES, TimeUnit.MINUTES);
         // 自增
         ops.increment(key);
         // 刷新过期时间
@@ -377,58 +352,22 @@ public class ArticleRedisService {
      *
      * @param articleId 文章的唯一标识 ID
      * @return 执行结果，如果成功增加点赞则返回 true；否则返回 false
-     * @throws InterruptedException 在尝试获取锁或初始化点赞数据时，线程被中断
      */
-    public Boolean like(Long articleId, Boolean isIcr) throws InterruptedException {
+    public Boolean like(Long articleId, Boolean isIcr) {
         String key = ArticleRedisConstant.LIKE.formatted(articleId);
         ValueOperations<String, Object> ops = redisTemplate.opsForValue();
-        int maxRetries = 3;
-        int retries = 0;
-        // TODO 释放锁时的锁线程检查
-        while (!redisTemplate.hasKey(key)) {
-            String lock = ArticleRedisConstant.LIKE_LOCK.formatted(RedisConstant.BLOCK_LOCK);
-            try {
-
-                if (Boolean.FALSE.equals(ops.setIfAbsent(lock,
-                                                         0,
-                                                         ArticleRedisConstant.LOCK_TIME_SECONDS,
-                                                         TimeUnit.SECONDS))) {
-                    // 未抢到锁
-                    if (retries >= maxRetries) {
-                        // 超过最大重试次数
-                        return false;
-                    }
-                    retries++;
-                    Thread.sleep(500);
-                    continue;
-                }
-                // 双重检查锁定
-                if (redisTemplate.hasKey(key)) {
-                    break;
-                }
-                // 抢到锁，初始化点赞
-                ops.set(key, 0, randTimeout(), TimeUnit.MINUTES);
-                break;
-            } finally {
-                // 移除锁
-                redisTemplate.delete(lock);
-            }
-        }
-        // 自增点赞量
-        if (isIcr) {
-            ops.increment(key);
-            return true;
-        }
-        ops.decrement(key);
+        // 记录不存在则初始化
+        ops.setIfAbsent(key, 0, randTimeout(), TimeUnit.MINUTES);
+        ops.increment(key);
         return true;
 
     }
 
-    public Boolean like(Long id) throws InterruptedException {
+    public Boolean like(Long id) {
         return like(id, true);
     }
 
-    public Boolean unlike(Long id) throws InterruptedException {
+    public Boolean unlike(Long id) {
         return like(id, false);
     }
 
