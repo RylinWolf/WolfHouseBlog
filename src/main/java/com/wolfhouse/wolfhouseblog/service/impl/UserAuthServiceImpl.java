@@ -7,14 +7,13 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
-import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyNode;
-import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.user.UserIdVerifyNode;
 import com.wolfhouse.wolfhouseblog.mapper.UserAuthMapper;
 import com.wolfhouse.wolfhouseblog.pojo.domain.UserAuth;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,14 +46,9 @@ public class UserAuthServiceImpl extends ServiceImpl<UserAuthMapper, UserAuth> i
     }
 
     @Override
-    public Long loginUserOrE() throws Exception {
-        Long login = ServiceUtil.loginUserOrE();
-        VerifyNode<Long> node = new UserIdVerifyNode(mediator).target(login);
-        if (node.verify()) {
-            return login;
-        }
-        ServiceUtil.removeLogin();
-        throw node.getException();
+    @SneakyThrows
+    public Long loginUserOrE() {
+        return ServiceUtil.loginUserOrE();
     }
 
     /**

@@ -75,7 +75,7 @@ public class ArticleController {
     @Operation(summary = "获取详情")
     @GetMapping("/{id}")
     public ResponseEntity<HttpResult<ArticleVo>> get(@PathVariable Long id) throws Exception {
-        // 读取文章
+        // 读取并缓存文章
         ArticleVo vo = applicationService.getArtVoSync(id);
         if (BeanUtil.isBlank(vo)) {
             // 该文章不存在
@@ -84,9 +84,6 @@ public class ArticleController {
                                      ArticleConstant.ACCESS_DENIED,
                                      null);
         }
-        // 缓存文章至 Redis
-        redisService.cacheOrUpdateArticle(vo);
-
         // 通过 Redis 存储浏览量，自增
         redisService.increaseView(id);
 

@@ -210,7 +210,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean isLiked(Long articleId) throws Exception {
+    public Boolean isLiked(Long articleId) {
         Long login = mediator.loginUserOrE();
         return likeMapper.selectCountByQuery(QueryWrapper.create()
                                                          .where(ARTICLE_LIKE.ARTICLE_ID.eq(articleId))
@@ -247,14 +247,14 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) throws Exception {
+    public List<ArticleFavoriteVo> getFavoritesByArticle(Long articleId) {
         Long login = mediator.loginUserOrE();
-        return favoriteMapper
-            .selectListByQueryAs(QueryWrapper.create()
-                                             .where(ARTICLE_FAVORITE.USER_ID.eq(
-                                                 login))
-                                             .and(ARTICLE_FAVORITE.ARTICLE_ID.eq(
-                                                 articleId)), ArticleFavoriteVo.class);
+        return favoriteMapper.selectListByQueryAs(
+            QueryWrapper.create()
+                        .where(ARTICLE_FAVORITE.USER_ID.eq(
+                            login))
+                        .and(ARTICLE_FAVORITE.ARTICLE_ID.eq(
+                            articleId)), ArticleFavoriteVo.class);
 
     }
 
@@ -315,7 +315,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
                                 dto.getFavoritesId(),
                                 dto.getArticleId(),
                                 login,
-                                null)) > 0;
+                                null), true) > 0;
     }
 
     @Override

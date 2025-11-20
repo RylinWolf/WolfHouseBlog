@@ -10,6 +10,6 @@ import java.time.LocalDate;
 @Data
 public class ArticleFavoriteVo {
     private Long articleId;
-    private Long favoriteId;
+    private Long favoritesId;
     private LocalDate favoriteDate;
 }

@@ -13,9 +13,8 @@ public interface UserAuthService extends IService<UserAuth> {
      * 获取当前登录用户的ID。此方法会验证用户的登录状态和认证信息。
      *
      * @return 当前登录用户的ID
-     * @throws Exception 当用户未登录、认证失败或系统异常时抛出异常
      */
-    Long loginUserOrE() throws Exception;
+    Long loginUserOrE();
 
     /**
      * 创建用户认证信息

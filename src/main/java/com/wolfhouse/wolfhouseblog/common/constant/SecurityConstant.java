@@ -30,6 +30,7 @@ public class SecurityConstant {
         "/user/login",
         "/user/register",
         "/article/query",
-        "/article/*"
+        "/article/*",
+        "/mail/register"
     };
 }

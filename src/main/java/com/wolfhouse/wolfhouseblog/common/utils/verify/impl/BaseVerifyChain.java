@@ -13,13 +13,13 @@ public class BaseVerifyChain implements VerifyChain {
     private final Set<VerifyNode<?>> nodes;
     private final List<String> failed;
 
-    public static BaseVerifyChain instance() {
-        return new BaseVerifyChain();
-    }
-
     public BaseVerifyChain() {
         nodes = new HashSet<>();
         failed = new ArrayList<>();
+    }
+
+    public static BaseVerifyChain instance() {
+        return new BaseVerifyChain();
     }
 
     @Override
@@ -38,24 +38,24 @@ public class BaseVerifyChain implements VerifyChain {
     }
 
     @Override
-    public <T> boolean add(T t, Predicate<T> predicate) {
-        return nodes.add(new BaseVerifyNode<>() {
+    public <T> boolean add(T t1, Predicate<T> p) {
+        return nodes.add(new BaseVerifyNode<T>() {
             {
                 target(t);
-                predicate(predicate);
+                predicate(p);
             }
 
             @Override
             public boolean equals(Object obj) {
                 if (obj instanceof BaseVerifyNode<?> node) {
-                    return node.predicate.equals(predicate) && node.t.equals(t);
+                    return node.predicate.equals(p) && node.t.equals(t1);
                 }
                 return false;
             }
 
             @Override
             public int hashCode() {
-                return t.hashCode() + predicate.hashCode();
+                return t1.hashCode() + p.hashCode();
             }
         });
     }

@@ -1,5 +1,6 @@
 package com.wolfhouse.wolfhouseblog.task.service.article;
 
+import com.wolfhouse.wolfhouseblog.common.constant.redis.RedisConstant;
 import com.wolfhouse.wolfhouseblog.redis.ArticleRedisService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ArticleEsDbMediator;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -40,32 +44,83 @@ public class ArticleTask {
      * 1. 从 Redis 中获取并删除所有缓存的文章浏览量数据，数据以 Map 的形式返回，其中键为文章 ID，值为对应的浏览量。
      * 2. 将获取到的浏览量数据批量更新到数据库中。
      * 3. 将获取到的浏览量数据同步更新到 Elasticsearch 中。
+     * <p>
+     * 为了保障文章浏览量正常更新：
+     * 1. 获取需要更新浏览量的文章数量
+     * 2. 分批更新：
+     * - 根据浏览量，从高到底依次更新
+     * - 获取并删除一个批次的文章浏览量数据
+     * - 更新至数据库
+     * - 更新至 Elasticsearch
+     * - 重新缓存这个批次的文章内容
      */
-    @Scheduled(cron = "0 0 0/1 * * ?")
+    @Scheduled(cron = "0 0 3 * * ?")
     public void viewRedisToDb() {
+        int batchSize = Integer.parseInt(env.getProperty("custom.task.article.view-batch-size", "100"));
         log.info("文章定时任务启动，从 Redis 同步浏览量至数据库与 ES...");
-        Map<String, Long> views = redisService.getViewsAndDelete();
-        if (views == null) {
+        Long count = doViewRedisToDb(batchSize);
+        if (count == null || count == 0L) {
+            log.info("没有要同步的浏览量数据.");
             return;
         }
-        Set<Long> ids = views.keySet()
-                             .stream()
-                             .map(Long::valueOf)
-                             .collect(Collectors.toSet());
-        try {
-            mediator.addViewsToDb(views);
-        } catch (Exception e) {
-            // TODO 通过日志记录未同步的数据
-            log.warn("数据库浏览量同步错误");
-            return;
-        }
-        Set<Long> esRes = mediator.addViewsToEs(views);
-        if (ids.size() != esRes.size()) {
-            HashSet<Long> failed = new HashSet<>(esRes);
-            log.warn("ES 浏览量同步异常, 失败 ID: {}", failed);
-        }
+
         log.info("浏览量同步完成");
     }
+
+    private Long doViewRedisToDb(int batchSize) {
+        List<Thread> threads = new ArrayList<>();
+        // 调用分批方法，创建虚拟线程处理每个分批
+        Long viewsCount = redisService.viewsCountBatch(set -> {
+            Thread thread = Thread.ofVirtual()
+                                  .start(() -> doViewRedisToDbThreadTask(set));
+            threads.add(thread);
+        }, batchSize);
+
+        // 阻塞
+        threads.forEach(t -> {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
+        });
+        return viewsCount;
+    }
+
+    private void doViewRedisToDbThreadTask(Set<String> keys) {
+        // 1. 提取文章 ID 并获取浏览量
+        Map<String, Long> partViews = keys.stream()
+                                          .map(k -> {
+                                              String[] keyParts = k.split(RedisConstant.SEPARATOR);
+                                              String articleId = keyParts[keyParts.length - 1];
+                                              Long views = redisService.getViewsAndDelete(Long.parseLong(articleId));
+                                              return Map.entry(articleId, views);
+                                          })
+                                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // 2. 更新至数据库
+        try {
+            mediator.addViewsToDb(partViews);
+        } catch (Exception e) {
+            log.error("浏览量同步至数据库失败");
+            redisService.increaseViews(partViews);
+            return;
+        }
+        // 更新至 es
+        try {
+            mediator.addViewsToEs(partViews);
+        } catch (Exception e) {
+            log.error("浏览量同步至 ES 失败");
+            return;
+        }
+        // 3. 更新缓存
+        Integer updates = redisService.updateArticleViews(partViews);
+        if (updates != keys.size()) {
+            log.warn("Redis 浏览量缓存未全部更新");
+        }
+    }
+
 
     /**
      * 定期备份数据库（wolfBlog）。
