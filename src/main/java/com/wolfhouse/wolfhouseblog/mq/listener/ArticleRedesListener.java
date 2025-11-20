@@ -114,7 +114,7 @@ public class ArticleRedesListener {
 
     @RabbitListener(bindings = @QueueBinding(
         value = @Queue(name = MqArticleEsConstant.UNLIKE_QUEUE),
-        exchange = @Exchange(name = MqArticleEsConstant.LIKE_EXCHANGE,
+        exchange = @Exchange(name = MqArticleEsConstant.UNLIKE_EXCHANGE,
                              type = ExchangeTypes.TOPIC),
         key = {MqArticleEsConstant.UNLIKE_KEY}
     ))
