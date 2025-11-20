@@ -504,4 +504,31 @@ public class ArticleRedisService {
             ops.increment(redisKey, partViews.get(key));
         }
     }
+
+    /**
+     * 更新文章浏览量的方法。
+     * 遍历提供的文章浏览量映射，将浏览量更新到 Redis 缓存中，操作过程中删除旧的缓存，避免重复计算。
+     * 如果 Redis 中的键不存在或者获取的文章数据为空，则跳过更新。
+     *
+     * @param partViews 包含文章 ID 和对应需要更新浏览量的映射。键为文章 ID 的字符串表示，值为增加的浏览量。
+     * @return 成功更新浏览量的文章数量。
+     */
+    public Integer updateArticleViews(Map<String, Long> partViews) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        int count = 0;
+        for (String key : partViews.keySet()) {
+            String redisKey = ArticleRedisConstant.VO.formatted(Long.parseLong(key));
+            if (!redisTemplate.hasKey(redisKey)) {
+                continue;
+            }
+            ArticleVo vo = (ArticleVo) ops.getAndDelete(redisKey);
+            if (vo == null) {
+                continue;
+            }
+            vo.setViews(vo.getViews() + partViews.get(key));
+            ops.setIfAbsent(redisKey, vo, randTimeout(), TimeUnit.MINUTES);
+            count++;
+        }
+        return count;
+    }
 }
