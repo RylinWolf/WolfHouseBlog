@@ -139,6 +139,8 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
 
         // 获取头像
         String avatar = dto.getAvatar() == null ? null : redisService.getUserAvatar(login);
+        // 覆盖前端传来的 avatar 字段
+        updateMap.put(USER.AVATAR.getName(), avatar);
         if (avatar == null) {
             // 不覆盖更新头像
             updateMap.remove(USER.AVATAR.getName());
