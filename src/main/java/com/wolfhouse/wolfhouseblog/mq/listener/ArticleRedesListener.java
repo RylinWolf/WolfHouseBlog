@@ -104,34 +104,26 @@ public class ArticleRedesListener {
         key = {MqArticleEsConstant.LIKE_KEY}
     ))
     public void like(Long id) {
-        try {
-            log.debug("监听到文章点赞: {}", id);
-            esService.addLikes(id, 1L);
+        log.debug("监听到文章点赞: {}", id);
+        if (esService.addLikes(id, 1L)) {
             log.debug("{} 文章点赞成功", id);
-            redisService.like(id);
-            log.debug("{} 文章点赞信息已缓存", id);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new ServiceException(e.getMessage(), e);
+            return;
         }
+        log.error("文章点赞失败: {}", id);
     }
 
     @RabbitListener(bindings = @QueueBinding(
         value = @Queue(name = MqArticleEsConstant.UNLIKE_QUEUE),
-        exchange = @Exchange(name = MqArticleEsConstant.LIKE_EXCHANGE,
+        exchange = @Exchange(name = MqArticleEsConstant.UNLIKE_EXCHANGE,
                              type = ExchangeTypes.TOPIC),
         key = {MqArticleEsConstant.UNLIKE_KEY}
     ))
     public void unlike(Long id) {
-        try {
-            log.debug("监听到文章取消点赞: {}", id);
-            esService.addLikes(id, -1L);
+        log.debug("监听到文章取消点赞: {}", id);
+        if (esService.addLikes(id, -1L)) {
             log.debug("{} 文章点赞取消成功", id);
-            redisService.unlike(id);
-            log.debug("{} 文章取消点赞信息已缓存", id);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            throw new ServiceException(e.getMessage(), e);
+            return;
         }
+        log.error("文章点赞取消失败: {}", id);
     }
 }

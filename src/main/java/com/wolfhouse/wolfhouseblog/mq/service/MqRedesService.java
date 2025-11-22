@@ -63,6 +63,6 @@ public class MqRedesService {
 
     public void unlike(Long id) {
         log.debug("取消点赞文章: {}", id);
-        template.convertAndSend(MqArticleEsConstant.LIKE_EXCHANGE, MqArticleEsConstant.UNLIKE_KEY, id);
+        template.convertAndSend(MqArticleEsConstant.UNLIKE_EXCHANGE, MqArticleEsConstant.UNLIKE_KEY, id);
     }
 }

@@ -67,14 +67,15 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 无缓存
                 Claims claims = jwtUtil.parseToken(token);
                 userId = Long.parseLong(claims.getSubject());
-                // 验证用户是否可达
-                VerifyTool.of(UserVerifyNode.id(mediator)
-                                            .target(userId))
-                          .doVerify();
-                log.info("JWT 信息: {}, 过期时间: {}", userId, claims.getExpiration());
                 // 保存缓存
                 roleRedisService.saveTokenCache(token, userId.toString());
             }
+
+            // 验证用户是否可达
+            VerifyTool.of(UserVerifyNode.id(mediator)
+                                        .target(userId))
+                      .doVerify();
+            
             // 读取权限缓存
             authorities = roleRedisService.getAuthorities(userId);
 

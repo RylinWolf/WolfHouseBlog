@@ -210,7 +210,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
     }
 
     @Override
-    public Boolean isLiked(Long articleId) throws Exception {
+    public Boolean isLiked(Long articleId) {
         Long login = mediator.loginUserOrE();
         return likeMapper.selectCountByQuery(QueryWrapper.create()
                                                          .where(ARTICLE_LIKE.ARTICLE_ID.eq(articleId))
