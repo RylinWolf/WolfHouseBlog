@@ -1,6 +1,7 @@
 package com.wolfhouse.wolfhouseblog.service;
 
 import com.mybatisflex.core.service.IService;
+import com.wolfhouse.wolfhouseblog.common.utils.imageutil.ImgValidException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
 import com.wolfhouse.wolfhouseblog.pojo.domain.User;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
@@ -10,6 +11,7 @@ import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -159,4 +161,13 @@ public interface UserService extends IService<User> {
      * @return 用户简要信息视图对象，如果未找到则返回null
      */
     UserBriefVo getUserBriefById(Long authorId);
+
+    /**
+     * 上传用户头像。
+     *
+     * @param file 需要上传的头像文件，文件类型应为支持的图片格式（如 JPEG、PNG 等）
+     * @return 上传成功后返回地址
+     * @throws ImgValidException 图像校验失败异常
+     */
+    String uploadAvatar(MultipartFile file) throws ImgValidException;
 }

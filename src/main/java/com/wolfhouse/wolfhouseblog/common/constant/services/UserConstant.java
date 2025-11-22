@@ -1,5 +1,7 @@
 package com.wolfhouse.wolfhouseblog.common.constant.services;
 
+import java.util.Set;
+
 /**
  * @author linexsong
  */
@@ -31,4 +33,19 @@ public class UserConstant {
     public static final String NOT_SUBSCRIBED = "未关注该用户！";
     public static final String EMAIL_FORMAT_NOT_SUPPORT = "邮箱格式不正确！";
     public static final String MAIL_CODE_UNVERIFIED = "邮箱验证码不正确";
+
+    public static final Set<String> ALLOWED_AVATAR_TYPE = Set.of("png", "jpg", "jpeg");
+    public static final String AVATAR_VALID_FAILED = "头像验证失败";
+    // region 头像常量
+    /** 触发压缩阈值的图片大小 0.6 MB */
+    public static final long AVATAR_COMPRESS_SIZE = (long) (0.6 * 1024 * 1024);
+    /** 压缩质量 0.7 */
+    public static final float AVATAR_COMPRESS_QUALITY = 0.7f;
+    /** 最大宽度 */
+    public static final int AVATAR_MAX_WIDTH = 1024;
+    /** 最大高度 */
+    public static final int AVATAR_MAX_HEIGHT = 1024;
+    /** 转换格式 */
+    public static final String AVATAR_FORMAT = "jpg";
+    // endregion
 }
