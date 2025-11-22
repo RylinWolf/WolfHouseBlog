@@ -125,4 +125,21 @@ public class UserRedisService {
         }
         return users;
     }
+
+    public void avatarFingerprintCache(Long userId, String filepath) {
+        // 指纹有效期 15 分钟
+        redisTemplate.opsForValue()
+                     .set(UserRedisConstant.AVATAR_FINGERPRINT.formatted(userId),
+                          filepath,
+                          Duration.ofMinutes(15));
+    }
+
+    public String getUserAvatar(Long loginUser) {
+        if (loginUser == null) {
+            return null;
+        }
+        Object avatar = redisTemplate.opsForValue()
+                                     .getAndDelete(UserRedisConstant.AVATAR_FINGERPRINT.formatted(loginUser));
+        return avatar == null ? null : String.valueOf(avatar);
+    }
 }

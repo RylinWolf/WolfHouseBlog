@@ -7,7 +7,9 @@ import com.wolfhouse.wolfhouseblog.common.http.HttpResult;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.imageutil.ImgValidException;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.result.HttpCode;
 import com.wolfhouse.wolfhouseblog.mail.MailService;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserLoginDto;
 import com.wolfhouse.wolfhouseblog.pojo.dto.UserRegisterDto;
@@ -35,6 +37,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.List;
@@ -185,6 +188,19 @@ public class UserController {
             HttpCodeConstant.UPDATE_FAILED,
             UserConstant.USER_UPDATE_FAILED,
             userService.updateAuthedUser(dto));
+    }
+
+    @PostMapping("/avatar")
+    @Operation(summary = "上传头像")
+    public ResponseEntity<? extends HttpResult<?>> uploadAvatar(@RequestParam("avatar") MultipartFile avatar) {
+        try {
+            // 缓存地址
+            redisService.avatarFingerprintCache(authService.loginUserOrE(), userService.uploadAvatar(avatar));
+        } catch (ImgValidException e) {
+            return HttpResult.failed(HttpStatus.BAD_REQUEST.value(), HttpCode.PARAM_ERROR.message, e.getMessage());
+        }
+        return HttpResult.ok(null, HttpResult.success()
+                                             .getMessage());
     }
 
     @Operation(summary = "关注")

@@ -1,15 +1,23 @@
 package com.wolfhouse.wolfhouseblog.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
+import com.aliyun.oss.model.CannedAccessControlList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.wolfhouse.wolfhouseblog.common.constant.OssUploadLogConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.ServiceUtil;
+import com.wolfhouse.wolfhouseblog.common.utils.imageutil.ImgCompressor;
+import com.wolfhouse.wolfhouseblog.common.utils.imageutil.ImgValidException;
+import com.wolfhouse.wolfhouseblog.common.utils.imageutil.ImgValidator;
+import com.wolfhouse.wolfhouseblog.common.utils.oss.BucketClient;
 import com.wolfhouse.wolfhouseblog.common.utils.page.PageResult;
+import com.wolfhouse.wolfhouseblog.common.utils.result.HttpCode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.VerifyTool;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotAnyBlankVerifyNode;
 import com.wolfhouse.wolfhouseblog.common.utils.verify.impl.nodes.commons.NotEqualsVerifyNode;
@@ -24,14 +32,20 @@ import com.wolfhouse.wolfhouseblog.pojo.dto.UserUpdateDto;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserBriefVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserRegisterVo;
 import com.wolfhouse.wolfhouseblog.pojo.vo.UserVo;
+import com.wolfhouse.wolfhouseblog.redis.UserRedisService;
+import com.wolfhouse.wolfhouseblog.service.OssUploadLogService;
 import com.wolfhouse.wolfhouseblog.service.UserAuthService;
 import com.wolfhouse.wolfhouseblog.service.UserService;
 import com.wolfhouse.wolfhouseblog.service.mediator.ServiceAuthMediator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -43,11 +57,16 @@ import static com.wolfhouse.wolfhouseblog.pojo.domain.table.UserTableDef.USER;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements UserService {
     private final SubscribeMapper subscribeMapper;
     private final ServiceAuthMediator mediator;
     private final UserAuthService authService;
     private final JwtUtil jwtUtil;
+    private final BucketClient avatarOssClient;
+    private final ImgValidator avatarValidator;
+    private final OssUploadLogService ossLogService;
+    private final UserRedisService redisService;
 
     @Resource(name = "defaultObjectMapper")
     private ObjectMapper defaultMapper;
@@ -114,9 +133,21 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                                     .allowNull(false))
                   .doVerify();
 
-        // 合并已有用户和更新用户数据
+        // 已有用户和更新用户数据
         Map<String, Object> userMap = defaultMapper.convertValue(getById(login), Map.class);
-        userMap.putAll(defaultMapper.convertValue(dto, Map.class));
+        Map<String, Object> updateMap = defaultMapper.convertValue(dto, Map.class);
+
+        // 获取头像
+        String avatar = dto.getAvatar() == null ? null : redisService.getUserAvatar(login);
+        // 覆盖前端传来的 avatar 字段
+        updateMap.put(USER.AVATAR.getName(), avatar);
+        if (avatar == null) {
+            // 不覆盖更新头像
+            updateMap.remove(USER.AVATAR.getName());
+        }
+        // 合并数据
+        userMap.putAll(updateMap);
+
         User user = defaultMapper.convertValue(userMap, User.class);
 
         if (mapper.update(user, false) != 1) {
@@ -294,5 +325,93 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             QueryWrapper.create()
                         .select(UserBriefVo.COLUMNS)
                         .where(USER.ID.eq(authorId)), UserBriefVo.class);
+    }
+
+    /**
+     * 生成唯一的文件名，格式为 userId_随机字符串.格式。若生成的文件名已存在，
+     * 则重新生成，直到文件名唯一或达到最大重试次数。
+     *
+     * @param userId 用户ID，用于文件名前缀。
+     * @param format 文件格式，例如 "jpg"、"png"。
+     * @return 生成的唯一文件名。
+     * @throws ServiceException 如果在达到最大重试次数后仍无法生成唯一文件名，抛出此异常。
+     */
+    private String genFilename(Long userId, String format) {
+        String filename = String.format("%s_%s.%s", userId, RandomUtil.randomString(16), format);
+        int maxReties = 10;
+        // 文件是否已存在，若已存在则重新生成名称
+        while (avatarOssClient.doesObjectExist(filename) && maxReties-- > 0) {
+            filename = String.format("%s_%s.%s", userId, RandomUtil.randomString(16), format);
+        }
+        if (maxReties <= 0) {
+            // 超出最大重试次数
+            throw new ServiceException(HttpCode.OSS_UPLOAD_FAILED.message);
+        }
+        return filename;
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile file) throws ImgValidException {
+        // 0. 校验登录信息
+        Long userId = mediator.loginUserOrE();
+        // 1. 校验文件
+        ImgValidator.Result fileValid = avatarValidator.validate(file);
+        if (!fileValid.valid()) {
+            // 解析图片失败
+            log.error("{}: {}", UserConstant.AVATAR_VALID_FAILED, fileValid.message());
+            throw new ServiceException(UserConstant.AVATAR_VALID_FAILED);
+        }
+
+        // 2. 生成文件名称
+        // 通过登录用户 ID + 随机字符串生成
+        String filename = genFilename(userId, UserConstant.AVATAR_FORMAT);
+        // 文件存储路径
+        String filepath = avatarOssClient.getFileUploadPath(filename);
+        // 文件字节输入流
+        ByteArrayInputStream imgIns;
+        // 3. 上传文件
+        try (var ins = file.getInputStream()) {
+            // TODO Redis 获取已上传图片路径，判断是否有已经上传但没有使用的头像指纹，有则删除
+
+            // 3.1 压缩图片大小
+            // 构建压缩器
+            ImgCompressor compressor = ImgCompressor.of(ins);
+            // 判断是否需要压缩质量
+            if (fileValid.size() > UserConstant.AVATAR_COMPRESS_SIZE) {
+                compressor.quality(UserConstant.AVATAR_COMPRESS_QUALITY);
+            }
+            // 压缩宽高
+            compressor.scale(UserConstant.AVATAR_MAX_WIDTH, UserConstant.AVATAR_MAX_HEIGHT);
+            // 转换格式
+            compressor.format(UserConstant.AVATAR_FORMAT);
+            // 执行压缩，获取字节并转为字节流
+            // TODO 不同图片大小使用不同压缩比例
+            imgIns = new ByteArrayInputStream(compressor.doCompress()
+                                                        .toByteArray());
+
+        } catch (IOException e) {
+            log.error("{}: {}", ServiceExceptionConstant.EXEC_FAILED, e.getMessage(), e);
+            throw new ServiceException(HttpCode.IO_ERROR.message);
+        }
+        // 3.2 上传文件
+        // 上传文件，可公开读
+        avatarOssClient.putStream(filename, imgIns, false, CannedAccessControlList.PublicRead);
+        // 文件不存在
+        if (!avatarOssClient.doesObjectExist(filename)) {
+            throw new ServiceException(HttpCode.OSS_UPLOAD_FAILED.message);
+        }
+        // 记录上传日志
+        if (!ossLogService.log(filename, fileValid.size(), filepath)) {
+            log.error("{}: \nname: {}\npath: {}\nsize: {}\nuserId: {}",
+                      OssUploadLogConstant.FAIL_TO_LOG,
+                      filename,
+                      filepath,
+                      fileValid.size(),
+                      userId);
+        }
+
+
+        // 4. 返回地址
+        return filepath;
     }
 }
