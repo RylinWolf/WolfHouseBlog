@@ -138,7 +138,8 @@ public class UserRedisService {
         if (loginUser == null) {
             return null;
         }
-        return String.valueOf(redisTemplate.opsForValue()
-                                           .getAndDelete(UserRedisConstant.AVATAR_FINGERPRINT.formatted(loginUser)));
+        Object avatar = redisTemplate.opsForValue()
+                                     .getAndDelete(UserRedisConstant.AVATAR_FINGERPRINT.formatted(loginUser));
+        return avatar == null ? null : String.valueOf(avatar);
     }
 }
