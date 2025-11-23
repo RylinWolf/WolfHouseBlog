@@ -128,10 +128,7 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
                       UserVerifyNode.id(mediator)
                                     .target(login),
                       UserVerifyNode.BIRTH.target(dto.getBirth())
-                                          .allowNull(true),
-                      UserVerifyNode.email(this)
-                                    .target(dto.getEmail())
-                                    .allowNull(false))
+                                          .allowNull(true))
                   .doVerify();
 
         // 已有用户和更新用户数据
