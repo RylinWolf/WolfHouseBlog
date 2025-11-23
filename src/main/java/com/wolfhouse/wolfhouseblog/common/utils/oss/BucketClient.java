@@ -46,7 +46,7 @@ public class BucketClient {
         metadata.setHeader("x-oss-forbid-overwrite", "true");
     }
 
-    private String buildPath(String filename) {
+    public String buildPath(String filename) {
         return Path.of(dirPrefix, filename)
                    .toString();
     }

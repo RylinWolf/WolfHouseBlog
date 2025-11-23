@@ -61,6 +61,11 @@ custom:
     mysqldump-cmd: ${custom.backup.mysqldump-cmd}      # mysqldump 可执行命令（或绝对路径）
     database: ${custom.backup.database}            # 需要备份的数据库名
 
+  # 定时任务
+  task:
+    # 文章业务
+    article:
+      view-batch-size: 1000
 
 logging:
   level:
