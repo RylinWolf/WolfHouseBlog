@@ -8,6 +8,7 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.wolfhouse.wolfhouseblog.common.constant.OssUploadLogConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.ServiceExceptionConstant;
 import com.wolfhouse.wolfhouseblog.common.constant.services.UserConstant;
+import com.wolfhouse.wolfhouseblog.common.enums.oss.FileType;
 import com.wolfhouse.wolfhouseblog.common.exceptions.ServiceException;
 import com.wolfhouse.wolfhouseblog.common.utils.BeanUtil;
 import com.wolfhouse.wolfhouseblog.common.utils.JwtUtil;
@@ -153,6 +154,10 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
         if (mapper.update(user, false) != 1) {
             throw new ServiceException(UserConstant.USER_UPDATE_FAILED);
         }
+
+        // 更新成功
+
+
         return BeanUtil.copyProperties(getUserVoById(user.getId()), UserVo.class);
     }
 
@@ -401,13 +406,17 @@ public class UserServicesImpl extends ServiceImpl<UserMapper, User> implements U
             throw new ServiceException(HttpCode.OSS_UPLOAD_FAILED.message);
         }
         // 记录上传日志
-        if (!ossLogService.log(filename, fileValid.size(), filepath)) {
-            log.error("{}: \nname: {}\npath: {}\nsize: {}\nuserId: {}",
+        // oss 的存储位置为 文件夹/文件名
+        String ossPath = avatarOssClient.buildPath(filename);
+        if (!ossLogService.log(filename, fileValid.size(), filepath, ossPath, FileType.AVATAR)) {
+            log.error("{}: \nname: {}\npath: {}\nossPath:{}\nsize: {}\nuserId: {}\nfileType: {}",
                       OssUploadLogConstant.FAIL_TO_LOG,
                       filename,
                       filepath,
+                      ossPath,
                       fileValid.size(),
-                      userId);
+                      userId,
+                      FileType.AVATAR.desc);
         }
 
 

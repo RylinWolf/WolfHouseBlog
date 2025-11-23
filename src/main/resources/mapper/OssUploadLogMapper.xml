@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wolfhouse.wolfhouseblog.mapper.OssUploadLogMapper">
+    <select id="getLogIdsBy" resultType="long">
+        select id
+        from oss_upload_log
+        <where>
+            <if test="beforeTime != null">
+                and #{beforeTime} > upload_time
+            </if>
+            <if test="fileType != null">
+                and file_type = #{fileType}
+            </if>
+            and file_deleted = 0
+        </where>
+    </select>
+
+    <select id="ossPathWithoutRecentOne" resultType="string">
+        select file_oss_path
+        from (select file_oss_path,
+        row_number() over (partition by upload_user order by upload_time desc) as rn
+        from oss_upload_log
+        where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ) as t
+        where t.rn > 1;
+    </select>
+</mapper>
