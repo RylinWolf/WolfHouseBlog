@@ -42,7 +42,7 @@ public class ElasticConstant {
                                              ._toProperty();
             case "date" -> DateProperty.of(v -> {
                                            v.index(index);
-                                           v.format("yyyy-MM-dd HH:mm:ss");
+                                           v.format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                                            return v;
                                        })
                                        ._toProperty();

@@ -139,7 +139,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
                 });
                 roundCurrent++;
             } while (roundCurrent % batchSize != 0 && roundCurrent < size);
-
+            builder.refresh(Refresh.True);
             client.bulk(builder.build());
         }
     }
@@ -427,7 +427,7 @@ public class ArticleElasticServiceImpl implements ArticleService {
         builder.index(ElasticConstant.ARTICLE_INDEX);
         builder.id(dto.getId()
                       .toString());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> updateDoc = objectMapper.convertValue(dto, Map.class);
         // 同时要更新修改日期
