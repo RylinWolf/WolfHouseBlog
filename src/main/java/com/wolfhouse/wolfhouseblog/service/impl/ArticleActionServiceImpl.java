@@ -193,10 +193,11 @@ public class ArticleActionServiceImpl implements ArticleActionService {
         }
     }
 
-    private Set<Long> getReplyIds(Long commentId) {
+    public Set<Long> getReplyIds(Long commentId) {
+        // 获取子评论 ID
         List<ArticleComment> comments = commentMapper.selectListByQuery(
             QueryWrapper.create()
-                        .select(ARTICLE_COMMENT.ARTICLE_ID)
+                        .select(ARTICLE_COMMENT.ID)
                         .where(ARTICLE_COMMENT.REPLY_ID.eq(commentId)));
         Set<Long> ids = comments.stream()
                                 .map(ArticleComment::getId)
