@@ -101,7 +101,7 @@ public class ArticleActionServiceImpl implements ArticleActionService {
            });
 
         // 执行验证
-        VerifyTool.ofLoginExist(mediator, nodes.toArray(new VerifyNode<?>[0]))
+        VerifyTool.of(nodes.toArray(new VerifyNode<?>[0]))
                   .doVerify();
         // 分页查询
         return PageResult.of(commentMapper.paginateAs(
